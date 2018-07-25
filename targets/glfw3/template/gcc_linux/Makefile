@@ -17,8 +17,11 @@ CPPFLAGS=$(CCOPTS) \
 -D_GLFW_HAS_GLXGETPROCADDRESS \
 -pthread
 
+SHAREPATH=$(APPLIBPATH)/shared/Linux$(ARCH)
+STATICPATH=$(APPLIBPATH)/static/Linux/$(ARCH)
+
 LD=g++
-LDFLAGS=$(LDOPTS)
+LDFLAGS=$(LDOPTS) -L$(SHAREPATH) -L$(STATICPATH) '-Wl,-rpath,$$ORIGIN/libs'
 LDLIBS=-lGL -lX11 -lXxf86vm -lXi -lXrandr -lXinerama -lXcursor $(LIBOPTS) -lpthread -ldl 
 
 vpath %.c ../glfw3/src

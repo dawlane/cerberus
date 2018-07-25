@@ -12,6 +12,9 @@
 
 #if _WIN32
 #include <winsock2.h>
+#if __VISUAL_STUDIO__
+#include "resource.h"
+#endif
 #include <windows.h>
 #include <shlobj.h>
 #include <direct.h>

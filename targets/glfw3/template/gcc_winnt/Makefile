@@ -1,3 +1,4 @@
+# MinGW GLFW 3
 
 CC=gcc
 CFLAGS=
@@ -16,12 +17,85 @@ CPPFLAGS=$(CCOPTS) \
 -I../lpng1610
 
 LD=g++
-LDFLAGS=$(LDOPTS) -Wl,--subsystem,windows
-LDLIBS=-lcomdlg32 -lgdi32 -lopengl32 $(LIBOPTS) -lws2_32
+
+# Detect the system architecture
+ERROR=1
+
+$(info SYSTEM ROOT $(SystemRoot))
+
+ifeq ($(ARCH),)
+$(info AUTO DETECT ARCHITECTURE)
+	ifeq ($(PROCESSOR_ARCHITEW6432),AMD64)
+$(info 64 BIT)
+		override ARCH=64
+		OPENAL_DLL=$(SystemRoot)/System32/openal32.dll
+		ERROR=0
+	else
+		ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+$(info 32 BIT)
+			override ARCH=32
+			OPENAL_DLL=$(SystemRoot)/System32/openal32.dll
+			ERROR=0
+		endif
+	endif
+else
+	ifeq ($(ARCH),64)
+$(info 64 BIT)
+		override ARCH=64
+		OPENAL_DLL=$(SystemRoot)/System32/openal32.dll
+		ERROR=0
+	else
+		ifeq ($(ARCH),32)
+$(info 32 BIT)
+			override ARCH=32
+			OPENAL_DLL=$(SystemRoot)/SysWOW64/openal32.dll
+			ERROR=0
+		else
+$(error UNABLE TO DETERMINE SYSTEM ARCHITECTURE)
+		endif
+	endif
+endif
+
+ifeq ($(ERROR),1)
+$(error UNRECOGNISED ARCHITECTURE $(ARCH))
+endif
+
+SHARE_PATH=$(APPLIBPATH)/shared/Win$(ARCH)
+STATIC_PATH=$(APPLIBPATH)/static/Mingw/Win$(ARCH)
+
+ifeq ($(STATIC),1)
+	ifeq ($(POSIX),0)
+		POSIX_MSG="POSIX_DISABLED"
+		POSIX_ON=
+	else
+		POSIX_MSG="POSIX ENABLED"
+		# This is a hack to get rount the winpthread problem.
+		POSIX_ON=-Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
+	endif
+$(info STATIC BUILDING $(POSIX_MSG))
+#	LDFLAGS=$(LDOPTS) -L$(SHARE_PATH) -L$(STATIC_PATH) -L../openal/libs/mingw/win$(ARCH) -Wl,--subsystem,windows
+	LDFLAGS=$(LDOPTS) -L$(SHARE_PATH) -L$(STATIC_PATH) -Wl,--subsystem,windows
+#	LDLIBS=-Wl,-Bstatic -static-libgcc -static-libstdc++ $(POSIX_ON) -Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 -lopenal32 $(LIBOPTS) -lws2_32
+	LDLIBS=-Wl,-Bstatic -static-libgcc -static-libstdc++ $(POSIX_ON) -Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 $(OPENAL_DLL) $(LIBOPTS) -lws2_32
+else
+$(info NON STATIC)
+#	LDFLAGS=$(LDOPTS) -L$(SHARE_PATH) -L$(STATIC_PATH) -L../openal/libs/mingw/win$(ARCH) -Wl,--subsystem,windows
+	LDFLAGS=$(LDOPTS) -L$(SHARE_PATH) -L$(STATIC_PATH) -Wl,--subsystem,windows
+#	LDLIBS=-Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 -lopenal32 $(LIBOPTS) -lws2_32
+	LDLIBS=-Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 $(OPENAL_DLL) $(LIBOPTS) -lws2_32
+endif
+
+RES=windres
+ifeq ($(ARCH),64)
+	RES_ARCH=pe-x86-64
+else
+	RES_ARCH=pe-i386
+endif
 
 vpath %.c ../glfw3/src
 vpath %.c ../stb
 vpath %.cpp ..
+vpath %.rc ..
 
 OBJS0=\
 context.o \
@@ -41,6 +115,7 @@ win32_window.o \
 window.o \
 stb_vorbis.o \
 stb_image.o \
+resource.o \
 main.o
 
 TMP=build/$(dir $(OUT))
@@ -57,3 +132,6 @@ $(TMP)%.o : %.c
 
 $(TMP)%.o : %.cpp
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+$(TMP)%.o : %.rc
+	$(RES) --target $(RES_ARCH) -i $< -o $@

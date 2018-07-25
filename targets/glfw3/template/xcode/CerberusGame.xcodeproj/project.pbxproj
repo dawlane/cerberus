@@ -14,7 +14,6 @@
 		5B5444E81F0BC72800A09B8D /* vulkan.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5444DD1F0BC72800A09B8D /* vulkan.c */; };
 		5B5444F01F0BC88300A09B8D /* posix_thread.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B5444EE1F0BC88300A09B8D /* posix_thread.c */; };
 		5B9A66EA1F2F246600EF062C /* include in Resources */ = {isa = PBXBuildFile; fileRef = 5B9A66E91F2F246600EF062C /* include */; };
-		5BD341471F2F293200608B7B /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BD341461F2F293200608B7B /* libcurl.a */; };
 		7C17EE5212BAD553007B72A6 /* stb_image.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C17EE5112BAD553007B72A6 /* stb_image.c */; };
 		7C83FECA15730D2B007D5B80 /* stb_vorbis.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C83FEC915730D2B007D5B80 /* stb_vorbis.c */; };
 		7C8AF373199985960016C22B /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C8AF372199985960016C22B /* CoreVideo.framework */; };
@@ -36,6 +35,7 @@
 		7CE1AA8817E154F600D079FE /* window.c in Sources */ = {isa = PBXBuildFile; fileRef = 7CE1AA7817E154F600D079FE /* window.c */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		968ED0BB210125DA00AA1CFC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 968ED0BA210125DA00AA1CFC /* Images.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,7 +55,6 @@
 		5B5444EE1F0BC88300A09B8D /* posix_thread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = posix_thread.c; path = ../glfw3/src/posix_thread.c; sourceTree = "<group>"; };
 		5B5444EF1F0BC88300A09B8D /* posix_thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = posix_thread.h; path = ../glfw3/src/posix_thread.h; sourceTree = "<group>"; };
 		5B9A66E91F2F246600EF062C /* include */ = {isa = PBXFileReference; lastKnownFileType = folder; name = include; path = ../curl/include; sourceTree = "<group>"; };
-		5BD341461F2F293200608B7B /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../curl/lib/MacOS/libcurl.a; sourceTree = "<group>"; };
 		7C17EE5112BAD553007B72A6 /* stb_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = stb_image.c; path = ../stb/stb_image.c; sourceTree = SOURCE_ROOT; };
 		7C73309C1999832400988833 /* glfw_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glfw_config.h; path = ../glfw3/src/glfw_config.h; sourceTree = "<group>"; };
 		7C7330A01999832400988833 /* nsgl_context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = nsgl_context.h; path = ../glfw3/src/nsgl_context.h; sourceTree = "<group>"; };
@@ -82,6 +81,7 @@
 		7CE1AA8B17E16F2900D079FE /* glfw3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glfw3.h; path = ../glfw3/include/GLFW/glfw3.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* CerberusGame-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "CerberusGame-Info.plist"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* CerberusGame.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CerberusGame.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		968ED0BA210125DA00AA1CFC /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = CerberusGame/Images.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,7 +89,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5BD341471F2F293200608B7B /* libcurl.a in Frameworks */,
 				7C8AF373199985960016C22B /* CoreVideo.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				7C8DB52F12AF2C210090FC6E /* OpenGL.framework in Frameworks */,
@@ -184,6 +183,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				968ED0BA210125DA00AA1CFC /* Images.xcassets */,
 				7CD5046C165B1A60009581D7 /* external */,
 				7CD5046D165B1A60009581D7 /* internal */,
 				7CACF8E612B5D1AF002E52F2 /* data */,
@@ -196,7 +196,6 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				5BD341461F2F293200608B7B /* libcurl.a */,
 				7C8AF372199985960016C22B /* CoreVideo.framework */,
 				7CDF25451602B81600B598F3 /* IOKit.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
@@ -214,6 +213,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C01FCF4A08A954540054247B /* Build configuration list for PBXNativeTarget "CerberusGame" */;
 			buildPhases = (
+				96B15BAA21035E6400F4C206 /* ShellScript */,
 				8D1107290486CEB800E47090 /* Resources */,
 				8D11072C0486CEB800E47090 /* Sources */,
 				8D11072E0486CEB800E47090 /* Frameworks */,
@@ -234,7 +234,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0730;
 			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "CerberusGame" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -263,12 +263,30 @@
 				8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */,
 				7CACF8E812B5D1AF002E52F2 /* data in Resources */,
 				7CD5046E165B1A60009581D7 /* external in Resources */,
+				968ED0BB210125DA00AA1CFC /* Images.xcassets in Resources */,
 				5B9A66EA1F2F246600EF062C /* include in Resources */,
 				7CD5046F165B1A60009581D7 /* internal in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		96B15BAA21035E6400F4C206 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Quick and dirty way to get the application you use user icons.\n# The project folder must have a directory called icons at root source level with a sub directory call 'png' using Apple's naming for icons is required e.g icon_XresoulionxYresolution.png and icon_XresoulionxYresolution@2x.png for this to work.\n\n# Add /usr/local/bin to the systems PATH for any extra tool that may be needed.\n# Tools of note: iconutil. See the man pag\nPATH=${PATH}:/usr/local/bin\n# Default icons for Mac as in XCODE 7.3\nICON_LIST=('16x16' '16x16@2x' '32x32' '32x32@2x' '128x128' '128x128@2x' '256x256' '256x256@2x' '512x512' '512x512@2x')\n\n# Get the root directory.\nIFS=$'\\n'\nCPRJ_ROOT=\"$( cd \"$( dirname \"${SRCROOT}\" )\"/../../ && pwd) \"\n\n# Function to copy over the icons from A to B\nfunction copy(){\n    local src=$1\n    local dst=\"${SRCROOT}/CerberusGame/Images.xcassets/AppIcon.appiconset\"\n    \n    # Loop through the ICON_LIST array for the icon files supported\n    for icon_size in ${ICON_LIST[@]}; do\n    if [ -f \"$dst/icon_$icon_size.png\" ]; then rm -f $dst/icon_$icon_size.png; fi # Remove the old file before copying over a new one.\n    if [ -f \"$src/icon_$icon_size.png\" ]; then cp $src/icon_$icon_size.png $dst/icon_$icon_size.png; fi # Only copy if it's the right file.\n    done\n}\n\n# Check the paths and select\nfunction CheckPath(){\n    # The clean up the path for the projects root location.\n    # Don't know why, but $CPRJ_ROOT ends up with space at the end. So Trim any white space off.\n    USER_RESOURCE=$(echo \"${CPRJ_ROOT}\" | awk '{gsub(/^ +| +$/,\"\")}1')\n    \n    # The default location for the icon set in Cerberus\n    CERBERUS_RESOURCE=$(echo \"${CERBERUS_PATH}\" | awk '{gsub(/^ +| +$/,\"\")}1')\n    CERBERUS_RESOURCE=\"$CERBERUS_RESOURCE/src/archives/icons/cerberus.iconset\"\n    \n    echo \"USER RESOURCE PATH: $USER_RESOURCE\"\n    echo \"CERBERUS RESOURCE PATH: $CERBERUS_RESOURCE\"\n    \n    # Check to see if a user has used a full path to the icons.\n    if [ -d \"${CERBERUS_ICONSET_PATH}.iconset\" ]; then\n    echo \"Setting iconset to full user named path.\"\n    USER_RESOURCE=\"${CERBERUS_ICONSET_PATH}.iconset\"\n    echo \"ICON SET: $USER_RESOURCE\"\n    copy \"$USER_RESOURCE\"\n    else\n    # check the local icon resource directory\n    if [ -d \"$USER_RESOURCE/icons/${CERBERUS_ICONSET_PATH}.iconset\" ]; then\n    echo \"Setting iconset to local project user named resource.\"\n    USER_RESOURCE=\"$USER_RESOURCE/icons/${CERBERUS_ICONSET_PATH}.iconset\"\n    echo \"ICON SET: $USER_RESOURCE\"\n    copy \"$USER_RESOURCE\"\n    else\n    # Check the local icon resource for anything names icon\n    if [ -d \"$USER_RESOURCE/icons/icon.iconset\" ]; then\n    echo \"Setting iconset to local project icon resource.\"\n    USER_RESOURCE=\"$USER_RESOURCE/icons/icon.iconset\"\n    echo \"ICON SET: $USER_RESOURCE\"\n    copy \"$USER_RESOURCE\"\n    else\n    # Fall back to Cereberus icons\n    if [ -d \"$CERBERUS_RESOURCE\" ]; then\n    echo \"Setting iconset to Cerberus default resource directory.\"\n    USER_RESOURCE=\"$CERBERUS_RESOURCE\"\n    echo \"ICON SET: $USER_RESOURCE\"\n    copy \"$USER_RESOURCE\"\n    else\n    echo \"No iconset found. Failing back to Apple default or whatever was last used.\"\n    fi\n    fi\n    fi\n    fi\n}\n\necho \"\"; echo \"RUNNING ICON COPY SCRIPT\"\necho \"COPYING ICON DATA\"\necho \"\"\nCheckPath\necho \"FINISHED RUNNING ICON COPY SCRIPT\"; echo \"\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8D11072C0486CEB800E47090 /* Sources */ = {
@@ -314,6 +332,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -329,8 +348,10 @@
 				);
 				INFOPLIST_FILE = "CerberusGame-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = "-Wno-logical-op-parentheses";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourcompany.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = CerberusGame;
 				SDKROOT = macosx;
 			};
@@ -340,6 +361,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_MODEL_TUNING = G5;
@@ -353,8 +375,10 @@
 				);
 				INFOPLIST_FILE = "CerberusGame-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				OTHER_CFLAGS = "-Wno-logical-op-parentheses";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.yourcompany.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = CerberusGame;
 				SDKROOT = macosx;
 			};
@@ -363,8 +387,8 @@
 		C01FCF4F08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -385,8 +409,7 @@
 		C01FCF5008A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
