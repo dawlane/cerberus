@@ -1,24 +1,26 @@
-Building instructions
+﻿Building instructions
 
 ======= LINUX =======
-You should find all the developer packages in your distributions online repository.
+You should first install all the developer packages found in your distributions online repository.
 
 E.G. for Ubuntu/Linux Mint
-sudo apt-get -y install g++ libglu1-mesa-dev libopenal-dev libxi-dev libxrandr-dev
-libxinerama-dev libxcursor-dev libxxf86vm-dev libx11-dev libgl1-mesa-dev
+sudo apt-get -y install g++ libglu1-mesa-dev libopenal-dev libxi-dev libxrandr-dev libxinerama-dev libxcursor-dev libxxf86vm-dev libx11-dev libgl1-mesa-dev
 
 Qt4
 sudo apt-get install libqt4-dev libqtwebkit-dev qt4-default
 
-Qt5
-sudo apt-get -y install libqt5webkit5-dev qtlocation5-dev qtsensors5-dev libxslt-dev
-libsqlite3-dev libgstreamer-plugins-base0.10-dev qt5-default libicu-dev
+Qt5 (Ubuntu 16.04)
+sudo apt-get -y install libqt5webkit5-dev qtlocation5-dev libqt5sensors5-dev libxslt1-dev libsqlite3-dev libgstreamer-plugins-base0.10-dev qt5-default libicu-dev
 
 Special not for 64 bit users of Debian/Ubuntu and their derivatives:
-Please be aware that you will of course need the g++-multilib package installed to do the following.
-It is posible to cross compile and test for 32 bit builds by linking the required development libraries like so
+Please be aware that you will of course need the g++-multilib package installed to create 32 bit binaries as well as the packages listed below:
 
-Debian
+E.G. for Ubuntu/Linux Mint
+libglu1-mesa:i386 libopenal1:i386 libxpm4:i386 libxrender1:i386 libxcursor1:i386 libxi6:i386 libxinerama1:i386 libxxf86vm1:i386 libxrandr2:i386
+
+It is possible to cross compile and test for 32 bit builds on a 64 bit Ubuntu/Debain/LinuxMint distribution by linking the required development libraries like so:
+
+Debian:
 sudo ln -s /usr/lib/i386-linux-gnu/libGL.so.1 /usr/lib32/libGL.so
 
 Ubuntu
@@ -33,16 +35,84 @@ sudo ln -s /usr/lib/i386-linux-gnu/libXrandr.so.2 /usr/lib32/libXrandr.so
 sudo ln -s /usr/lib/i386-linux-gnu/libXinerama.so.1 /usr/lib32/libXinerama.so
 sudo ln -s /usr/lib/i386-linux-gnu/libXcursor.so.1 /usr/lib32/libXcursor.so
 
-======= WINDOWS VISTA/WIN&/8/X =======
-You will require the Window version of GCC, either MinGW (http://www.mingw.org/) or TDM (http://tdm-gcc.tdragon.net/)
-You will need Visual Studio 2013 and the corresponding Qt 5.5.1 SDK for Visual Studio 2013 to build Ted
+Please be aware that locations and names of these shared libraries can and do change from time to time.
 
-You will find a power-shell script called rebuildall.ps1 that should work on Win7+.
-To use it open a power shell (not the noraml command shell) and type
-.\rebuildall.ps1 -mingw "path_to_mingw_root_directory" -qtsdk "path_to_qtsdk_root_directory" -qtspec "qtspec_directory_for_compiler"
+To actually build, you need to set the execute permission and run the ‘rebuild all.sh’ script:
+cd cerberus/src
+chmod +x rebuildal.sh
+./rebuildal.sh
+
+You can pass a number of options to the script just to rebuild a part of the Cerberus installation.
+Options:
+-t | --transcc ................ Build the transcc from Cerberus source code.
+-b | --boot ................... Build transcc from C++. Only need if there is no transcc to start with.
+-l | --launcher ............... Build the cerberus launcher.
+-d | --makedocs ............... Build the makedocs.
+-c | --cserver ................ Build the cserver.
+-e | --ted .................... Build the Ted IDE.
+-a | --archives ............... Extract archives.
+-u | --unsetmods .............. Unset execute permissions for certain files. Mostly added for working with git.
+-build32 ...................... Build only 32 bit versions of tools. Linux ONLY.
+                                Note that this requires a complicated set up to work correctly, so it's best avoided unless you know exactly what you are doing.
+-s | --sharedtrans ............ Build shartrans library helper from source.
+--dbg ......................... Pass either debug or release as a parameter. The default is to build a release binary.
+--qtsdk "path_to_tool_chain" .. This is optional on Linux as you would normally install the repository packages.
+                                But you can use other versions of Qt providing that you use a script to set up a suitable shell environment.
+                                There is such a script that can be found on the Qt website at http://doc.qt.io/qt-5/linux-deployment.html.
+-h,--help ..................... Show this usage information.
+
+EXPERIMENTAL OPTIONS: 
+-p | --package "name" ............... See bottom of this text file.
+-g | --git .......................... Use in conjunction with option --package. Seet bottom of this text file.
+-s | --sharedtrans .................. build shartrans from source.
+--qtdeploy .......................... Deploy Qt libraries. Linux only.
+--qtversion ......................... Set the version of the Qt SDK to use.
+
+Note that some distributions default to qmake for Qt4. If you need to use Qt5 then use qtchooser or in a termina before running the script use:
+
+export QT_SELECT=qt5
+export QTDIR=path-to-qt-bin
+export PATH=$QTDIR:$PATH
+
+======= WINDOWS VISTA/WIN7/8/X =======
+You will need to have OpenAL installed. You can download a copy from https://www.openal.org and from https://www.cerberus-x.com/downloads
+You will need Visual Studio 2015 and the corresponding Qt 5 SDK for Visual Studio 2015 to build TED. you can edit the rebuildall.ps1 file to use Visual Studio 2017.
+
+NOTE: Experimantal tool chain building via Visual Studio. So MinGW will become an optional install.
+You will require the Window version of GCC, aka Minimalist GNU for Windows (better known as MinGW. There are a number of places where you can download a version.
+
+MinGW (http://www.mingw.org/) is the original version and is strictly 32 bit only and currently untested.
+
+TDM-GCC (http://tdm-gcc.tdragon.net/) is a variation of MinGW that supports both 32 bit and 64 bit compilation, but please note that there is a linker bug in v5.1 that prevents it from using Visual Studio .lib files.
+You can also download an earlier version copy of TDM-GCC from (https://www.cerberus-x.com/community/threads/how-to-build-desktop-target.30/) that does work. Please note that this version is getting old and can no
+long be relied upon for consitant builds. You could also end up with additional shared libraries for the MinGW runtime that you do not need.
+
+MinGW-w64 (https://mingw-w64.org/) is an other variant that supports 32/64 bit compilation, but requires a bit of knowledge on what to download from the options presented with the installer program.
+This is also the version that I would recommend for use. Currently version 7.2 posix threading and exceptions sjlj is known to work with this version of Cerberus, but others may work.
+
+The install presents you with:
+    Version: Unlike TDM-GCC installer, you can select any version from 4.8.1 to the latest.
+    Architecture: You have a choice of two, i686 and x86_64. The i686 is a 32 bit application, while the x86_64 is a 64 bit build only. Which of these is selected also affects the exception handling options.
+    Threads: You have a choice of two, win32 and posix. You should search the internet for a good explanation of the difference between the two.
+    Exception: Depending on the Architecture selected, the exception handling gives you a choice of either:
+        i686: dwarf or sjlj
+        x86_64: seh or sjlj
+    Revision: Minor build updates.
+
+If you wish to do 32/64 bit cross compiling, then you should select sjlj exceptions versions. But be warned that sjlj has been known to have problems when certain compiler flags have been used.
+The people behind MinGW-w64 recommend using only the defaults shown for exceptions (dwarf or seh). This means that if you wish to compile for both 32 bit and 64 bit; then you have to have both compiler tool chains installed.
+This means that you would have to change the MINGW_PATH variable in config.winnt.txt every time you wish to compile for a different CPU architecture.
+It should also be noted that MinGW-w64's default build system requires that a number of dynamic link libraries to be included with the final executable.
+You can of course pass the -static parameter in the g++ command to embed these as part of the final executable, but there may be licence restriction if doing so.
+
+IN ALL VERSION OF MINGW YOU SHOULD READ THE LICENCE FILES AND DOCUMENTATION.
+
+With this build instructions file you will find a power-shell script called rebuildall.ps1 that should work on Win7+ installed with .NET 4.0+.
+On a 64 bit operating system there are usually two versions of power-shell installed, one is a 64 bit native version that uses a pure 64 bit environment and will create 64 bit executables, provided that a compatible version of MinGW installed.
+And the other is a 32 bit executable version that uses a pure 32 bit environment and will create 32 bit executables. Therefore you should use the 64 bit version of power-shell. Passing --build32 as a parameter will generate a 32 bit version of Cerberus.
 
 NOTE: This script requires that the execution policy for the current user be set to unrestricted.
-to do this open a power shell as administrator and use:
+To do this open a power shell as administrator and use:
     get-executionpolicy -list
     set-executionpolicy -scope currentuser unrestricted
 If the file is still blocked use:
@@ -50,22 +120,90 @@ If the file is still blocked use:
 You should reset the execution policy back to it's original state e.g.:
     set-executionpolicy -scope currentuser undefined
 
-ALSO NOTE:
-The parameters -mingw and -qtsdk are optional if you already have both paths set correctly in your system paths.
-The defaults are shown
-'path_to_mingw_root_directory' would be for example:
-C:\MinGW
+To usage, open a power shell (not the normal command shell) and type:
+.\rebuildall.ps1 [-option, --option {path}]
+Examples for MinGW : Static and non static with runtimes and TDM-MinGW 
+    .\rebuildall.ps1 -mingw-static
+    .\rebuildall.ps1 --runtimes
+    .\rebuildall.ps1
 
-'path_to_qtsdk_root_directory' would be for example:
-C:\Qt5\5.5\msvc2013_64
+Examples fo Visual Studio: Default build with VS2015 and using VS2017
+    .\rebuildall.ps1 -msbuild
+    .\rebuildall.ps1 -msbuild -vsversion "2017" -v "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build" -q "C:\Qt\5.9.2\msvc2017_64"
 
-If you are using a different compiler, you need to tell qmake which pre-built binaries you wish to use.
-These are located in the Qt SDK under the mkspecs directory
-'qtspec_directory_for_compiler' would be for example
-win32-msvc2013 for Visual Studio 2013
+Options:
+-t | --transcc ................ Build the transcc from Cerberus source code.
+-b | --boot ................... Build transcc from C++. Only need if there is no transcc to start with.
+-l | --launcher ............... Build the cerberus launcher.
+-d | --makedocs ............... Build the makedocs.
+-c | --cserver ................ Build the cserver.
+-e | --ted .................... Build the Ted IDE.
+-a | --archives ............... Extract archives.
+-q | --qtsdk "path" ........... Path to Qt SDK 5 Visual Studio installation. The default is C:\Qt5\5.9.2\msvc2015
+-m | --mingw "path" ........... Path to MinGW installation. The default is C:\MinGW
+-v | --visualstudio "path" .... Path to Visual Studio. The default is C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC
+-s | --sharedtrans ............ Build shartrans from source.
+-build32 ...................... Build only 32 bit versions of the tools.
+-mingw-static ................. Mainly for users of MinGW-w64 to create stand-a-lone binaries. See the MinGW-w64 documentation and licence files for any restrictions.
+                                NOTE: That using static builds will require static export libraries of dynamic link libraries.
+-dbg .......................... Build debug versions of everything. Not that you will need to set up the debug tools for Windows.
+-h,--help ..................... Show usage information.
 
-To build a debug version of Ted add -qtdbg 1
+EXPERIMENTAL OPTIONS: 
+-p | --package "name" ............... See bottom of this text.
+-g | --git .......................... Use in conjunction with option --package. Seet bottom of this text file.
+--confpath "path_variable" "path".... Set a path variable in config.winnt.txt.
+-msbuild ............................ setting this will build a pure windows binary of transcc.
+-vsversion VERSION .................. set the version of Visual Studio to use. The default is 2015.
+-qtversion VERSION .................. set the version of the Qt SDK to use."
+--confauto .......................... Set all path variable in config.winnt.txt to the default in the script.
+-r | --runtime ...................... For those using MinGW-w64 compilers not wanting to do static linking.
+
+NOTE TO DEVELOPERS: The --confauto calls a function where you should add script code to query the Windows registry where posible to get information on locations for paths.
+
+SPECIAL NOTE: IF YOU WISH TO BUILD USING A DIFFERENT COMPILER YOU SHOULD CLOSE THE CURRENT TERMINAL SESSION AND AND START A NEW ONE.
+NOT DOING SO WILL CAUSE BUILDING ERRORS. 
 
 ======= MAC OSX =======
-TO DO
+You will need to have Xcode and the Xcode command line tools installed. To build Ted, you will also need the Qt 5 SDK installed.
+You can use the same rebuild all shell script (rebuildall.sh) as used for Linux, but you will need to pass the location of bin directory
+where your Qt5.5 is installed with the option --qtsdk. And there is an addition option for setting the flat-pack identifier. See bottom of text file.
+
+ 
+SPECIAL NOTE: XCode 8+ with Qt 5.5 and clang may complain about that you haven't accepted the licence.
+This problem is down to not having an updated mkspecs for use with that and later version of Xcode. You will find this information on stackoverflow
+https://stackoverflow.com/questions/33728905/qt-creator-project-error-xcode-not-set-up-properly-you-may-need-to-confirm-t
+
+They're reproduced here for convenience.
+
+To fix it you need to do the following:
+Open the file named below with a decent text editor. Replace Qt_install_folder with the path to the Qt SDK root directory.
+Qt_install_folder/5.5/clang_64/mkspecs/features/mac/default_pre.prf
+
+Replace:
+isEmpty($$list($$system("/usr/bin/xcrun -find xcrun 2>/dev/null")))
+
+With:
+isEmpty($$list($$system("/usr/bin/xcrun -find xcodebuild 2>/dev/null")))
+
+Before Xcode 8 you needed to do:
+sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+
+And once done run and confirm the licence with:
+xcodebuild -license
+
+
+======= Experimental Packaging =======
+When you have successfully built Cerberus. You can pass the option -p to rebuildall.ps1/sh to build copy over file to compare agains the main repository using a tool such as Meld.
+Passing the option -g|--git will clone the repository, change into the clone to build,then copy it to a new directory to be compressed as a distributable package.
+The packages built will be placed in the home directory in the Documents directory under the name cerbdeploy.
+
+MacOS specific:
+The default package id is "com.dawlane.root_directory_name", but you can change it from 'dawlane' to anything you like by using the -i|--companyid option.
+The OS X flat package (.pkg) on my build system installs with file permissions set, but for some unknown reason you have to start the Cerberus IDE once
+and close it before all the other targets will become available.
+
+Example: Windows and MacOS X clone, build and package.
+    .\rebuildall.ps1 -p Cerberus -msbuild -g
+    .\rebuildall.sh -p Cerberus -i MyCompany -g
  
