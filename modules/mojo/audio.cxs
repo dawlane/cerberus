@@ -1,3 +1,9 @@
+#Rem
+Change Log
+--------------------------------------------------------------------------------------------------------
+2018-07-23 - Dawlane
+					Removed the link option for openal32 as the project build files will handle linking of this.
+#End
 
 ' Module mojo.audio
 '
@@ -14,11 +20,8 @@ Import audiodevice
 
 Import data
 
-
-#If HOST="winnt"
-#GLFW_GCC_LIB_OPTS+="-lopenal32"
-#GLFW_COPY_LIBS+="openal32"
-#Else
+' DAWLANE - Removed OpenAL32 link option as the project files will handle this.
+#If HOST<>"winnt"
 #GLFW_GCC_LIB_OPTS+="-lopenal"
 #Endif
 
