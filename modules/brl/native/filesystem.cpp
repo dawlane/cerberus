@@ -1,8 +1,14 @@
-
 // Stdcpp trans.system runtime.
 //
 // Placed into the public domain 24/02/2011.
 // No warranty implied; use as your own risk.
+/*
+Change Log
+----------------------------------------------------------------------------------------------------------------------------
+2018-07-23 - DAWLANE
+					Copy functions now allow the copying over of file premissions for Linux and MacOS (not ful premissions).
+*/
+
 
 #if _WIN32
 
@@ -102,7 +108,8 @@ class BBFileSystem{
 		//
 		// Ranlib strikes back!
 		//
-		return copyfile( OS_STR(srcpath),OS_STR(dstpath),0,COPYFILE_DATA )>=0;
+		// DAWLANE - Added file attributes COPYFILE_XATTR | COPYFILE_STAT.
+		return copyfile( OS_STR(srcpath),OS_STR(dstpath),0,COPYFILE_XATTR | COPYFILE_STAT | COPYFILE_DATA )>=0;
 #else
 		int err=-1;
 		if( FILE *srcp=_fopen( OS_STR( srcpath ),OS_STR("rb") ) ){
@@ -117,6 +124,11 @@ class BBFileSystem{
 					}
 				}
 				fclose( dstp );
+				
+				// DAWLANE - Copy over the file attributes.
+				struct stat st;
+				stat( OS_STR( srcpath ), &st );
+				chmod( OS_STR( dstpath ), st.st_mode );
 			}else{
 //				printf( "FOPEN 'wb' for CopyFile(%s,%s) failed\n",C_STR(srcpath),C_STR(dstpath) );
 				fflush( stdout );
