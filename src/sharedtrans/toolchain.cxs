@@ -1,0 +1,166 @@
+#rem
+	SHAREDTRANS
+	
+		Author J.Cook
+	 	A tool to check if a shared dynamic library exists and is of the correct type be for copying
+	 	to the applications destination directory.
+
+#end
+
+Strict
+Import sharedtrans
+
+' List of current supported CPU types and their known acrhitectures.
+Global CPU_ARCH:Int[] = [	
+							ANY_CPU,0,
+							x86,32,
+							x86_64,64 ]
+
+' List of supported CPU id codes for this tool	to use. Fill it out as the tool gets expanded.	
+Const ANY_CPU:Int = $00				
+Const x86:Int = $01
+Const x86_64:Int = $02
+
+' Data structure to hold the input file path and what the output file path
+Class Files
+	Field in:String
+	Field out:String
+	
+	Method New( in:String, out:String )
+		Self.in = in
+		Self.out = out
+	End Method
+	
+	Method In:String()
+		Return in
+	End
+	
+	Method Out:String()
+		Return out
+	End Method
+End Class
+
+' Base class for all toolchains. New systems to be added should derive a new class from this one.
+Class ToolChain
+									
+	Method New( shareTrans:ShareTransfer )
+		Self.shareTrans = shareTrans
+	End Method
+	
+	' Over-ride this in all derived classes
+	Method ParseHeader:Int( files:Files ) Abstract
+	
+	' Clear out the buffer ready for the next file
+	Method FlushBuffer:Void()
+		For Local i:=0 Until buffer.Length()
+			buffer.PokeByte(i,0)
+		Next
+	End Method
+	
+	' Load a file from the list in the arrary above
+	Method LoadDLL:Int( path:String )
+		file=FileStream.Open( path, "r" )
+		If Not file	Return ERROR_LOADING_FILE
+		file.Read( buffer, 0, HEADER_SIZE)
+		file.Close()
+		Return ERROR_OK
+	End Method
+	
+	' Check to see if the file exists
+	Method FileExists:Bool( path:String )
+		If FileType( RealPath( path ) )=FILETYPE_FILE Return True
+		Return False
+	End Method
+	
+	' Copy a file from source to destination
+	Method FileCopy:Int( file:Files )
+		If Not FileType( RealPath( file.Out() ) )=FILETYPE_FILE
+			If CopyFile( file.In(), file.Out() )
+				Print "Copied architecture "+shareTrans.opt_arch+" bit "+file.In()+" To "+file.Out()
+			Else
+				Print "Failed to copy "+file.In()+" To "+file.Out()
+			Endif
+		Else
+			shareTrans.msg = "This already exists in ~n"+RealPath( file.Out() )
+			Return ERROR_STANDARD_MSG
+		Endif
+		Return ERROR_OK
+	End Method
+	
+	' Combine the source directories with the libraries passed
+	Method ProcessSources:Int()
+		Local result:= ERROR_UNKNOWN
+		
+		If shareTrans.opt_libs<>"" libList.Push( shareTrans.opt_libs.Split( ";" ) )
+		If shareTrans.opt_srcdir<>"" dirList.Push( shareTrans.opt_srcdir.Split( ";" ) )
+		
+		' process the scan to check that these files exist
+		For Local dir:=Eachin dirList
+			For Local lib:=Eachin libList
+				' Only add a file to the list if it exists
+				If FileExists( dir+"/"+lib+ext ) filesList.Push( New Files( dir+"/"+lib+ext, shareTrans.opt_dst+"/"+lib+ext ) )
+			Next
+		Next
+		
+		libList.Clear()
+		dirList.Clear()
+		
+		If filesList.IsEmpty() Return ERROR_NO_SOURCES
+		
+		Return ERROR_OK
+	End Method
+	
+	' Convert the CPU type to it's known architecture
+	Method CPU2Arch:Int( cpu:Int )
+		For Local i:=0 Until CPU_ARCH.Length() Step 2
+			If CPU_ARCH[i]=cpu Return CPU_ARCH[i + 1]
+		Next
+		Print "CPU Architecture not found."
+		Return 0
+	End Method
+	
+	
+	' Main function for this class
+	Function ProcessShared:Int( toolchain:ToolChain )
+		'Local result:Int = ERROR_UNKNOWN
+		Print "Parameters:"
+		Print "-srcdirs: "+toolchain.shareTrans.opt_srcdir
+		Print "-dst: "+toolchain.shareTrans.opt_dst
+		Print "-libs: "+toolchain.shareTrans.opt_libs
+		Print "-toolchain: "+toolchain.shareTrans.opt_toolchain
+		Print "-toolpath: "+toolchain.shareTrans.opt_toolPath
+		Print "-arch: "+toolchain.shareTrans.opt_arch
+	
+		If Not toolchain.ProcessSources() = ERROR_OK Return ERROR_NO_SOURCES
+		If toolchain.shareTrans.opt_dst = "" Return ERROR_NO_DESTINATION
+		If FileType( toolchain.shareTrans.opt_dst )<>FILETYPE_DIR Print "WARNING : Destination does not exist.~n"+toolchain.shareTrans.opt_dst 
+		
+		' Scan the files
+		For Local i:Files=Eachin toolchain.filesList
+			If toolchain.LoadDLL( RealPath( i.In() ) )=ERROR_OK
+				' Parse any file that was succesfully loaded and report any problems
+				Select toolchain.ParseHeader( i )
+					Case ERROR_UNKNOWN
+						Return ERROR_UNKNOWN
+					Case ERROR_NOT_SHARED
+						Print "This is not a shared library.~n"+i.In()
+					Case ERROR_ARCH_UNKNOWN
+						Print "This  is not the architecture required. Skipping.~n"+i.In()
+					Case ERROR_STANDARD_MSG
+						Print toolchain.shareTrans.msg
+				End Select
+			Endif
+			toolchain.FlushBuffer()
+		Next
+		
+		Return ERROR_OK
+	End Function
+	
+	Field shareTrans:ShareTransfer
+	Field buffer:DataBuffer = New DataBuffer(HEADER_SIZE)
+	Field file:FileStream = Null
+	Field filesList:Stack<Files> = New Stack<Files>()
+	Field dirList:StringStack = New StringStack()
+	Field libList:StringStack = New StringStack()
+	Field ext:String
+End Class

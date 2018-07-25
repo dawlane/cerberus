@@ -1,0 +1,140 @@
+#rem
+	This is just a quick and dirty check and copy for dylib files.
+	Ideally this should be done in C++ for best results with all the macros needed to get information
+	from the Mach-O and Fat file types.
+#end
+
+#If HOST="macos"
+Strict
+
+Import toolchain
+
+Import "native/toolchain_macos.cpp"
+
+' Mach-o identification
+Const LITTLE_ENDIAN_32:Int = $01
+Const LITTLE_ENDIAN_64:Int = $02
+Const BIG_ENDIAN_32:Int= $03
+Const BIG_ENDIAN_64:Int= $04
+
+Const FAT_LITTLE_ENDIAN:Int = $05
+Const FAT_BIG_ENDIAN:Int= $06
+
+Const MH_DYLIB:Int = $06
+
+Extern
+' Need to do this with C/C++ and make use of the mach-o data types.Extern
+	Function MachO:Int( buffer:DataBuffer, offset:Int = $00 ) 	' Return a value to determine the architecture and bitiness of the file
+	'Function IsDylib:Int( buffer:DataBuffer ) 	' Check that what we haveis a dylib
+	Function CPU:Int( buffer:DataBuffer, offset:Int = $04 ) 		' Check that the CPU is e an x86, x86_64
+	Function BigInt2HostInt:Int( val:Int ) 	' Convert a Big integer to a littel integer
+	Function CPUConvert:Int( val:Int )			' Conver the OS id CPU id to our CPU id
+Public
+
+Class MacOS Extends ToolChain
+		
+	Method New( shareTrans:ShareTransfer )
+		Super.New( shareTrans )
+		ext=".dylib"
+		If HostOS()="macos"
+			If shareTrans.opt_libs<>""
+				shareTrans.opt_dst+="/Contents/Frameworks"
+				CreateDir( RealPath( shareTrans.opt_dst ) )
+			Endif
+		Endif
+	End
+	
+	' Set the default location of the dylib. It's usually the install path in /usr/local or where is was built.
+	' But it needs to be set to @executable_path/../Frameworks before any building or copying is done.
+	Method SetDefaultBase:Void( file:Files )
+		Local name:=file.Out()[ file.Out().FindLast( "/" )+1 .. ]
+		Execute( "install_name_tool -id @executable_path/../Frameworks/"+name+" "+file.In() )
+	End Method
+	
+	Method ParseHeader:Int( file:Files )
+		Print "Parsing:~n"+file.In()
+		Local mach_o:Int = MachO( buffer )
+		
+		Select mach_o
+			Case LITTLE_ENDIAN_32, LITTLE_ENDIAN_64
+				If CPU2Arch( CPU( buffer ) ) = shareTrans.opt_arch
+					If IsDylib( mach_o ) >=0
+						SetDefaultBase( file )
+						Return FileCopy( file )
+					Else
+						Return ERROR_NOT_SHARED
+					Endif
+				Else
+					Return ERROR_ARCH_UNKNOWN
+				Endif 
+				
+			'Case BIG_ENDIAN_32
+			
+			'Case BIG_ENDIAN_64
+			
+			' Fat file headers are written to and from disk in big endian byte order. The Mach-O would be in the host CPU word format.
+			Case FAT_BIG_ENDIAN
+				' The IsDylib will parse the header for anything that's needed.
+				Local result:= IsDylib( mach_o )
+				If result >=0
+					SetDefaultBase( file )
+					Return FileCopy( file )
+				Elseif result = ERROR_BUFFER_EXCEEDED
+					shareTrans.msg = "Size of file exceeds tool data buffer size~n"+file.In()+"~nManual copy this file to~n"+file.Out()+"~nor recompile sharedtrans with a larger buffer store."
+					Return ERROR_STANDARD_MSG
+				Else
+					Return ERROR_NOT_SHARED
+				Endif
+			Default
+				shareTrans.msg = "This file is not A Mach-O binary.~n"+file.In()
+				Return ERROR_NOT_WANTED
+		End Select
+		
+		Return ERROR_OK
+	End Method
+	
+	' This method will parse the file header and return a CPU id number if the file matches what we are looking for.
+	Method IsDylib:Int( dylib:Int )
+		Select dylib
+			Case LITTLE_ENDIAN_32, LITTLE_ENDIAN_64
+				' The file type id should be 12 bytes into the mach-o header. The order is magic(4), cpu_type(4), cpu_sub_type(4), file_type(4), ncmds(4), sizeofcmds(4), flags(4) and for 64 bit headers reserved(4).
+				If ( buffer.PeekInt($0c) = MH_DYLIB ) Return CPU( buffer ) Else Return ERROR_NOT_SHARED
+			Case FAT_BIG_ENDIAN
+				' Universal binary headers are stored on disk in big endian format
+				' First 8 bytes should be the fat headers magic number and the number of architectures stored in the fat file.
+				' Fat header order is magic(4), nfat_arch(4)
+				Local nfat_arch:=BigInt2HostInt( buffer.PeekInt($04) )
+							
+				' What follows would be an array of type struct fat_arch consiting of 20 bytes. We only need the cputype and offset to the mach-o header
+				' Fat arch order is cpu_type(4), cpu_sub_type(4), offset(4), size(4), align(4)
+				Local idx:=0, ptr:=8
+				While idx<nfat_arch
+					' Check that the CPU is what we are looking for
+					If CPU2Arch( CPUConvert( BigInt2HostInt( buffer.PeekInt(ptr) ) ) ) = shareTrans.opt_arch
+						' If the loop should go past the size of the data buffer.
+						If ptr+8>buffer.Length()
+							Return ERROR_BUFFER_EXCEEDED
+						Endif
+						
+						' Get the offset and check the mach-o part
+						Local off:=BigInt2HostInt( buffer.PeekInt(ptr+8) )
+						Local mach_o:= MachO( buffer, off )
+						Select mach_o
+							Case LITTLE_ENDIAN_32, LITTLE_ENDIAN_64
+								Local cpu:=CPU( buffer, off+$04 )
+								
+								If CPU2Arch( cpu ) = shareTrans.opt_arch
+									If buffer.PeekInt(off+$0c) = MH_DYLIB Return cpu
+								Endif
+						End Select
+					Endif
+					idx+=1
+					ptr+=20
+				Wend
+				
+		End Select
+		Return -100
+	End Method
+	
+End Class
+#Endif

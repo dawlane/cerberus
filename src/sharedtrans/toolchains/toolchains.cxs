@@ -1,0 +1,26 @@
+Strict
+
+Import sharedtrans
+
+Import mingw
+Import macos
+Import linux
+
+Function Target:StringMap<ToolChain>( sharetrans:ShareTransfer )
+	Local target:=New StringMap<ToolChain>
+
+	#If HOST="winnt"
+	target.Set "mingw",New MinGW( sharetrans, False )
+	target.Set "mingw-static",New MinGW( sharetrans, True )
+	target.Set "visualstudio",New WinNT( sharetrans )
+	#Endif
+	
+	#If HOST="linux"
+	target.Set "linux",New Linux( sharetrans )
+	#Endif
+	
+	#If HOST="macos" ' Only build this if on a Mac
+	target.Set "macos",New MacOS( sharetrans )
+	#Endif
+	Return target
+End

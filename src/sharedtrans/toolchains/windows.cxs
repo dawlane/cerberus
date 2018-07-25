@@ -1,0 +1,64 @@
+#If HOST="winnt"
+Strict
+
+Import toolchain
+
+' This is a base tool chain class for Windows as there is more than one compiler to support
+Class WinNT Extends ToolChain
+
+	' See https://msdn.microsoft.com/library/windows/desktop/ms680547(v=vs.85).aspx
+	Const IMAGE_FILE_MACHINE_AMD64:Int = $8664	' Image types
+	Const IMAGE_FILE_MACHINE_I386:Int = $14c	
+	'Const MAGIC_NUMBER_PE32:Int = $10b			' pe magic numbers
+	'Const MAGIC_NUMBER_PE32_PLUS:Int = $20b
+	Const IMAGE_FILE_DLL:Int = $2000		' Image file type
+	Const MZ:Int = $5a4d					' Start of DOS stub
+
+	Const PE_SIG:Int = $50450000 	' PE signature
+	
+	Const MZ_SIG:= $00				' DOS stub
+	Const PE_POINTER:= $3c			' Pointer to PE header
+	Const CHARATERISTICS:= $16		' file charateristics
+	Const MACHINE:= $04
+	
+	Method New( shareTrans:ShareTransfer )
+		Super.New( shareTrans )
+		ext = ".dll"
+	End
+
+	' All we are looking for here is the MACHINE SIG. But to get it the header has to be parsed
+	Method ParseHeader:Int( file:Files )
+		Print "Parsing:~n"+file.In()
+		Local peHeader:Int = buffer.PeekInt(PE_POINTER) & $FFFFFF
+	
+		If Not ( buffer.PeekInt(MZ_SIG) & $FFFF )=MZ
+			shareTrans.msg = "This file is not a Microsoft binary.~n"+file.In()
+			Return ERROR_NOT_WANTED
+		Endif
+		
+		' Pointer to the PE sig. Note the pointers are unsigned integer, but due to the data type limits we are stuck to a 3 byte limit
+		' The only other option here is to go the C/C++ route to get accurate data
+		If Not ( buffer.PeekInt(peHeader) & $FFFF )=PE_SIG
+			shareTrans.msg = "This file shows incorrect Microsoft PE SIG.~n"+file.In()
+			Return ERROR_NOT_WANTED
+		Endif
+		
+		If Not ( buffer.PeekInt( peHeader+CHARATERISTICS ) & IMAGE_FILE_DLL ) Return ERROR_NOT_SHARED
+				 
+		
+		' Push the file path on to a string stack ready to be copied over if the
+		' file is for the correct system architecture
+		Select buffer.PeekInt( peHeader+MACHINE ) & $FFFF
+			Case IMAGE_FILE_MACHINE_AMD64
+				If shareTrans.opt_arch=CPU2Arch( x86_64 ) FileCopy( file ) Else Return ERROR_ARCH_UNKNOWN
+			Case IMAGE_FILE_MACHINE_I386
+				If shareTrans.opt_arch=CPU2Arch( x86 ) FileCopy( file ) Else Return ERROR_ARCH_UNKNOWN
+			Default
+				 Return ERROR_ARCH_UNKNOWN
+		End Select
+
+		Return ERROR_OK
+	End Method
+		
+End Class
+#Endif

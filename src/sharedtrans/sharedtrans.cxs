@@ -1,0 +1,233 @@
+#rem
+	SHAREDTRANS
+	
+		Author J.Cook
+	 	A tool to check if a shared dynamic library exists and is of the correct type be for copying
+	 	to the applications destination directory. This is a quick and dirty method to read file headers.
+	 	Ideally the file loading and header reading should be written in C++ and Cerberus code just calling
+	 	the functions to get either a id code or limited size interger in the range of 0x0 - 0x7FFFFFFF (0 - 2,147,483,647)
+	 
+	 2018-06-07: 	Initial release
+	 2018-06-14: 	Add Support of Linux.
+	 				Restructuring of error and warning system.
+	 2018-06-16: 	Add support of MacOS. May need more work if other CPU's will be used.
+	 				Increased size of file buffer.
+	 				Restructuring of error and warning system.
+	 				Implemeted a CPU id system to word size. Needs more work to when other CPU types are encountered.
+	 				
+#end
+
+Strict
+
+#CC_APP_NAME="sharedtrans"
+'#CC_VSTUDIO_VERSION="2015"
+#CC_USE_ICON=True
+
+Import brl.databuffer
+Import brl.filestream
+Import os
+
+Import toolchains
+
+Const VERSION:="2018-06-16"
+
+Const HEADER_SIZE:Int = $f48e500 ' Work with around 256 meg to hold file data.
+
+Const ERROR_OK:Int = 0
+
+' Just a preference that serious errors should be non negative
+Const ERROR_UNKNOWN:Int = 1
+Const ERROR_INVALID_TARGET:Int = 2
+Const ERROR_NO_DESTINATION:Int = 3
+Const ERROR_NO_SOURCES:Int = 4
+Const ERROR_UNKNOWN_ARGS:Int = 5
+
+Const ERROR_OK_EXIT:Int = -1
+Const ERROR_NOT_WANTED:Int = 2
+Const ERROR_LOADING_FILE:Int = -3
+Const ERROR_NOT_SHARED:Int = -4
+Const ERROR_ARCH_UNKNOWN:Int = - 5
+Const ERROR_STANDARD_MSG:Int = -6
+Const ERROR_BUFFER_EXCEEDED:Int = -7
+
+Class ShareTransfer
+
+	' Store some important stuff
+	Field opt_target:String
+	Field opt_srcdir:String = ""
+	Field opt_dst:String =""
+	Field opt_libs:String = ""
+	Field opt_toolchain:String
+	Field opt_toolPath:String
+	Field opt_arch:Int = 32
+	Field args:String[]
+	Field cerberusdir:String
+	Field _toolChains:=New StringMap<ToolChain>
+	Field msg:String
+	
+	Field arch:Int = 32
+	
+	' Main execution function
+	Method Run:Int( args:String[] )
+		Local result:= ERROR_UNKNOWN
+		Local toolChain:ToolChain
+		
+		Self.args=args
+	
+		Print "Shared Library Transfer V"+VERSION+"~n"
+	
+		cerberusdir=RealPath( ExtractDir( AppPath() )+"/.." )
+		
+		result = ParseArgs()
+		If result>ERROR_OK Return result
+		
+		result = EnumToolChain()
+		If result>ERROR_OK
+			msg = opt_toolchain
+			Return ERROR_INVALID_TARGET 
+		Endif
+		
+		If args.Length<2
+			Local chains:=""
+			Print "Usage:~n"
+			Print "sharetrans -srcdirs=~qSOURCE_PATH_ONE;SOURCE_PATH_2~q -dst=~qDESTINATION_PATH~q -libs~qsharedlib1;shardelib2~q -toolchain=~qcompiler:see list below~q -toolpath=~qPATH_TO_TOOL_CHAIN~q -arch=~qCPU_ARCHITECTURE~q"
+			For Local it:=Eachin _toolChains
+				chains+=it.Key+" "
+			Next
+			Print "Valid toolchains = "+chains
+			Return ERROR_OK
+		Endif
+		
+		toolChain = _toolChains.Get( opt_toolchain )
+		result = toolChain.ProcessShared( toolChain )
+		Return result
+	End
+	
+	' Tool chains are initialised in the file toolchains/toolchains.cxs in the same manner as tranascc doe it.
+	Method EnumToolChain:Int()
+		Local found:Bool = False
+		For Local it:=Eachin Target( Self )
+			_toolChains.Set it.Key,it.Value
+			If opt_toolchain = it.Key found = True
+		Next
+		If Not found Return ERROR_INVALID_TARGET
+		Return ERROR_OK
+	End
+	
+	' Parse the arguments
+	Method ParseArgs:Int()
+		
+		For Local i:=1 Until args.Length
+		
+			Local arg:=args[i].Trim(),rhs:=""
+			Local j:=arg.Find( "=" )
+			If j<>-1
+				rhs=StripQuotes( arg[j+1..] )
+				arg=arg[..j]
+			Endif
+		
+			If arg.StartsWith( "-" )
+				Select arg.ToLower()
+				Case "-srcdirs"
+					opt_srcdir=rhs
+				Case "-dst"
+					opt_dst=rhs
+				Case "-libs"
+					opt_libs=rhs
+				Case "-toolpath"
+					opt_toolPath=rhs
+				Case "-toolchain"
+					opt_toolchain=rhs.ToLower()
+				Case "-arch"
+					opt_arch=Int(rhs)
+				Default
+					msg = "Unrecognized command line option: "+arg
+					Return ERROR_UNKNOWN_ARGS
+				End Select
+			Endif
+		Next
+		
+		Return ERROR_OK
+	End Method
+End Class
+
+' Main application entry point
+Function Main:Int()
+	Local sot:=New ShareTransfer
+	#If CONFIG="debug"
+		Local path:=RealPath( CurrentDir()+"/../../dll-test" )
+		If FileType( path )=FILETYPE_DIR
+			Print "Deleteing old"
+			DeleteDir( path, true )
+			CreateDir( path )
+			CreateDir( path+"/Contents" )
+		Else
+			CreateDir( path )
+		Endif
+		
+		#If HOST="winnt"
+		' Change this to point to whatever you like for testing in debug mode
+		Local args:String[] = [ "sharedtrans_winnt.exe",
+								"-srcdirs=~q~q",
+								"-libs=~q~q",
+								"-toolchain=~qmingw~q",
+								"-toolpath=~qC:/Mingw~q",
+								"-dst=~qZ:\cerberus\cerberus\src\sharedtrans\dll-test~q",
+								"-arch=~q64~q" ]
+		#Endif
+	
+		#If HOST="macos"
+		' Change this to point to whatever you like for testing in debug mode
+		Local args:String[] = [ "sharedtrans_macos",
+								"-srcdirs=~q/Volumes/NAS/developer/cerberus/kraupt/wip/cerberus-preview/libs/shared/MacOS~q",
+								"-libs=~qlibcurl~q",
+								"-toolchain=~qmacos~q",
+								"-toolpath=~qC:/Mingw-w64~q",
+								"-dst=~q/Volumes/NAS/developer/cerberus/kraupt/wip/cerberus-preview/src/sharedtrans/dll-test~q",
+								"-arch=~q64~q" ]
+		
+		#Endif
+		
+		#If HOST="linux"
+			' Change this to point to whatever you like for testing in debug mode
+		Local args:String[] = [ "sharedtrans_linux",
+								"-srcdirs=~q/home/jason/developer/cerberus/kraupt/wip/cerberus-preview/libs/shared/Linux64;/home/jason/developer/cerberus/kraupt/wip/cerberus-preview/libs/shared/Linux32~q",
+								"-libs=~qlibhello~q",
+								"-toolchain=~qlinux~q",
+								"-toolpath=~q~q",
+								"-dst=~q/home/jason/developer/cerberus/kraupt/wip/cerberus-preview/src/sharedtrans/dll-test~q",
+								"-arch=~q64~q" ]
+		#Endif
+		Local result:= sot.Run( args )
+	#Else
+		Local result:= sot.Run( AppArgs() )
+	#Endif
+		
+	' Display any errors
+	Select result
+		Case ERROR_OK_EXIT
+			Print "No file(s) to transfere OK:"+ERROR_OK
+		Case ERROR_OK
+			Print "EXIT OK:"+ERROR_OK
+		Case ERROR_NO_DESTINATION
+			Print "NO DESTIATION DIRECTORY SELECTED OK:"+ERROR_NO_DESTINATION
+		Case ERROR_NO_SOURCES
+			Print "NO SOURCES LIBRARIES SELECTED OK:"+ERROR_NO_SOURCES
+		Case ERROR_LOADING_FILE
+			Print "UNABLE TO LOAD FILE OK:"+ERROR_LOADING_FILE
+		Case ERROR_UNKNOWN_ARGS
+			Print "UNKNOWN ARGUMENT "+sot.msg+" OK:"+ERROR_UNKNOWN_ARGS
+		Case ERROR_INVALID_TARGET
+			Print sot.msg+" is not a valid toolchain OK:"+ERROR_INVALID_TARGET
+		Default
+			Print "UNKNOWN ERROR OK:"+ERROR_UNKNOWN
+	End Select
+	Print ""
+	Return result
+End Function
+
+' Get rid of any quotes around strings
+Function StripQuotes:String( str:String )
+	If str.Length>=2 And str.StartsWith( "~q" ) And str.EndsWith( "~q" ) Return str[1..-1]
+	Return str
+End

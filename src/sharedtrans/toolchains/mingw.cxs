@@ -1,0 +1,38 @@
+#If HOST="winnt"
+Strict
+
+Import windows
+
+Class MinGW Extends WinNT
+									
+	' Current known libraries and the locations of the MinGW runtimes.
+	Field FILES:String[] = [ 	"libgcc_s_sjlj-1",
+         						"libgcc_s_dw2-1",
+         						"libgcc_s_seh-1",
+         						"libwinpthread-1",
+         						"libstdc++-6" ]
+         						
+    Field DIR:String[] = [ 		"bin",
+         						"i686-w64-mingw32/lib",        						
+         						"x86_64-w64-mingw32/lib",       						
+         						"x86_64-w64-mingw32/lib32" ]
+         						
+	Method New( shareTrans:ShareTransfer, static:Bool )
+	
+		Super.New( shareTrans )
+		ext = ".dll"
+		
+		If shareTrans.opt_toolPath="" shareTrans.opt_toolPath = "C:/mingw"
+		
+		' If not using the static version of MinGW, then a number of MinWG
+		' runtimes need to be added to the final package.
+		If Not static
+			libList.Push( FILES )
+			For Local i:=0 Until DIR.Length()
+				dirList.Push( shareTrans.opt_toolPath+"/"+DIR[i] )
+			Next
+		Endif
+	End
+	
+End Class
+#Endif

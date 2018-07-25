@@ -1,0 +1,62 @@
+#If HOST="linux"
+Strict
+Import toolchain
+
+Class Linux Extends ToolChain
+	
+	' Important Locations
+	Const ELF_MAG:= $00 	' The the magic number use to id the file as ELF (4 bytes)
+	Const EI_CLASS:= $04 	' The CPU architecture type 2= 64bit and 1 32bit (1 byte)
+	Const EI_DATA:= $05 	' The endianness of the file starting from 0x10 (1 byte)
+	Const EI_OSABI:= $07 	' The OS ABI type (1 byte)
+	Const e_type:= $10 		' The object type executable/dynamic lib etc (2 bytes)
+	Const e_machine:= $12 	' Id the CPU type (2 bytes)
+	
+	' specifics
+	Const ELF:Int = $464c457f
+	Const LINUX_ABI:Int = $03
+	Const ET_DYN:Int = $03
+	Const CLASS32:Int = $01
+	Const CLASS64:Int = $02
+	
+	Const ISA_x86:Int = $03
+	Const ISA_x86_64:Int = $3e
+	Const ISA_ARM:Int = $28
+
+	Method New( shareTrans:ShareTransfer )
+		Super.New( shareTrans )
+		ext = ".so"
+		If HostOS()="linux"
+			If shareTrans.opt_libs<>""
+				shareTrans.opt_dst+="/libs"
+				CreateDir( RealPath( shareTrans.opt_dst ) )
+			Endif
+		Endif
+	End
+	
+	Method ParseHeader:Int( file:Files )
+		If ( buffer.PeekInt( ELF_MAG ) & $FFFFFFFF )<>ELF
+			shareTrans.msg = "This file is not a ELF binary.~n"+file.In()
+			Return ERROR_STANDARD_MSG
+		Endif
+		
+		'If buffer.PeekByte( EI_OSABI )<>LINUX_ABI
+		'	shareTrans.msg = "This file has the incorrect ABI flag for Linux.~n"+file.In()
+		'	Return ERROR_STANDARD_MSG
+		'Endif
+		
+		If ( buffer.PeekInt( e_type ) & $FFFF )<>ET_DYN Return ERROR_NOT_SHARED
+		
+		Select buffer.PeekByte( EI_CLASS )
+			Case CLASS64
+				If shareTrans.opt_arch=64 FileCopy( file ) Else Return ERROR_ARCH_UNKNOWN
+			Case CLASS32
+				If shareTrans.opt_arch=32 FileCopy( file ) Else Return ERROR_ARCH_UNKNOWN
+			Default
+				 Return ERROR_ARCH_UNKNOWN
+		End Select
+		
+		Return ERROR_OK
+	End Method
+End Class
+#Endif
