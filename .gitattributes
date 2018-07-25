@@ -1,69 +1,137 @@
-*.cxs linguist-language=cerberus
+# This file is still a work in progress. Merge, filters and union drivers may need to be added.
 
+# Auto text
+# Let git handle line conversion for those files not listed below.
+# On Windows CRLF>>LF on push LF>>CRLF on pull
+# On Linux and OSX should be LF in both directions.
+# See https://help.github.com/articles/dealing-with-line-endings/
+# and read https://adaptivepatchwork.com/2012/03/01/mind-the-end-of-your-line/
+* text=auto
+
+# git files: setting these to lf should be ok. Make sure that you use an editor that doesn't change line endings or encoding. So NO NOTEPAD!.
+# Best to use Visual Studio Code for the job as it show both.
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.gitconfig text eol=lf
+*.md text eol=lf
+
+# CerberusX/MonkeyX/BlitzMax text
+*.cxs text eol=lf linguist-language=cerberus
 *.cerberusdoc text eol=lf
-*.cxs text eol=lf
 *.monkey text eol=lf
 *.monkeydocs text eol=lf
-*.c text eol=lf
-*.cc text eol=lf
-*.cxx text eol=lf
-*.c++ text eol=lf
-*.hpp text eol=lf
-*.h text eol=lf
-*.h++ text eol=lf
-*.hh text eol=lf
-*.cs text eol=lf
-*.md text eol=lf
-*.txt text eol=lf
-*.df text eol=lf
-*.as text eol=lf
-*.css text eol=lf
-*.htm text eol=lf
-*.html text eol=lf
-*.xhtml text eol=lf
-*.php text eol=lf
-*.css text eol=lf
-*.java text eol=lf
-*.js text eol=lf
-*.json text eol=lf
-*.sh text eol=lf
-*.tld text eol=lf
-*.xml text eol=lf
-*.ini text eol=lf
+*.bmx eol=crtl
 
-# Visual Studio/Windows lf => crlf
-*.bat text eol=crlf
-*.sln text eof=crlf
-*.vcxproj text eof=crlf
-*.filters text eof=crlf
-*.txt text eof=crlf
+# Source file conversion should be to the host os line endings.
+# Git is pretty dumb when it comes to handling file encodings. utf-16 is the biggest problem.
+# The eol algorithm works on a byte-byte basis and can mess up uff-16 encoded files with crlf line endings.
+# The diff tool can also mess things up.
+# There are four options:
+# 1) Save these files as utf-8
+# 2) Use .gitattributes to set the line endings to lf.
+# 3) Use .gitattributes to mark it as a binary.
+# 4) Use .gitattributes to set the encodeing.
+*.c text
+*.cc text
+*.cxx text
+*.cpp text
+*.hpp text
+*.h text
+*.h++ text
+*.hh text
+*.cs text
+*.as text
+*.df text
+*.htm text
+*.html text
+*.xhtml text
+*.css text
+*.json text
+*.java text
+*.js text
+*.ini text
+*.hlsl text
+*.glsl text
+*.bmx text
+*.txt text
+*.xml eol=lf
+
+# Assume the pch and rc files should not be touched.
+*.pch binary
+
+# Visual Studio/Windows lf => crlf or force encoding.
+# According to one source the use of the built-in merge drivers such as csharp, should not be use as they may not be up to update.
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+*.vcxproj.filters text eol=crlf
 *.csproj text eol=crlf
+*.rex text eol=crlf
+*.xaml text eol=crlf
+*.appmanifest eol=crlf
+*.manifest eol=crlf
+# Assuming that pfx is a securty key and shouldn't be messed with.
+*.pfx binary
+*.rc diff=utf16
+
+# Xcode
+*.pbxproj binary
+*.plist eol=lf
+*.xcworkspacedata eol=lf
+*.strings eol=lf
+*.m eol=lf
+*.mm text eol=lf
+*.xib text eol=lf
+*.xcscheme eol=lf
+#*.swift eol=lf
+
+# Linux/OSX
+*.sh text eol=lf
+
+# Special case
+README text eol=lf
+COPYING text eol=lf
+CHANGES text eol=lf
+LICENCE text eol=lf
+LICENSE text eol=lf
+README.txt eol=crlf
+ReadMe.txt eol=crlf
+
+# Windows
+*.bat text eol=crlf
 *.ps1 text eol=crlf
 
-# Image files
+# Android target
+/targets/android/template/*.keystore binary
+/targets/android/template/gradletemplate/gradlew eol=lf
+
+# Image/Fonts files
+# List not complete. If any thing else is added to the repo then these need to be updated.
 *.bmp binary
 *.png binary
 *.jpg binary
 *.jpeg binary
 *.ico binary
 *.icns binary
+*.ttf binary
+*.fnt binary
 
 # Other binrary types
+# List not complete. If any thing else is added to the repo then these need to be updated.
 *.pdf binary
 *.a binary
 *.lib binary
+*.LIB binary
+*.so binary
+*.dll binary
+*.DLL binary
+*.o binary
 
-# Compression
+# Compressed files
+# List not complete. If any thing else is added to the repo then these need to be updated.
+*.tar binary
 *.gz binary
 *.zip binary
 *.jar binary
 
-
-.gitattributes text eol=lf
-.gitignore text eol=lf
-.gitconfig text eol=lf
-
-*.so binary
-*.dll binary
-
-
+# Known compiled objects
+*.cso binary

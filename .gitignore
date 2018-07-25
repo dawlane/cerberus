@@ -1,3 +1,4 @@
+# Cerberus
 /bin/*
 !/bin/*.txt
 !/bin/themes
@@ -7,10 +8,11 @@
 
 .bmx
 .DS_Store
+._.DS_Store
 *.buildv*
-*.bak
 desktop.ini
 Thumbs.db
+._*
 
 /Cerberus
 /Cerberus.app
@@ -29,10 +31,47 @@ Thumbs.db
 
 /targets/__deprecated__/android_ndk
 
-/src/launcher/codeblocks/obj
-/src/launcher/codeblocks/launcher.depend
-/src/launcher/codeblocks/launcher.layout
+/**/codeblocks/bin
+/**/codeblocks/obj
+/**/codeblocks/*.depend
+/**/codeblocks/*.layout
 
 /src/transcc/transcc.build/cpptool/main_winnt.exe
 /src/transcc/transcc.build/cpptool/main_linux
 /src/transcc/transcc.build/cpptool/main_macos
+/src/transcc/transcc.build_new
+
+/libs/**/*.dll
+/libs/**/*.so
+/libs/**/*.a
+/libs/**/*.lib
+/libs/**/*.dylib
+/libs/**/*.framework
+!/libs/**/*.txt
+/src/archives/icons
+*.bak
+# git will read all frameworks as unstaged on MacOS X. You should compress all frameworks into tar.gz format
+*.framework
+
+# Visual Studio
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sdf
+*.pdb
+*.ikl
+*.VC.db
+.vs/
+.vscode
+
+/**/Release32
+/**/Release64
+/**/Debug32
+/**/Debug64
+
+# XCODE
+# Remove any user specific data and build files
+/**/xcuserdata
+/**/*.xcuserdatad
+/**/Build
