@@ -18,9 +18,8 @@ Class Builder
 	
 		Select tcc.opt_config
 		Case "","debug"
-			tcc.opt_config="debug"
 			casedConfig="Debug"
-		Case "release" 
+		Case "release"
 			casedConfig="Release"
 		Default
 			Die "Invalid config"

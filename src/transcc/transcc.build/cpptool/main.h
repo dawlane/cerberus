@@ -11,6 +11,9 @@
 #include <signal.h>
 
 #if _WIN32
+#if __VISUAL_STUDIO__
+#include "stdafx.h"
+#endif
 #include <windows.h>
 #include <direct.h>
 #include <sys/stat.h>

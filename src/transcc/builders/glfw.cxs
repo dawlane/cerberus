@@ -1,5 +1,15 @@
-
+#Rem
+Change Log
+----------------------------------------------------------------------------------------------
+2018-07-23 - Dawlane
+					External shared libraries are now transfered the external application sharedtrans
+					Added support to search for shared library and other build files to pass to the back-end compiler.
+					Added support for using MinGW-w64 tool chain.
+					Added support for including icons.
+					Removed redundant code for VS 2010 and copying over shared libraries.
+#End
 Import builder
+Import helpers
 
 Class GlfwBuilder Extends Builder
 
@@ -15,10 +25,18 @@ Class GlfwBuilder Extends Builder
 		Return config.Join( "~n" )
 	End
 	
+	' DAWLANE - Added support to use MinGW-w64 tool chains, search paths and passing options to the back-end compiler.
 	'***** GCC *****
 	Method MakeGcc:Void()
-	
+		Local staticFlag:=0 ' DAWLANE - Need for MinGW-w64
+		
 		Local msize:=GetConfigVar( "GLFW_GCC_MSIZE_"+HostOS.ToUpper() )
+		
+		' Over-ride from command line for architecture bilding.
+		If tcc.opt_msize<>""
+			Print "Over-ride of GCC_MSIZE via command option -msize. msize is now set to "+tcc.opt_msize
+			If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize
+		End
 		
 		Local tconfig:=casedConfig+msize
 	
@@ -38,19 +56,35 @@ Class GlfwBuilder Extends Builder
 		SaveString main,"main.cpp"
 		
 		If tcc.opt_build
-
+			' Only Windows has icons in the executable, so don't bother copying the icon over if on Linux.
+			If HostOS()="winnt"
+				Local iconPath:=GetConfigVar( "GLFW_ICON" )
+				' The resource file need to be refreshed each time, so delete it.
+				' CopyICON( userpath, icon file extension, project root, destination, cerberus directory )
+				If Not ( CopyICON( iconPath, "ico", RealPath( CurrentDir()+"../../../" ), RealPath( CurrentDir() ), tcc.cerberusdir, RealPath( CurrentDir()+"/gcc_winnt/build/"+tconfig+"/resource.o" ) ) ) Die "Faild to copy the application icon over."
+			Endif
+			
 			ChangeDir dst
 			CreateDir "build"
 			CreateDir "build/"+tconfig
 			
-			Local ccopts:="",ldopts:="", libopts:="", libcopy:=""
+			' Get any shared libraries and their paths
+			Local dylibCopy:=GetConfigVar( "GLFW_COPY_SHAREDLIBS" )
+			Local libsearchList:=GetConfigVar( "GLFW_GCC_LIB_PATHS" )
+			Local headerSearchList:=GetConfigVar( "GLFW_GCC_INCLUDE_PATHS" )
+			Local userIncludesList:String[]=GetConfigVar( "GLFW_GCC_USER_INCLUDES" ).Split( ";" )
+			Local mingwUsePosix:=""
+
+			Local ccopts:="",ldopts:="", libopts:="", libcopy:="", appName:=GetConfigVar( "GLFW_APP_NAME" ), sysroot:="", toolchain:="", cerbRoot:=""
 
 			If msize ccopts+=" -m"+msize;ldopts+=" -m"+msize
 
 			ccopts+=" "+GetConfigVar( "GLFW_GCC_CC_OPTS" ).Replace( ";"," " )
 			ldopts+=" "+GetConfigVar( "GLFW_GCC_LD_OPTS" ).Replace( ";"," " )
 			libopts+=" "+GetConfigVar( "GLFW_GCC_LIB_OPTS" ).Replace( ";"," " )
-
+			
+			If appName = "" appName="CerberusGame" ' DAWLANE - Rename the final executable.
+			
 			Select ENV_CONFIG
 			Case "debug"
 				ccopts+=" -O0"
@@ -59,73 +93,131 @@ Class GlfwBuilder Extends Builder
 				ldopts+=" -s"
 			End
 
-			' Process external libs to copy over
-			ProcessExternalLibs( CurrentDir()+"\"+casedConfig, msize, libopts )
-
-			' Point the linker in the direction of the prebuilt share libraries
-			If HostOS="winnt"
-				ldopts+=" -L"+tcc._libs+"Win"+msize
-			Endif
-
 			Local cmd:="make"
-			If HostOS="winnt" And FileType( tcc.MINGW_PATH+"/bin/mingw32-make.exe" ) cmd="mingw32-make"
-
-			Execute cmd+" CCOPTS=~q"+ccopts+"~q LDOPTS=~q"+ldopts+"~q LIBOPTS=~q"+libopts+"~q OUT=~q"+tconfig+"/CerberusGame~q"
+			
+			' Windows: Complex MinGW-w64 stuff
+			If HostOS="winnt"
+				Local use_static:Bool=False
+				cmd="mingw32-make"
+				
+				' Set build for static if selected
+				If tcc.opt_w64static Or GetConfigVar( "GLFW_MINGW_STATIC" )="1"
+					use_static=True
+					toolchain="mingw-static"
+					mingwUsePosix=GetConfigVar( "MINGW_USE_POSIX" )
+				Else
+					toolchain="mingw"
+				Endif
+				
+				' If using MinGW with static building
+				If use_static
+					staticFlag=1
+					Print "MinGW static build."
+				Endif
+				
+				' Build a cerberus libs search path
+				cerbRoot=tcc.cerberusdir+"/libs/shared/win"+msize+";"+tcc.cerberusdir+"/libs/static/mingw/"+msize
+			Else
+				' Unless there is another OS, this could only be Linux!
+				toolchain="linux"
+				
+				' Build a cerberus libs search path
+				cerbRoot+=tcc.cerberusdir+"/libs/shared/Linux"+msize+";"+tcc.cerberusdir+"/libs/static/Linux/"+msize
+			Endif
+			
+			' Process the seach paths for libraries etc.
+			Local searchPaths:=""
+			
+			' Search for the existance of library paths
+			If libsearchList<>"" Or dylibCopy<>""
+				libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), cerbRoot.Split( ";" ) )
+				ReadOut(libsearchList.Split(";"), "GenerateSearchPaths Returned for : GLFW_GCC_LIB_PATHS")
+				searchPaths=libsearchList
+			
+				' Create a bunch of Mingw/Linux -Lpath to search
+				libsearchList=DefineGCCPaths( libsearchList, "L" )
+				ReadOut(libsearchList.Split("-n"), "DefineGCCPaths Returned for : GLFW_GCC_LIB_PATHS")
+			Endif
+			
+			cerbRoot=tcc.cerberusdir+"/includes"
+			If headerSearchList<>""
+				headerSearchList=GenerateSearchPaths( headerSearchList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), cerbRoot.Split( ";" ) )
+				ReadOut(headerSearchList.Split(";"), "GenerateSearchPaths Returned for : GLFW_GCC_INCLUDE_PATHS")
+			
+				' Create a bunch of Mingw/Linux -Lpath to search
+				headerSearchList=DefineGCCPaths( headerSearchList, "I" )
+				ReadOut(headerSearchList.Split("~n"), "DefineGCCPaths Returned for : GLFW_GCC_INCLUDES")
+			Endif
+			
+			' Process any includes passed
+			Local includes:=""
+			If userIncludesList.Length()>0
+				For Local i:=0 Until userIncludesList.Length()
+					If userIncludesList[i]<>"" includes+=" -include "+userIncludesList[i]
+				Next
+				If includes<>"" Print "GLFW_GCC_INCLUDES: "; Print includes
+			Endif
+			
+			' Copy any shared libraries
+			' Note that the option toolpath is optional in most cases, but MinGW has all it's runtime libraries there. So it makes sense to point to a path that to the sharetrans_winnt
+			' program to look for them there. See the text file in the sharedtrans source directory.
+			Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q"+msize+"~q -srcdirs=~q"+searchPaths+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/"+tconfig+"~q -toolchain=~q"+toolchain+"~q -toolpath=~q"+tcc.MINGW_PATH+"~q"	
+			CopyLicences( casedConfig, "gcc", tcc.cerberusdir+"/libs", msize )
+			
+			' DAWLANE - Pass a bunch of stuff to the Makefiles to sort out.
+			Execute cmd+" STATIC=~q"+staticFlag+"~q POSIX=~q"+mingwUsePosix+"~q CCOPTS=~q"+ccopts+" "+headerSearchList+" "+includes+"~q LDOPTS=~q"+ldopts+" "+libsearchList+"~q LIBOPTS=~q"+libopts+"~q APPLIBPATH=~q"+tcc.cerberusdir+"/libs~q HOSTOS=~q"+HostOS+"~q ARCH=~q"+msize+"~q OUT=~q"+tconfig+"/"+appName+"~q "
 
 			If tcc.opt_run
 
 				ChangeDir tconfig
-
+				' DAWLANE - Execute what we have called the built application.
 				If HostOS="winnt"
-					Execute "CerberusGame"
+					Execute appName
 				Else
-					Execute "./CerberusGame"
+					Execute "./"+appName
 				Endif
 			Endif
 		Endif
 			
 	End
-	
-	'***** Vc2010 *****
-	Method MakeVc2010:Void()
-	
-		CreateDir "vc2010/"+casedConfig
-		CreateDir "vc2010/"+casedConfig+"/internal"
-		CreateDir "vc2010/"+casedConfig+"/external"
-		
-		CreateDataDir "vc2010/"+casedConfig+"/data"
-		
-		Local main:=LoadString( "main.cpp" )
-		
-		main=ReplaceBlock( main,"TRANSCODE",transCode )
-		main=ReplaceBlock( main,"CONFIG",Config() )
-		
-		SaveString main,"main.cpp"
-		
-		If tcc.opt_build
 
-			ChangeDir "vc2010"
-
-			Execute "~q"+tcc.MSBUILD_PATH+"~q /p:Configuration="+casedConfig+" /p:Platform=Win32 CerberusGame.sln"
-			
-			If tcc.opt_run
-			
-				ChangeDir casedConfig
-
-				Execute "CerberusGame"
-				
-			Endif
-		Endif
-	End
-
+	' DAWLANE - Removed VS2010 stuff, added support for search path and to pass options to Visual Studio.
 	'***** Msvc *****
-	Method MakeMsvc:Void()
-	
-		CreateDir "msvc/"+casedConfig
-		CreateDir "msvc/"+casedConfig+"/internal"
-		CreateDir "msvc/"+casedConfig+"/external"
+	Method MakeMsvc:Void( version:String="" )
+
+		Print ""
+		If tcc.MSBUILD_PATH="" Die "Cannot find MSBuild.exe. Is Visual Studio installed and the MSBUILD_PATH set correctly?"
 		
-		CreateDataDir "msvc/"+casedConfig+"/data"
+		Local msize:=GetConfigVar( "GLFW_VS_MSIZE_"+HostOS.ToUpper() ), toolchain:="", cerbRoot:=""
+		
+		' Over-ride from command line
+		If tcc.opt_msize<>""
+			Print "Over-ride of GCC_MSIZE via command option -msize. msize is now set to "+tcc.opt_msize
+			If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize
+		End
+		
+		Local tconfig:=casedConfig+msize
+		
+		Local dylibCopy:=GetConfigVar( "GLFW_COPY_SHAREDLIBS" )
+		
+		Local ccopts:="",ldopts:="", libopts:="", libcopy:="", appName:=GetConfigVar( "GLFW_APP_NAME" )
+		If appName = "" appName="CerberusGame"
+		
+		'ccopts+=" "+GetConfigVar( "GLFW_VS_CC_OPTS" ).Replace( ";"," " )
+		'ldopts+=" "+GetConfigVar( "GLFW_VS_LD_OPTS" ).Replace( ";"," " )
+		Local includesList:="", headerList:="", libsearchList:=""
+		
+		' Visual Studio projects use semicolon seperators, so no need to do anything special, unless doing a path check.
+		libsearchList+=GetConfigVar( "GLFW_VS_LIB_PATHS" )
+		libopts+=GetConfigVar( "GLFW_VS_LIB_OPTS" )
+		includesList+=GetConfigVar( "GLFW_VS_INCLUDES" )
+		headerList+=GetConfigVar( "GLFW_VS_HEADER_PATHS" )	
+		
+		CreateDir "msvc"+version+"/"+tconfig
+		CreateDir "msvc"+version+"/"+tconfig+"/internal"
+		CreateDir "msvc"+version+"/"+tconfig+"/external"
+		
+		CreateDataDir "msvc"+version+"/"+tconfig+"/data"
 		
 		Local main:=LoadString( "main.cpp" )
 		
@@ -135,21 +227,52 @@ Class GlfwBuilder Extends Builder
 		SaveString main,"main.cpp"
 		
 		If tcc.opt_build
+			Local iconPath:=GetConfigVar( "GLFW_ICON" )
+			' The resource file need to be refreshed each time, so delete it.
+			' CopyICON( userpath, icon file extension, project root, destination, cerberus directory, target build directory resource file )
+			If Not ( CopyICON( iconPath, "ico", RealPath( CurrentDir()+"../../../" ), RealPath( CurrentDir() ), tcc.cerberusdir, RealPath( CurrentDir()+"/msvc"+version+"/build/"+tconfig+"/CerberusGame.res" ) ) ) Die "Faild To copy the application icon over."
 
-			ChangeDir "msvc"
-
-			Execute "~q"+tcc.MSBUILD_PATH+"~q /p:Configuration="+casedConfig'+" /p:Platform=win32 CerberusGame.sln"
+			ChangeDir "msvc"+version
+			
+			' Search paths for known locations etc,
+			cerbRoot=tcc.cerberusdir+"/libs/shared/win"+msize
+			
+			If libsearchList<>"" Or dylibCopy<>""
+				libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), cerbRoot.Split( ";" ) )
+				ReadOut(libsearchList.Split(";"), "GenerateSearchPaths Returned for : GLFW_VS_LIB_PATHS")
+			Endif
+			
+			cerbRoot=tcc.cerberusdir+"/includes"
+			If headerList<>""
+				headerList=GenerateSearchPaths( headerList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), cerbRoot.Split( ";" ) )
+				ReadOut(headerList.Split(";"), "GenerateSearchPaths Returned for : GLFW_VS_HEADER_PATHS" )
+			Endif
+			
+			' CerberusIncludePaths=/AI, CerberusIncludes=/I, CerberusLinker=*.lib, CerberusLibraryPaths=/LIBPATH
+			Local parms:="/p:projectname="+QuoteMe( appName )+" /p:CerberusPath="+QuoteMe( tcc.cerberusdir )+" /p:CerberusLibraryPaths="+QuoteMe( libsearchList )
+			parms+=" /p:CerberusIncludePaths="+QuoteMe( headerList )+" /p:CerberusLinker="+QuoteMe( libopts )+" /p:CerberusIncludes="+QuoteMe( includesList )
+			parms+=" /p:CerberusDefines="+QuoteMe( GetConfigVar( "GLFW_VS_DEFINES" ) )+" /p:CerberusCompilerOpts="+QuoteMe( GetConfigVar( "GLFW_VS_CC_OPTS" ) )
+			
+			' Copy any shared libraries
+			' Note that the option toolpath is optional in most cases, but MinGW has all it's runtime libraries there. So it makes sense to point to a path that to the sharetrans_winnt
+			' program to look for them there. See the text file in the sharedtrans source directory.
+			Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q"+msize+"~q -srcdirs=~q"+libsearchList+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/"+tconfig+"~q -toolchain=~qvisualstudio~q"
+			CopyLicences( casedConfig, "winnt", tcc.cerberusdir+"/libs", msize )
+			
+			Print "Executing "+tcc.MSBUILD_PATH+" /p:Configuration="+tconfig+" "+parms
+			Execute "~q"+tcc.MSBUILD_PATH+"~q /p:Configuration="+tconfig+" "+parms
 			
 			If tcc.opt_run
 			
-				ChangeDir casedConfig
+				ChangeDir tconfig
 
-				Execute "CerberusGame"
+				Execute QuoteMe( appName )
 				
 			Endif
 		Endif
 	End
 
+	' DAWLANE - Removed Added support for search path and to pass options to Xcode.
 	'***** Xcode *****	
 	Method MakeXcode:Void()
 
@@ -163,18 +286,100 @@ Class GlfwBuilder Extends Builder
 		SaveString main,"main.cpp"
 		
 		If tcc.opt_build
+			
+			' Read the pre-processor data to over-ride the defaults
+			Local ccopts:="", ldopts:="", libsopts:="", headerList:="", cerbRoot:="", libsearchList:="", frameworks:="", sharedsearch:=""
+			Local frameworSearchkList:="", frameworkStack:= New StringStack()
+			Local dylibCopy:=GetConfigVar( "GLFW_COPY_SHAREDLIBS" ), frameworkList:StringStack= New StringStack( GetConfigVar( "GLFW_XCODE_FRAMEWORKS" ).Split( ";" ) )
+			Local appName:=GetConfigVar( "GLFW_APP_NAME" ), bundleID:=GetConfigVar( "GLFW_XCODE_BUNDLE_ID" )
+			Local iconPath:=GetConfigVar( "GLFW_ICON" ) ' Set the Appliaction bundles icon
+
+			' Set the Application bundle name.
+			If appName="" appName=QuoteMe("CerberusGame") Else appName=QuoteMe(appName)
+			If bundleID="" bundleID="com.yourcompany.CerberusGame"
+			
+			' Other Xcode options to read
+			ccopts+=GetConfigVar( "GLFW_XCODE_CC_OPTS" ).Replace( ";"," " )
+			ldopts+=GetConfigVar( "GLFW_XCODE_LD_OPTS" ).Replace( ";"," " )
+			libsopts+=GetConfigVar( "GLFW_XCODE_LIBS_OPTS" ).Replace( ";"," " ) 
+			
+			' Generate the library paths to search if a shared library list is passed
+			cerbRoot=tcc.cerberusdir+"/libs/shared/MacOS"
+			libsearchList=GetConfigVar( "GLFW_XCODE_LIB_PATHS" )
+			If libsearchList<>"" Or dylibCopy<>""
+				sharedsearch=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ) )
+				libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ), True ).Replace( ";", " " )
+				ReadOut(libsearchList.Split(" "), "GenerateSearchPaths Returned for : GLFW_XCODE_LIB_PATHS" )
+			Endif
+			
+			' Generate the include paths to search
+			cerbRoot=tcc.cerberusdir+"/includes"
+			headerList=GetConfigVar( "GLFW_XCODE_INCLUDE_PATHS" )
+			If headerList<>""
+				headerList=GenerateSearchPaths( headerList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ) ) ' Don't return a quoted string
+				headerList=DefineGCCPaths( headerList, "I", True ) ' Do return a quoted string
+				ReadOut(headerList.Split("~n"), "GenerateSearchPaths Returned for : GLFW_XCODE_INCLUDE_PATHS" )
+			Endif
+			
+			' Construct a string for passing the framework names
+			cerbRoot=tcc.cerberusdir+"/libs/shared/MacOS/Frameworks;/Library/Frameworks;"+GetEnv( "HOME" )+"/Library/Frameworks"
+			frameworSearchkList=GetConfigVar( "GLFW_XCODE_FRAMEWORK_PATHS" )
+			frameworkList.RemoveEach( "" )
+			If frameworSearchkList<>"" Or frameworkList.Length() > 0
+				frameworSearchkList=GenerateSearchPaths( frameworSearchkList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ), True ).Replace( ";", " " )
+				ReadOut(frameworSearchkList.Split(" "), "GenerateSearchPaths Returned for : GLFW_XCODE_FRAMEWORK_PATHS" )
+			Endif
+			
+			For Local i:=Eachin frameworkList
+				If i<>"" frameworks+="-framework "+i+" "
+			Next
+					
+			ccopts+=" "+headerList
 		
 			ChangeDir "xcode"
 			
 '			Execute "set -o pipefail && xcodebuild -configuration "+casedConfig+" | egrep -A 5 ~q(error|warning):~q"
-			Execute "xcodebuild -configuration "+casedConfig
+			Local params:="OTHER_CFLAGS='"+ccopts+"' LIBRARY_SEARCH_PATHS='"+libsearchList+"' OTHER_LDFLAGS='"+ldopts+" "+libsopts+" "+frameworks+"' PRODUCT_NAME='"+StripQuotes( appName )
+			params+="' PRODUCT_BUNDLE_IDENTIFIER='"+bundleID+"' FRAMEWORK_SEARCH_PATHS='"+frameworSearchkList+"' CERBERUS_PATH='"+tcc.cerberusdir+"' CERBERUS_ICONSET_PATH='"+iconPath+"'"' HEADER_SEARCH_PATHS='"+headerList+"'"
 			
+			Execute "xcodebuild -configuration "+casedConfig+" "+params
+			
+			' Copy any shared libraries after the build is done.
+			Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q64~q -srcdirs=~q"+sharedsearch+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/build/"+casedConfig+"/"+StripQuotes(appName)+".app~q -toolchain=~qmacos~q"
+
+			
+			' Add frameworks to the final bundle
+			If frameworkList.Length()>0
+				If Not CreateDir( "build/"+casedConfig+"/"+StripQuotes(appName)+".app/Contents/Frameworks" )
+					Die "Failed to create Frameworks directory in build/"+casedConfig+"/"+StripQuotes(appName)+".app/Contents/Frameworks"
+				Else
+					Local frmWrkPath:String[]=frameworSearchkList.Split( " " )
+						For Local i:=0 Until frmWrkPath.Length()
+						If i<>""
+							For Local j:=Eachin frameworkList
+								If FileType( StripQuotes( frmWrkPath[i] )+"/"+j+".framework" )=FILETYPE_DIR
+									If Not CopyDir( StripQuotes( frmWrkPath[i] )+"/"+j+".framework", CurrentDir()+"/build/"+casedConfig+"/"+StripQuotes(appName)+".app/Contents/Frameworks/"+j+".framework" )
+										Print "Failed to copy "+StripQuotes( frmWrkPath[i] )+"/"+j+".framework"
+									Else
+										Print "Copied "+StripQuotes( frmWrkPath[i] )+"/"+j+".framework to "+CurrentDir()+"/build/"+casedConfig+"/"+StripQuotes(appName)+".app/Contents/Frameworks/"+j+".framework"
+									Endif
+								Endif
+							Next
+						Endif
+					Next
+				Endif
+			Endif
+
+			'If dylibCopy<>"" ProcessExternalLibs( "build/"+casedConfig, dylibCopy, "macos", tcc.cerberusdir+"/libs" , "", StripQuotes(appName) )
+			
+			CopyLicences( RealPath( CurrentDir()+"/build/"+casedConfig+"/"+StripQuotes(appName)+".app/Contents" ), "macos", tcc.cerberusdir+"/libs" )
+
 			If tcc.opt_run
 			
 				ChangeDir "build/"+casedConfig
-				ChangeDir "CerberusGame.app/Contents/MacOS"
+				ChangeDir(StripQuotes(appName)+".app/Contents/MacOS")
 				
-				Execute "./CerberusGame"
+				Execute "./"+appName
 			Endif
 		Endif
 	End
@@ -197,59 +402,40 @@ Class GlfwBuilder Extends Builder
 	
 	Method MakeTarget:Void()
 		Select HostOS
-		Case "winnt"
-			If GetConfigVar( "GLFW_USE_MINGW" )="1" And tcc.MINGW_PATH
-				MakeGcc
-			Else If FileType( "vc2010" )=FILETYPE_DIR
-				MakeVc2010
-			Else If FileType( "msvc" )=FILETYPE_DIR
-				MakeMsvc
-			Else If tcc.MINGW_PATH
-				MakeGcc
-			Endif
-		Case "macos"
-			MakeXcode
-		Case "linux"
-			MakeGcc
-		End
-	End
-
-	' Process external shared libraries	to copy
-	Method ProcessExternalLibs( config:String, arch:String, link:String )
-		Local libStr:String = GetConfigVar( "GLFW_COPY_LIBS" ).ToLower()
-		If libStr = "" Then Return
-
-		Local libcopy:String[] = libStr.Split( ";" )
-		Local dst:String = config+arch
-
-		For Local i:= Eachin libcopy
-			If HostOS="winnt"
-				If i <> ""
-					If FileType( dst+"/"+i+".dll" ) = FILETYPE_FILE Continue
-
-					If CopyFile( tcc._libs+"Win"+arch+"/"+i+".dll", dst+"/"+i+".dll" ) = 1
-						Print "Copied "+i+".dll to "+dst
-					Else
-						Print "Failed to copy "+i+" to "+dst
-					EndIf
-
-					If FileType( tcc._libs+"/"+i+"_COPYING" )<> FILETYPE_NONE
-						If CopyFile( tcc._libs+"/"+i+"_COPYING", dst+"/"+i+"_COPYING" ) = 1
-							Print "Copied "+i+"_COPYING to "+dst
-						Else
-							Print "Failed to copy "+i+"_COPYING To "+dst
-						Endif
-					Endif
-
-					If FileType( tcc._libs+"/"+i+"_LICENCE" )<> FILETYPE_NONE
-						If CopyFile( tcc._libs+"/"+i+"_LICENCE", dst+"/"+i+"_LICENCE" ) = 1
-							Print "Copied "+i+"_LICENCE to "+dst
-						Else
-							Print "Failed to copy "+i+"_COPYING To "+dst
-						Endif
+			Case "winnt"
+				' DAWLANE - Select the compiler to use on Windows. Either a version of Visual Studio, or MinGW
+				Local vs:=GetConfigVar( "GLFW_VSTUDIO_VERSION" )
+				Local mingw:=GetConfigVar( "GLFW_USE_MINGW" )
+				
+				If vs="" And tcc.opt_vsversion="" ' If not set be option swicth or code, use the VS_VERSION in config.winnt.txt
+					vs=tcc.VSDEFAULT
+				Else
+					If tcc.opt_vsversion<>""
+						vs=tcc.opt_vsversion
+						Print "Over-ride of GLFW_VSTUDIO_VERSION via command option -vsversion.~n"
 					Endif
 				Endif
-			EndIf
-		Next
+	
+				' Check for both GLFW_USE_MINGW and the -msbuild switch state
+				If ( mingw="1" And tcc.opt_msbuild=False ) And tcc.MINGW_PATH ' No -mbsbuild swicth set, use MinGW
+					MakeGcc
+				Else
+					' If the build switch is set print a message saying that the GLFW_USE_MINGW is over-ridden.
+					If tcc.opt_msbuild=True Print "Over-ride of GLFW_USE_MINGW via command option -msbuild.~n"
+
+					' Check that there is a project solution for the version of Visual Studio that is selected.
+					If FileType( "msvc"+vs )=FILETYPE_DIR
+						Print "Using Visual Studio "+vs
+						MakeMsvc( vs )
+					Else
+						Print "Cannot find a project template containing msvc"+vs+".~nSwitching to MinGW.~n"
+						If tcc.MINGW_PATH MakeGcc
+					Endif
+				Endif
+			Case "macos"
+				MakeXcode
+			Case "linux"
+				MakeGcc
+		End
 	End
 End

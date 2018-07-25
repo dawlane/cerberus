@@ -1,5 +1,12 @@
-
+#Rem
+Change log
+-------------------------------------------------------------------------------------------------
+2018-07-23 - Dawlane
+					Added support to build either with MinGw or Visual Studio via MSBuild.
+					Added new convenience precompiler options for use with Visual Studio and other compilers.
+#End
 Import builder
+Import helpers
 
 Class StdcppBuilder Extends Builder
 
@@ -18,7 +25,7 @@ Class StdcppBuilder Extends Builder
 	Method IsValid:Bool()
 		Select HostOS
 		Case "winnt"
-			If tcc.MINGW_PATH Return True
+			If tcc.MINGW_PATH Or tcc.MSBUILD_PATH Return True
 		Default
 			Return True
 		End
@@ -30,12 +37,49 @@ Class StdcppBuilder Extends Builder
 		_trans=New CppTranslator
 	End
 	
-	Method MakeTarget:Void()
-	
+	' Use a method to save duplicating code
+	Method CCOptions:String( msize:String="", opts:String="" )
 		Select ENV_CONFIG
-		Case "debug" SetConfigVar "DEBUG","1"
-		Case "release" SetConfigVar "RELEASE","1"
-		Case "profile" SetConfigVar "PROFILE","1"
+			Case "debug"
+				opts+=" -O0"
+			Case "release"
+				opts+=" -O3 -DNDEBUG"
+		End
+
+		If HostOS()="linux" Or HostOS="winnt"	
+			If msize<>""
+				opts+=" -m"+msize
+			Endif
+		Endif
+			
+		Local cc_opts:=GetConfigVar( "CC_OPTS" )
+		If cc_opts opts+=" "+cc_opts.Replace( ";"," " )	
+		Return opts
+	End Method
+	
+	' Use a method to save duplicating code
+	Method LibsOptions:String( msize:String="", ldopts:String="" )
+		Local cc_libs:=GetConfigVar( "CC_LIBS" )
+		If msize<>""
+			ldopts+=" -m"+msize
+		Endif
+		If cc_libs ldopts+=" "+cc_libs.Replace( ";"," " )
+		Return ldopts
+	End Method
+	
+	Method MakeTarget:Void()
+		Local tconfig:=ENV_CONFIG
+		
+		Select tconfig
+			Case "debug"
+				SetConfigVar "DEBUG","1"
+				tconfig="Debug"
+			Case "release"
+				SetConfigVar "RELEASE","1"
+				tconfig="Release"
+			Case "profile"
+				SetConfigVar "PROFILE","1"
+				tconfig="Profile"
 		End
 		
 		Local main:=LoadString( "main.cpp" )
@@ -47,45 +91,164 @@ Class StdcppBuilder Extends Builder
 		
 		If tcc.opt_build
 
-			Local out:="main_"+HostOS
+			Local out:=GetConfigVar( "CC_APP_NAME" )
+			Local msize:=GetConfigVar( "CC_MSIZE" )
+			Local buildStatic:=GetConfigVar( "MINGW_USE_STATIC" )
+			Local useMinGW:=GetConfigVar( "CC_USE_MINGW" )
+			Local useIcon:=GetConfigVar( "CC_USE_ICON" )
+			
+			' Work out how msize has to be passed based on the operating system and compiler chosen
+			If tcc.opt_msize<>""
+				Print "Over-ride of CC_MSIZE via command option. msize is now set to "+tcc.opt_msize
+				Select HostOS()
+					Case "winnt"
+						If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize Else Die "Unknown MSIZE options passed via command line."
+					Case "linux"
+						If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize Else Die "Unknown MSIZE options passed via command line."
+				End Select
+			Else
+				If msize=""
+					Select HostOS()
+						Case "winnt"
+							' The default with MinGW is to set it to 64 bit building
+							If useMinGW="1" msize="64" Else msize="32"
+						Case "linux"
+							msize="64"
+					End Select
+					Print "No value set for CC_MSIZE. Setting msize to "+msize
+				Endif
+			Endif
+
+			' Change the nam if required
+			If out="" Then out="main_"+HostOS Else out+="_"+HostOS
+			
+			' Clear out the old executable
 			DeleteFile out
 			
-			Local OPTS:="",LIBS:=""
+			Local ccopts:="", ldopts:=GetConfigVar( "CC_LD_OPTS" ), libopts:="" ' These get passed to the compiler
+			Local ccOPTS:="", ldOPTS:="", libOPTS:=""	' These are for creating options for the compilers. Once finished, you should set ccopts, ldopts and libopts with the resutls.
+			Local iconPath:=GetConfigVar( "CC_ICON" )
 			
 			Select ENV_HOST
-			Case "winnt"
-				OPTS+=" -Wno-free-nonheap-object"
-				LIBS+=" -lwinmm -lws2_32"
-			Case "macos"
-				OPTS+=" -Wno-parentheses -Wno-dangling-else"
-				OPTS+=" -mmacosx-version-min=10.9 -std=gnu++0x -stdlib=libc++"
-			Case "linux"
-				OPTS+=" -Wno-unused-result"
-				LIBS+=" -lpthread"
-			End
+			'Select HostOS()
+				Case "winnt"
+					' The CC_USE_MINGW is set to true, so process the options for MinGW
+					If useMinGW="1" And tcc.opt_msbuild=False
+						ccOPTS+=" -Wno-free-nonheap-object"
+						libOPTS+=" -lwinmm -lws2_32"
+						
+						If tcc.opt_w64static Or buildStatic="1"
+							Local usePosix:=GetConfigVar( "MINGW_USE_POSIX" )
+							If usePosix="1"
+								Print "Static Building Posix Enabled"
+								ldOPTS=" -Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -Wl,-Bdynamic "
+							Else
+								Print "Static Building Non Posix"
+								ldOPTS=" -Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bdynamic "
+							Endif
+						Endif
+						ccopts= CCOptions( msize, ccOPTS )
+						ldopts=ldOPTS+" "+ldopts
+						libopts= LibsOptions( msize, libOPTS )
+					Else
+						' If CC_USE_MINGE isn't set. Then process the Visual studio options
+						' Search paths for known locations etc,
+						Local cerbRoot:=tcc.cerberusdir+"/libs/shared/win"+msize
+						Local includesList:="", headerList:="", libsearchList:=""
+		
+						' Visual Studio projects use semicolon seperators, so no need to do anything special, unless doing a path check.
+						libsearchList=GetConfigVar( "CC_VS_LIB_PATHS" )
+						libOPTS=GetConfigVar( "CC_VS_LIB_OPTS" )
+						includesList=GetConfigVar( "CC_VS_INCLUDES" )
+						headerList=GetConfigVar( "CC_VS_HEADER_PATHS" )	
 			
-			Select ENV_CONFIG
-			Case "debug"
-				OPTS+=" -O0"
-			Case "release"
-				OPTS+=" -O3 -DNDEBUG"
-			End
+						If libsearchList<>"" 'Or dylibCopy<>""
+							libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ) )
+							ReadOut(libsearchList.Split(";"), "GenerateSearchPaths Returned for : GLFW_VS_LIB_PATHS")
+						Endif
 			
-			Local cc_opts:=GetConfigVar( "CC_OPTS" )
-			If cc_opts OPTS+=" "+cc_opts.Replace( ";"," " )
+						cerbRoot=tcc.cerberusdir+"/includes"
+						If headerList<>""
+							headerList=GenerateSearchPaths( headerList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ) )
+							ReadOut(headerList.Split(";"), "GenerateSearchPaths Returned for : GLFW_VS_HEADER_PATHS" )
+						Endif
+						ccOPTS = "/p:projectname="+QuoteMe( out )+" /p:CerberusPath="+QuoteMe( RealPath( tcc.cerberusdir ) ) + " /p:CerberusLibraryPaths="+QuoteMe( libsearchList )
+						ccOPTS+=" /p:CerberusIncludePaths="+QuoteMe( headerList )+" /p:CerberusLinker="+QuoteMe( libOPTS )+" /p:CerberusIncludes="+QuoteMe( includesList )
+						ccOPTS+=" /p:CerberusDefines="+QuoteMe( GetConfigVar( "CC_VS_DEFINES" ) )+" /p:CerberusCompilerOpts="+QuoteMe( GetConfigVar( "CC_VS_CC_OPTS" ) )
+						If useIcon="1" ccOPTS+=" /p:CerberusResDefs=~q__USE_ICON__~q"
+					Endif
+				Case "macos"
+					ccOPTS=" -Wno-parentheses -Wno-dangling-else"
+					ccopts=" -mmacosx-version-min=10.9 -std=gnu++0x -stdlib=libc++" + CCOptions( ccOPTS )
+					libopts+= LibsOptions()
+				Case "linux"
+					' Do not warn if a caller of a function marked with attribute warn_unused_result does not use its return value. The default is -Wunused-result. 
+					ccopts+=" -Wno-unused-result" + CCOptions( msize )
+					' Link to pthreading library
+					libopts+=" -lpthread" + LibsOptions( msize )
+			End Select
 			
-			Local cc_libs:=GetConfigVar( "CC_LIBS" )
-			If cc_libs LIBS+=" "+cc_libs.Replace( ";"," " )
-			
-      If HostOS="macos"
-        Execute "clang++"+OPTS+" -o "+out+" main.cpp"+LIBS
-      Else
-        Execute "g++"+OPTS+" -o "+out+" main.cpp"+LIBS
-      Endif
-			
-			If tcc.opt_run
-				Execute "~q"+RealPath( out )+"~q"
-			Endif
+			' Compile based on the Operating system and in the case of Windows the CC_USE_MINGW flag
+			Select HostOS()
+				Case "macos"
+					Print "Executing:~nclang++ "+ccopts+" -o "+out+" main.cpp"+" "+ldopts+" "+libopts
+					Execute "clang++ "+ccopts+" -o "+out+" main.cpp"+" "+ldopts+" "+libopts
+				Case "linux"
+					Print "Executing:~ng++"+ccopts+" -o "+out+" main.cpp"+" "+ldopts+" "+libopts
+					Execute "g++ "+ccopts+" -o "+out+" main.cpp"+" "+ldopts+" "+libopts
+				Case "winnt"
+					' MinGW
+					If useMinGW="1" And tcc.opt_msbuild=False
+						Local windres:=""
+						' If the use icon file flag is set; then first check to see is an icon file exists. This should be updated every time
+						If useIcon="1"
+							If Not ( CopyICON( iconPath, "ico", RealPath( CurrentDir()+"../../../" ), RealPath( CurrentDir() ), tcc.cerberusdir, RealPath( CurrentDir()+"/icon"+msize+".o" ) ) ) Die "Faild to copy the application icon over."
+							If FileType( CurrentDir()+"/icon.ico" )= FILETYPE_FILE
+								If msize="32" windres="pe-i386" Else windres="pe-x86-64"
+								Print "Executing:~nwindres --target "+windres+" resource.rc -O coff -o icon"+msize+".o"
+								Execute "windres --target "+windres+" resource.rc -O coff -o icon"+msize+".o"
+							Endif
+							ldopts+=" icon"+msize+".o"
+						Endif
+						
+						Print "Executing:~ng++ "+ccopts+" -o "+out+" main.cpp"+" "+ldopts+" "+libopts
+						Execute "g++ "+ccopts+" -o "+out+" main.cpp"+" "+ldopts+" "+libopts
+					Else
+						' Visual Studio
+						Local vs:=GetConfigVar( "CC_VSTUDIO_VERSION" ), currentDir:= CurrentDir()
+						
+						' Copy any shared libraries
+						' Note that the option toolpath is optional in most cases, but MinGW has all it's runtime libraries there. So it makes sense to point to a path that to the sharetrans_winnt
+						' program to look for them there. See the text file in the sharedtrans source directory.
+						'Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q"+msize+"~q -srcdirs=~q"+libsearchList+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/"+tconfig+"~q -toolchain=~qvisualstudio~q"
+						'CopyLicences( casedConfig, "winnt", tcc.cerberusdir+"/libs", msize )
+						If vs="" And tcc.opt_vsversion=""
+							vs=tcc.VSDEFAULT
+						Else
+							If tcc.opt_vsversion<>""
+								vs=tcc.opt_vsversion
+								Print "Over-ride of CC_VSTUDIO_VERSION via command option -vsversion.~n"
+							Endif
+						Endif
+						
+						' If the build switch is set print a message saying that the GLFW_USE_MINGW is over-ridden.
+						If tcc.opt_msbuild=True Print "Over-ride of GLFW_USE_MINGW via command option -msbuild.~n"
+						' The resource file need to be refreshed each time, so delete it.
+						' CopyICON( userpath, icon file extension, project root, destination, cerberus directory )
+						Print RealPath( CurrentDir()+"../../../" )
+						If Not ( CopyICON( iconPath, "ico", RealPath( CurrentDir()+"../../../" ), RealPath( CurrentDir() ), tcc.cerberusdir, RealPath( CurrentDir()+"/msvc"+vs+"/"+tconfig+msize+"/main.res" ) ) ) Die "Faild to copy the application icon over."
+						If ChangeDir( "msvc"+vs )<0 Die "The project directory containing the solution for Visual Studio "+vs+" cannot be found. Does one exist?"
+						
+						Print "USING Visual Studio version "+vs
+						'Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q"+msize+"~q -srcdirs=~q"+libsearchList+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/"+tconfig+"~q -toolchain=~qvisualstudio~q"
+						Print "Executing "+tcc.MSBUILD_PATH+" /p:Configuration="+tconfig+msize+" "+ccOPTS
+						Execute "~q"+tcc.MSBUILD_PATH+"~q /p:Configuration="+tconfig+msize+" "+ccOPTS
+						
+						ChangeDir currentDir
+					Endif	
+									
+			End Select
+			If tcc.opt_run Execute "~q"+RealPath( out )+"~q"
 		Endif
 	End
 	

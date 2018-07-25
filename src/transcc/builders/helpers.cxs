@@ -1,0 +1,146 @@
+Import transcc
+Import os
+#rem
+	This file is for additional functions to assist in the manipulation of building projects.
+	DAWLANE ADDED FUNCTIONS START
+#end
+
+' Add quote around a string
+Function QuoteMe:String( str:String )
+	Return "~q"+str+"~q"
+End
+
+' Print output for path search
+Function ReadOut:Void( str:String[], msg:String )
+	Print "~n"+msg
+	For Local i:=0 Until str.Length()
+		Print str[i]
+	Next
+	Print ""
+End
+
+' Function to create -LSearchPaths
+Function DefineGCCPaths:String( paths:String, option:String, quote:Bool=False )
+	Local splits:String[]=paths.Split( ";" )
+	Local str:="", truePath:=""
+	
+	For Local i:=0 Until splits.Length()
+		truePath=RealPath( splits[i] )
+		If FileType( truePath )=FILETYPE_DIR
+			If quote str+=" -"+option+"~q"+truePath+"~q " Else str+=" -"+option+truePath+" "
+		Endif
+	Next
+	Return str[ .. ( str.Length()-1 ) ]
+End
+
+' Function generate search paths based on the strings passed
+Function GenerateSearchPaths:String( paths:String, prjRoot:String, prjTemplate:String, cerbRoot:String[], quote:Bool=False )
+	Local store:= New StringStack()
+	Local searchP:String[]=paths.Split( ";" )
+	Local i:Int, j:Int, out:=""
+	
+	For i = 0 Until searchP.Length()	
+		' First check against prjRoot
+		If FileType( RealPath( prjRoot+"/"+searchP[i] ) )=FILETYPE_DIR
+			If Not store.Contains( RealPath( prjRoot+"/"+searchP[i] ) ) store.Push( RealPath( prjRoot+"/"+searchP[i] ) )
+		Endif
+		
+		' Second check against prjTemplate
+		If FileType( RealPath( prjTemplate+"/"+searchP[i] ) )=FILETYPE_DIR
+			If Not store.Contains( RealPath( prjTemplate+"/"+searchP[i] ) ) store.Push( RealPath( prjTemplate+"/"+searchP[i] ) )
+		Endif
+		
+		' Third check against cerbRoot. Should in theory allow you to have named sub directories within the cerberus libs directory
+		For j = 0 Until cerbRoot.Length()
+			If FileType( RealPath( cerbRoot[j]+"/"+searchP[i] ) )=FILETYPE_DIR
+				If Not store.Contains( RealPath(  cerbRoot[j]+"/"+searchP[i] ) ) store.Push( RealPath(  cerbRoot[j]+"/"+searchP[i] ) )
+			Endif
+		Next
+		
+		' Fourth check that the path doesn't already exist
+		If FileType( RealPath( searchP[i] ) )=FILETYPE_DIR
+			If Not store.Contains( RealPath( searchP[i] ) ) store.Push( RealPath( searchP[i] ) )
+		Endif
+	Next
+	
+	' Now add the actual Cerberus librariy paths
+	For i = 0 Until cerbRoot.Length()
+		If FileType( RealPath( cerbRoot[i] ) )=FILETYPE_DIR
+			If Not store.Contains( RealPath( cerbRoot[i] ) ) store.Push( RealPath( cerbRoot[i] ) )
+		Endif
+	Next
+	
+	' Rebuild a search string
+	For Local s:=Eachin store
+		If Not quote out+=s+";" Else out+=QuoteMe( s )+";" 
+	Next
+	out=out[ .. ( out.Length()-1 ) ]
+	Return out
+End
+
+' Copy over any licence directories
+Function CopyLicences( buildconfig:String, targetOS:String, srcPath:String , arch:String="")
+
+	Local licence:String=GetConfigVar( "COPY_LICENCES" )
+	If licence="" Return
+	
+	Local dst:="", src:="", ext:="", lidst:=""
+	Local licenceList:String[]=licence.Split( ";" )
+	
+	' Set the destination for dynamic libraries
+	Select targetOS
+		Case "gcc", "wint"
+			dst=buildconfig+arch+"/"
+		Case "macos"
+			dst=buildconfig+"/"
+	End
+	
+	Print "Licence destination: "+dst
+	Print "Licence source: "+srcPath
+	' Create a directory for licence files
+	If Not FileType( dst+"licences" ) Then CreateDir( dst+"licences" )
+	
+	' Copy the licence directories
+	
+	For Local i:= Eachin licenceList
+		If i<>""
+			
+			If FileType( dst+"licences/"+i )=FILETYPE_DIR Continue
+	
+			' Copy licences related to copying e.g. LGPL stuff
+			If FileType( srcPath+"/licences/"+i )<>FILETYPE_NONE
+				If CopyDir( srcPath+"/licences/"+i, dst+"licences/"+i, True )=1
+					Print "Copied licence directory"
+				Else
+					Print "Failed to copy licence directory"
+				Endif
+			Endif
+
+		EndIf
+	Next
+End
+
+' Cheat just copy over the icon and delete any old resource files
+Function CopyICON:Int( userPath:String = "icon", extension:String, prjPath:String, target:String, cerbPath:String, resourceFile:String )
+	Local userFile:=userPath+"."+extension
+	Local targetFile:=target+"/icon."+extension
+	If DeleteFile( resourceFile ) Print "Deleted Resource file "+resourceFile Else Print "WARNING: Failed to remove old resource file from "+resourceFile
+	' Look in the user defined full path first for the icon file.
+	If FileType( userFile )=FILETYPE_FILE
+		' The file exists, so copy that over
+		Print "Copying icon from project "+userFile+" directory To "+targetFile
+		Return CopyFile( userFile, targetFile ) ' Should return 1 if all went well
+	Else
+		' The file wasn't a full path, so now check the local icons project directory
+		If FileType( prjPath+"icons/"+userFile )=FILETYPE_FILE
+			Print "Copying icon "+userFile+" from project resource directory ("+prjPath+"icons) To "+targetFile
+			Return CopyFile( prjPath+"icons/"+userFile, targetFile ) ' Should return 1 if all went well
+		Else
+		' If it's not in the users icon resource directory, then fallback to the cerberus one
+			Print "Copying icon from Cerberus resource directory to "+targetFile
+			Return CopyFile( cerbPath+"/src/archives/icons/cerberus."+extension, targetFile ) ' Should return 1 if all went well
+		Endif
+	Endif
+End Function
+' DAWLANE ADDED FUNCTIONS END 
+
