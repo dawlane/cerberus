@@ -1,0 +1,85 @@
+> MISCELLANEOUS SETTINGS
+This is a list of miscellaneous preprocessor directives that do not fit into any of the main categories.
+
+[#CPP_DOUBLE_PRECISION_FLOATS](#dd_floats)
+[#CPP_GC_MODE](#gc_mode)~n
+[#CPP_GC_TRIGGER](#gc_trigger)~n
+[#CPP_GC_MAX_LOCALS](#gc_locals)~n
+[#OPENGL_DEPTH_BUFFER_ENABLED](#gl_buffer)~n
+[#REFLECTION_FILTER](#reflection_filter)~n
+[##COPY_LICENCES](#copy_licences)~n
+
+
+<a name="dd_floats">
+> #CPP_DOUBLE_PRECISION_FLOATS
+</a>
+<pre>Cerberus Default: #CPP_DOUBLE_PRECISION_FLOATS=False
+</pre>
+>>>> Compiler: All
+>>>> Operating System: All
+Setting this directive to 'True' will enable floating poing data types use double precision. This increases the precision of floats and the memory used. See https://en.wikipedia.org/wiki/Double-precision_floating-point_format for imformation about double precision floating point data types.
+
+<a name="gc_mode">
+>>> #CPP_GC_MODE
+</a>
+<pre>Cerberus Default: #CPP_GC_MODE=1
+</pre>
+>>>> Compiler: All
+>>>> Operating All
+>>>> Advanced: Only advanced users should use this preprocessor directive.
+This directive control how offen the Cerberus Garbage Collector should be called to clear memory that is no longer used.~n
+The values are:~n
+Disable GC = 0
+Incremental collect after a Cerberus On method call = 1
+Incremental collect every GC allocation = 2
+
+<a name="gc_trigger">
+>>> #CPP_GC_TRIGGER
+</a>
+<pre>Cerberus Default: #CPP_GC_TRIGGER=8388608
+</pre>
+>>>> Compiler: All
+>>>> Operating All
+>>>> Advanced: Only advanced users should use this preprocessor directive.
+Allocate memory in bytes before a GC 'sweep' occurs. The defalt is to use 8Mib.
+
+
+<a name="gc_locals">
+>>> #CPP_GC_MAX_LOCALS
+</a>
+<pre>Cerberus Default: #CPP_GC_MAX_LOCALS=8192 
+</pre>
+>>>> Compiler: All
+>>>> Operating All
+>>>> Advanced: Only advanced users should use this preprocessor directive.
+This is used with GC_MODE 2 to track local object variables and defaults to 8192.
+
+<a name="gl_buffer">
+>>> #OPENGL_DEPTH_BUFFER_ENABLED
+</a>
+<pre>Cerberus Default: #OPENGL_DEPTH_BUFFER_ENABLED=True 
+</pre>
+>>>> Compiler: All
+>>>> Operating All
+>>>> Advanced: Only advanced users should use this preprocessor directive.
+>>>> NOTE: OpenGL settings. To override, set these in your code BEFORE importing opengl.gles11 or opengl.gles20
+
+<a name="reflection_filter">
+>>> #REFLECTION_FILTER
+</a>
+<pre>Cerberus Default: #REFLECTION_FILTER=""
+</pre>
+>>>> Compiler: All
+>>>> Operating All
+>>>> Advanced: Only advanced users should use this preprocessor directive.
+The preprocessor directive is used in conjunction with the [[Modules/reflection]] module.
+
+<a name="copy_licences">
+>>> #COPY_LICENCES
+</a>
+<pre>Cerberus Default: #COPY_LICENCES=""
+</pre>
+>>>> Compiler: All
+>>>> Operating All
+Copy any licences located in the libs/licences directory. This is a convenience preprocessor directive for those licences such as LGPG that require you to distribute the copying or a specific licence.~n
+Place your licence files in a sub directory in the cerberus\libs\licences directory.

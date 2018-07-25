@@ -1,0 +1,20 @@
+> Sharedtrans
+This application is a helper to locate, check and transfer shared libraries to the final build destination directory.~n
+It has a simple command line interface with a few options for the source dirctiories, the destination directories, the libraries to locate, the tool chain being used, the architecture for the binary being used and the tool chains path if needed.~n
+>>> Usage
+<code>sharedtans -srcdirs="MyDir1;MyDir2" -dst="path_to_final_directory" -libs="lib1;lib2;lib3"~n
+-toolchain="(mingw|mingw-static|visualstudio|macos)" -toolpath="path_to_tool_chain" -arch="binary_architecture_of _app"
+</code>
+<table>
+<tr><td>-srcdirs</td><td>Path to search for shared dynamic libraries e.g. "C:\MyPathToLibraies;D:\MyPathToOtherLibraies"</td></tr>
+<tr><td>-dst</td><td>The directory to transfer all shared dynamic libraries found.</td></tr>
+<tr><td>-libs</td><td>Share dynamic libraries to copy over e.g. "libcrypto-1_1;libcurl;libssl-1_1;libhello;libcrypto-1_1-x64;libssl-1_1-x64"</td></tr>
+<tr><td>-toolchain</td><td>A method to select special operations based of a compiler tool chain.~n
+They basically search the tool chains own directories for any shared libraries that may be required.~n
+"mingw" : Looks in the MinGW application root directory for runtime shared dynamic libraries. These are need for MinGW-w64 normally.~n
+"mingw-static" : Ignores the MinGW application root directory for runtime shared dynamic libraries.~n
+"visualstudio" : This currently is just a dummy and doesn't search any Visual Studio installation path.~n
+"macos" :  This currently is just a dummy and doesn't search any Xcode installation path</td></tr>
+<tr><td>-toolpath</td><td>The root directory for a compiler tool chain. This is optional depending on the tool chain in question.</td></tr>
+<tr><td>-arch</td><td>Use this to isolate the exact architecture of the shared dynamic library for the application you are building.</td></tr>
+</table>

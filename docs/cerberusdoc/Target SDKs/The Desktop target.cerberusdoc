@@ -6,14 +6,62 @@ Desktop apps use the OpenGL API for graphics rendering and the OpenAL API for au
 
 >> Windows Requirements
 
-* [MinGW 4.9.2](https://www.cerberus-x.com/downloads/tdm-gcc-64.zip) or [Visual Studio Express 2013 with Update 4 for Windows Desktop](http://www.microsoft.com/visualstudio/eng/downloads).
+* A version of MinGW (see Notes) or [Visual Studio Express 2015 with Update 3 for Windows Desktop](http://www.microsoft.com/visualstudio/eng/downloads).
 
 * [OpenAL Windows Drivers](https://www.cerberus-x.com/downloads/oalinst.zip).
+* You can also download the OpenAL Windows Drivers from [https://www.openal.org](https://www.openal.org).
 
 >> MacOS Requirements
 
 * [XCode](http://developer.apple.com/xcode) developer tools. XCode is also available via the Mac 'App Store' app.
 
+>> Linux Requirements
+The requirments for Linux can be complicated due to the number of distributions out there. Therefore the recommended distribution is Ubuntu and it's derivatives, such as Linux Mint</br>
+Both of these distributions are based on Debian, but package names can be a little different.
+
+In general you require:</br>
+libglu1-mesa, libopenal1, libxpm4, libxrender1, libxcursor1, libxi6, libxinerama1, libxxf86vm1, libxrandr2 and the Qt5 runtime libraries.
+
+To install the development packages for Ubuntu/Linux Mint. You would use the command below:</br>
+<pre>
+sudo apt-get -y install g++ libglu1-mesa-dev libopenal-dev libxi-dev libxrandr-dev libxinerama-dev libxcursor-dev libxxf86vm-dev libx11-dev libgl1-mesa-dev
+</pre></br>
+The Qt5 runtime libraries usually come pre-installed.
+
+You will find more detailed instructions for cross-compiling 32/64 bit applications in the file BUILDING.txt located in the directory called src.</br>
+It explains how to set up a 64 bit distribution of Ubunt/LinuxMin/Debian to cross compile to 32 bit.
+
 >> Notes
 
-On Windows, either MinGW or MSVC may be used to build desktop apps. If you are using MinGW, the `MINGW_PATH` var in your [[Trans]] config file must be set correctly. If you are using MSVC, the `MSBUILD_PATH` var in your [[Trans]] config file must be set correctly.
+Windows:</br>
+On Windows, either MinGW or MSVC may be used to build desktop applications. If you are using MinGW, the `MINGW_PATH` variable in your [[Trans]] config file must be set correctly.</br>
+If you are using MSVC, the `MSBUILD_PATH` variable and `VS_VERSION` in your [[Trans]] config file must be set correctly. You can over-ride `VS_VERSION` using #GLFW_VSTUDIO_VERSION or #CC_VSTUDIO_VERSION from your source files.
+
+There are a number of distributors of MinGW (aka Minimalist GNU for Windows).</br>
+* [MinGW](http://www.mingw.org/)</br>
+This is the original version from which all other are based from. This is 32 bit only and produces 32 bit binary applications. Currently untested with the current version of Cerberus.
+
+* [TDM-GCC](http://tdm-gcc.tdragon.net/)</br>
+Unfortunately, versions after 4.9.x have a linker bug that prevents it from handling Microsoft library files (.lib) and hasn't seen any updated for a while now.</br>
+It is possible to work round this issue by creating MinGW versions of these, but requires knowledge of on how to use dlltool and gendef and to avoid any paths that will have .lib files in them.</br>
+You can download [MinGW 4.9.2](https://www.cerberus-x.com/downloads/tdm-gcc-64.zip) for 64 bit systems that does not have this linker bug. But please note that there has been a report that these versions are causing some issues.
+
+* [MinGW-w64](https://mingw-w64.org)</br>
+This variant comes in a few forms and can be a little confussing on which to select.</br>
+The installer presents you with:</br>
+<table>
+<tr><td>Version</td><td>Unlike TDM-GCC installer, you can select any version from 4.8.1 to the latest.</td></tr>
+<tr><td>Architecture</td><td>You have a choice of two, i686 and x86_64. The i686 is a 32 bit application, while the x86_64 is a 64 bit build only. Which of these is selected also affects the exception handling options.</td></tr>
+<tr><td>Threads</td><td>You have a choice of two, win32 and posix. You should search the internet for a good explanation of the difference between the two.</td></tr>
+<tr><td>Exception</td><td>Depending on the Architecture selected, the exception handling gives you a choice of either:</br>i686: dwarf or sjlj</br>x86_64: seh or sjlj</td></tr>
+<tr><td>Revision</td><td>Minor build updates.</td></tr>
+</table>
+
+If you wish to do 32/64 bit cross compiling, then you should select sjlj. But be warned that sjlj has been known to have problems when certain compiler flags have been passed.</br>
+The people behind MinGW-w64 recommend using only the defaults shown for exceptions (dwarf or seh). This means that if you wish to compile for both 32 bit and 64 bit; then you have to have both compiler tool chains installed.</br>
+This means that you would have to change the MINGW_PATH variable in config.winnt.txt every time you wish to compile for a different CPU architecture.</br>
+It should also be noted that MinGW-w64's default build system requires that a number of dynamic link libraries to be included with the final executable.</br>
+You can of course pass the `-static` parameter in one of the linker option config directives or use the directive #GLFW_MINGW_STATIC or #CC_MINGW_STATIC set to true to embed these as part of the final executable, but there may be licence restriction if doing so.
+There is also the issue with static linkage of needed to use static export libraries to use external shared dynamic libraries.</br>
+
+>> IN ALL VERSION OF MINGW YOU SHOULD CAREFULLY READ THE LICENCE FILES AND DOCUMENTATION.

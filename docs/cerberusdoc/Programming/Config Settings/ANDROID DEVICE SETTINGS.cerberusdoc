@@ -1,0 +1,154 @@
+> ANDROID DEVICE SETTINGS
+This is a list of all precompiler configuration settings for the ANDROID target.~n
+
+<table>
+<tr><td>
+>>> [Android General](#general)
+[#ANDROID_APP_LABEL](#app_lable)~n
+[#ANDROID_APP_PACKAGE](#app_package)~n
+[#ANDROID_SCREEN_ORIENTATION](#screen_layout)~n
+[#ANDROID_NATIVE_GL_ENABLED](#gl_enable)~n<td>
+>>> [Android App versioning, signing](#signing)
+[#ANDROID_VERSION_CODE](#version_code)~n
+[#ANDROID_VERSION_NAME](#version_name)~n
+[#ANDROID_KEY_STORE](#keystore)~n
+[#ANDROID_KEY_ALIAS](#keyalias)~n
+[#ANDROID_KEY_STORE_PASSWORD](#keystore_passwd)~n
+[#ANDROID_KEY_ALIAS_PASSWORD](#keyalias_passwd)~n
+[#ANDROID_SIGN_APP](#sign_app)</td>
+<td>
+>>> Abmob Settings
+[#ADMOB_PUBLISHER_ID](#admob_id)~n
+[#ADMOB_ANDROID_TEST_DEVICE1](#admob_device1)~n
+[#ADMOB_ANDROID_TEST_DEVICE2](#admob_device2)~n
+[#ADMOB_ANDROID_TEST_DEVICE3](#admob_device3)~n
+[#ADMOB_ANDROID_TEST_DEVICE4](#admob_device4)~n
+</td></tr></table>
+
+<a name="app_lable">
+>> Android General
+</a>
+
+<a name="app_lable">
+>>> #ANDROID_APP_LABEL
+</a>
+<pre>Cerberus Default: #ANDROID_APP_LABEL="Cerberus X Game"
+</pre>
+A human readable lable for your Android Application.
+
+<a name="app_package">
+>>> #ANDROID_APP_PACKAGE
+</a>
+<pre>Cerberus Default: #ANDROID_APP_PACKAGE="com.Cerberus_X.cxgame"
+</pre>
+Set the package name for your application using reverse web addressing.
+
+<a name="screen_layout">
+>>> #ANDROID_SCREEN_ORIENTATION
+</a>
+<pre>Cerberus Default: #ANDROID_SCREEN_ORIENTATION="portrait"
+</pre>
+Set the orientation of the screen to one of either user, portrait or landscape.
+
+<a name="gl_enable">
+>>> #ANDROID_NATIVE_GL_ENABLED
+</a>
+<pre>Cerberus Default: #ANDROID_NATIVE_GL_ENABLED=False
+</pre>
+>>>> Advanced: For users that are experianced with programming in OpenGL
+Set this if you wish to use the opengl modules with Android devices.
+
+
+<a name="signing">
+>> Android App versioning, signing
+</a>
+
+
+<a name="version_code">
+>>> #ANDROID_VERSION_CODE
+</a>
+<pre>Cerberus Default: #ANDROID_VERSION_CODE="1"
+</pre>
+This is a positive integer used as an internal version number. It's only used to determine whether one version is more recent than another, with higher numbers indicating more recent versions. This is not the one that is diplayed to the user; for that you need to set [#ANDROID_VERSION_NAME](#version_name). The #ANDROID_VERSION_CODE value is to protect against downgrades by preventing users from installing an APK with a lower #ANDROID_VERSION_CODE than the version currently installed on their device.
+
+<a name="version_name">
+>>> #ANDROID_VERSION_NAME
+</a>
+<pre>Cerberus Default: #ANDROID_VERSION_NAME="1.0"
+</pre>
+A string used as the version number displayed to users. The value is a string so that you can describe the app version as a < major >.< minor >.< point > string, or as any other type of absolute or relative version identifier.
+
+<a name="keystore">
+>>> #ANDROID_KEY_STORE
+</a>
+<pre>Cerberus Default: #ANDROID_KEY_STORE="../../release-key.keystore"
+</pre>
+For a full description of this directive. See the Android documnetation on the Keystore System and App Signing
+
+<a name="keyalias">
+>>> #ANDROID_KEY_ALIAS
+</a>
+<pre>Cerberus Default: #ANDROID_KEY_ALIAS="release-key-alias"
+</pre>
+For a full description of this directive. See the Android documnetation on the Keystore System and App Signing
+
+
+<a name="keystore_passwd">
+>>> #ANDROID_KEY_STORE_PASSWORD
+</a>
+<pre>Cerberus Default: #ANDROID_KEY_STORE_PASSWORD="password"
+</pre>
+For a full description of this directive. See the Android documnetation on the Keystore System and App Signing
+
+
+<a name="keyalias_passwd">
+>>> #ANDROID_KEY_ALIAS_PASSWORD
+</a>
+<pre>Cerberus Default: #ANDROID_KEY_ALIAS_PASSWORD="password"
+</pre>
+For a full description of this directive. See the Android documnetation on the Keystore System and App Signing
+
+
+<a name="sign_app">
+>>> #ANDROID_SIGN_APP
+</a>
+<pre>Cerberus Default: #ANDROID_SIGN_APP=False
+</pre>
+For a full description of this directive. See the Android documnetation on the Keystore System and App Signing
+
+
+<a name="admob_id">
+>>> #ADMOB_PUBLISHER_ID
+</a>
+<pre>Cerberus Default: #ADMOB_PUBLISHER_ID="abcdabcdabcdabc"
+</pre>
+If you have set up an ADMOB account. This is where you should put your publisher ID. Visit the ADMOB website for more details on how to use ADMOB.
+
+<a name="admob_device1">
+>>> #ADMOB_ANDROID_TEST_DEVICE1
+</a>
+<pre>Cerberus Default: #ADMOB_ANDROID_TEST_DEVICE1="TEST_EMULATOR"
+</pre>
+
+
+<a name="admob_device2">
+>>> #ADMOB_ANDROID_TEST_DEVICE2
+</a>
+<pre>Cerberus Default: #ADMOB_ANDROID_TEST_DEVICE2="ABCDABCDABCDABCDABCDABCDABCDABCD"
+</pre>
+
+
+<a name="admob_device3">
+>>> #ADMOB_ANDROID_TEST_DEVICE3
+</a>
+<pre>Cerberus Default: #ADMOB_ANDROID_TEST_DEVICE3=""
+</pre>
+
+
+<a name="admob_device4">
+>>> #ADMOB_ANDROID_TEST_DEVICE4
+</a>
+<pre>Cerberus Default: #ADMOB_ANDROID_TEST_DEVICE4=""
+</pre>
+
+

@@ -1,0 +1,26 @@
+> iOS DEVICE SETTINGS
+This is a list of all precompiler configuration settings for the iOS target.~n
+
+[#IOS_RETINA_ENABLED](#retina_enabled)~n
+[#IOS_ACCELEROMETER_ENABLED](#accel_enabled)~n
+[#IOS_DISPLAY_LINK_ENABLED](#display_link)~n
+
+<a name="retina_enabled">
+>>> #IOS_RETINA_ENABLED
+</a>
+<pre>Cerberus Default: #IOS_RETINA_ENABLED=True
+</pre>
+If you don't want to use retina displays. The set this to 'False'.
+
+<a name="accel_enabled">
+>>> #IOS_ACCELEROMETER_ENABLED
+</a>
+<pre>Cerberus Default: #IOS_ACCELEROMETER_ENABLED=True
+</pre>
+Set this to 'False' to disable the accelerometer.
+
+<a name="display_link">
+>>> #IOS_DISPLAY_LINK_ENABLED
+</a>
+<pre>Cerberus Default: #IOS_DISPLAY_LINK_ENABLED=False
+</pre>

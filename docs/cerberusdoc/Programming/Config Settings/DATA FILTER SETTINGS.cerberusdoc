@@ -1,0 +1,70 @@
+> DATA FILTER SETTINGS
+This is a list of all precompiler configuration setting that control what resources get copied over from the projects data directory.~n
+Please also read the [[Programming/File formats]] section on the types of files that each target can use.~n
+[#TEXT_FILES](#text_filter)~n
+[#IMAGE_FILES](#image_filter)~n
+[#SOUND_FILES](#sound_filter)~n
+[#MUSIC_FILES](#music_filter)~n
+[#BINARY_FILES](#binary_filter)~n
+[#FAST_SYNC_PRIJECT_DATA](#data_sync)~n
+[USAGE EXAMPLE](#example)
+
+<a name="text_filter">
+>>> #TEXT_FILES
+</a>
+<pre>
+Cerberus Default: #TEXT_FILES="*.txt|*.xml|*.json"
+</pre>
+This is used to filter in any text files. Using a wild card (*), means that all files with the name file extension will be copied.~n
+
+<a name="image_filter">
+>>> #IMAGE_FILES
+</a>
+<pre>
+Cerberus Default: #IMAGE_FILES="*.png|*.jpg"
+</pre>
+This is used to filter in any image files. Using a wild card (*), means that all files with the name file extension will be copied.~n
+
+<a name="sound_filter">
+>>> #SOUND_FILES
+</a>
+<pre>
+Cerberus Default: #SOUND_FILES="*.wav|*.ogg"
+</pre>
+This is used to filter in any music files. Using a wild card (*), means that all files with the name file extension will be copied.~n
+
+<a name="music_filter">
+>>> #MUSIC_FILES
+</a>
+<pre>
+Cerberus Default: #MUSIC_FILES="*.wav|*.ogg"
+</pre>
+This is used to filter in any music files. Using a wild card (*), means that all files with the name file extension will be copied.~n
+
+<a name="binary_filter">
+>>> #BINARY_FILES
+</a>
+<pre>
+Cerberus Default: #BINARY_FILES="*.bin|*.dat"
+</pre>
+This is used to filter in any binary files. Using a wild card (*), means that all files with the name file extension will be copied.~n
+
+<a name="data_sync">
+>>> #FAST_SYNC_PROJECT_DATA
+</a>
+<pre>
+Cerberus Default: #FAST_SYNC_PROJECT_DATA=True
+</pre>
+Set to True to enable 'fast syncing' of project data when building - warning: has problems with xcode, False by default.~n
+
+<a name="example">
+>>> USAGE EXAMPLE
+</a>
+<pre>
+#If TARGET="android"
+	#MUSIC_FILES="*.wav|*.ogg|*.mp3|*.m4a"
+#End
+#If TARGET="ios"
+	#MUSIC_FILES="*.wav|*.mp3|*.m4a|*.caf|*.aiff"
+#End
+</pre>

@@ -14,7 +14,7 @@ Trans works with Cerberus X projects and ultimately converts them into target pr
 
 Trans accepts the following command line options:
 
-`transcc [-check] [-update] [-build] [-run] [-config=...] [+setting=...] -target=... mainfile.cxs`
+`transcc [-check] [-update] [-build] [-run] [-mingw-static] [-msize=32/64] [-config=...] [+setting=...] -target=... mainfile.cxs`
 
 <table>
 <tr><td>-check</td><td>Causes the project to be compiled only. The output target project is not touched, useful for error checking. </td></tr>
@@ -23,6 +23,10 @@ Trans accepts the following command line options:
 <tr><td>-run</td><td>Causes the output target project to be updated, built and run.</td></tr>
 <tr><td>-config</td><td>Must be one of 'debug' or 'release'. Defaults to debug.</td></tr>
 <tr><td>-target</td><td>Must be one of 'android', 'flash', 'glfw', 'html5', 'ios' or 'stdcpp'.</td></tr>
+<tr><td>-msize</td><td>Use for over-riding the config that create 32/64 bit applications.</td></tr>
+<tr><td>-mingw-static</td><td>For users of MinGW-w64 compilers to create stand-alone builds that do not require any additional run-time dlls</br>Please read the MinGW-w64 documentation for any licence implications.</td></tr>
+<tr><td>-vsversion</td><td>For users of Visual Studio to select the version the solution files to build with. The version of Visual Studio must be installed.</td></tr>
+<tr><td>-msbuild</td><td>If Visual Studio is installed; then this switch will force the project to be built with Visual Studio.</td></tr>
 </table>
 
 Arguments starting with + can be used to specify app config settings. Such arguments must be of the form +key=value. Note that boolean settings made this way should be specified using 1 or 0, not True or False, eg: '+GLFW_AUTO_SUSPEND_ENABLED=1'.

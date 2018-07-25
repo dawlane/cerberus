@@ -1,0 +1,25 @@
+> MOJO SETTINGS
+This is a list of all precompiler configuration settings that affect Cerberus's own graphics framework: mojo.~n
+
+[#MOJO_AUTO_SUSPEND_ENABLED](#auto_suspend)~n
+[#MOJO_HICOLOR_TEXTURES](#high_colur_textures)	~n
+[#MOJO_IMAGE_FILTERING_ENABLE](#image_filtering)~n
+
+<a name="auto_suspend">
+>>> #MOJO_AUTO_SUSPEND_ENABLED
+</a>
+<pre>Cerberus Default: #MOJO_AUTO_SUSPEND_ENABLED=True
+</pre>
+Set to True to cause app to suspend when desktop window loses focus.
+
+<a name="high_colur_textures">
+>>> #MOJO_HICOLOR_TEXTURES
+</a>
+<pre>Cerberus Default: #MOJO_HICOLOR_TEXTURES=True
+</pre>
+
+<a name="image_filtering">
+>>> #MOJO_IMAGE_FILTERING_ENABLE
+</a>
+<pre>Cerberus Default: #MOJO_IMAGE_FILTERING_ENABLE=True
+</pre>

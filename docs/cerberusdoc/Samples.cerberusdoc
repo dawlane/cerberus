@@ -9,6 +9,11 @@
 
 + [[../../examples/mojo/gerryq/picpuzzle/picpuzzle.cxs|Picture puzzle]]
 
+>> Dawlane
++ [[../../examples/mojo/dawlane/copy_shared_test/copy_shared_test.cxs|Shared Libraries]]
++ [[../../examples/mojo/dawlane/console_icon/console_icon.cxs|Console Icon]]
++ [[../../examples/mojo/dawlane/icon_test/icon_test.cxs|GLFW Icon]]
+
 >> Impixi
 
 + [[../../examples/mojo/impixi/life/life.cxs|Game of life]]

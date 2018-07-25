@@ -1,0 +1,11 @@
+> HTML5 SETTINGS
+This is a list of all precompiler configuration settings for the HTML5 target.~n
+
+[#HTML5_WEBAUDIO_ENABLED](#webaudio)
+
+<a name="webaudio">
+>>> #HTML5_WEBAUDIO_ENABLED
+</a>
+<pre>Cerberus Default: #HTML5_WEBAUDIO_ENABLED=True
+</pre>
+Set to false to disable webaudio support for mojo audio, and to use older multimedia audio system instead.

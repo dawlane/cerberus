@@ -1,0 +1,652 @@
+> [GLFW DESKTOP SETTINGS](#desktop_settings)
+This is a list of all precompiler configuration settings for the GLFW Destop target.~n
+>>> Note for new users:
+Most of the compiler and linker preprocessor configuration settings here are for advanced users that have some or detailed knowledge of the back-end compiler tool chains involed.~n
+<table>
+<tr><td>
+>> [Compiler Control](#compiler)
+[#GLFW_USE_MINGW](#use_mingw)~n
+[#GLFW_MINGW_STATIC](#mingw_static)~n
+[#GLFW_GCC_MSIZE_WINNT](#gcc_msize_winnt)~n
+[#GLFW_GCC_MSIZE_LINUX](#gcc_msize_linux)~n
+[#GLFW_VS_MSIZE_WINNT](#vs_msize_winnt)~n
+[#GLFW_GCC_CC_OPTS](#gcc_cc_opts)~n
+[#GLFW_GCC_INCLUDE_PATHS](#gcc_include_paths)~n
+[#GLFW_GCC_USER_INCLUDES](#gcc_user_includes)~n
+[#GLFW_XCODE_INCLUDE_PATHS](#xcode_include_paths)~n
+[#GLFW_XCODE_CC_OPTS](#xcode_cc_opts)~n
+[#GLFW_VS_CC_OPTS](#vs_cc_opts)~n
+[#GLFW_VS_INCLUDES](#vs_includes)~n
+[#GLFW_VS_DEFINES](#vs_defines)~n
+[#GLFW_VS_HEADER_PATHS](#vs_header_paths)~n
+</td>
+<td>
+>> [Linker Control](#linker)
+[#GLFW_GCC_LD_OPTS](#gcc_ld_opts)~n
+[#GLFW_GCC_LIB_OPTS](#gcc_lib_opts)~n
+[#GLFW_GCC_LIB_PATHS](#gcc_lib_paths)~n
+[#GLFW_XCODE_LIBS_OPTS](#xcode_lib_opts)~n
+[#GLFW_XCODE_LD_OPTS](#xcode_ld_opts)~n
+[#GLFW_XCODE_LIB_PATHS](#xcode_lib_paths)~n
+[#GLFW_XCODE_FRAMEWORKS](#xcode_frameworks)~n
+[#GLFW_XCODE_FRAMEWORK_PATHS](#xcode_framework_paths)~n
+[#GLFW_VS_LIB_OPTS](#vs_lib_opts)~n
+[#GLFW_VS_LIB_PATHS](#vs_lib_paths)~n
+</td></tr>
+<tr><td>
+>> [Deployment Control](#deploy)
+[#GLFW_XCODE_BUNDLE_ID](#xcode_bundle_id)~n
+[#GLFW_COPY_SHAREDLIBS](#copy_sharedlibs)~n
+[#GLFW_APP_NAME](#app_name)~n
+[#GLFW_APP_LABEL](#app_lable)~n
+[#GLFW_APP_PUBLISHER](#app_publisher)~n
+</td>
+<td>
+>> [Window Display Control](#display)
+[#GLFW_WINDOW_TITLE](#window_title)~n
+[#GLFW_WINDOW_WIDTH](#window_width)~n
+[#GLFW_WINDOW_HEIGHT](#window_height)~n
+[#GLFW_WINDOW_RESIZABLE](#window_resizable)~n
+[#GLFW_WINDOW_FULLSCREEN](#window_fullscreen)~n
+[#GLFW_WINDOW_SAMPLES](#window_samples)~n
+[#GLFW_WINDOW_DECORATED](#window_decorated)~n
+</td>
+<td>
+>> [Miscellaneous](#misc)
+[#GLFW_VERSION](#glfw_version)~n
+[#GLFW_VSTUDIO_VERSION](#vstudio_version)~n
+[#GLFW_ICON](#icon)~n
+
+</td>
+</table>
+
+<a name="glfw_desktop_settings">
+> GLFW DESKTOP SETTINGS
+</a>
+<a name="glfw_compiler">
+>> Compiler Control
+</a>
+
+
+<a name="use_mingw">
+>>> #GLFW_USE_MINGW
+</a>
+<pre>Cerberus Default: #GLFW_USE_MINGW=True
+</pre>
+>>>> Compiler: MinGW and Visual Studio
+>>>> Operating System: MS Windows only.
+Use this to switch between the back-end compiler tool chains. The default is set to true to use the MinGW tool chain. Setting this to 'False' will build GLFW applications with Visual Studio's MSBuild command line tool. Note that you will need to have at least the minuimum of Visual Studio 2015 installed.
+
+
+<a name="mingw_static">
+>>> #GLFW_MINGW_STATIC
+</a>
+<pre>Cerberus Default: #GLFW_MINGW_STATIC=False
+</pre>
+>>>> Compiler: MinGW
+>>>> Operating System: MS Windows only.
+>>>> Advanced: Only advanced users of MinGW should use this preprocessor directive.
+This preprocessor directive is for MinGW compilers that do not create stand alone applications, such as the original MinGW-w64 who's default is to require dynamic run-time libraries to be distributed along with the final executable. It's used to statically link libstdc++6, the libgcc run-time and winptheard into the main executable.~n
+MinGW compilers such as TDM-GCC do not need to use any static or POSIX preprocessor directives as these types of compilers usually are cabable of building stand alone applications.
+NOTE: The preprocessor directive [[Programming/Config Settings/C++TOOL SETTINGS##MINGW_USE_POSIX]] default is set to 'True'. If you are using a non POSIX version of MinGW with [#GLFW_MINGW_STATIC](#mingw_static) or it's sister preprocessor directive [[Programming/Config Settings/C++TOOL SETTINGS##MINGW_USE_STATIC]]. Then you should set #MINGW_USE_POSIX to 'False'. Also note that the helper application [[Tools/Sharedtrans]] cannot tell if a version of MinGW already creates stand-allone applications and will still copy over run-time libraries that have to be manually removed.
+<pre>
+Example:
+' Use non POSIX static linking.
+#GLFW_MINGW_STATIC=True
+#MINGW_USE_POSIX=False
+</pre>
+
+
+<a name="gcc_msize_winnt">
+>>> #GLFW_GCC_MSIZE_WINNT
+</a>
+<pre>
+Cerberus Default: #GLFW_GCC_MSIZE_WINNT="64"
+</pre>
+>>>> Compiler: MinGW
+>>>> Operating System: MS Windows only.
+If you have installed a MinGW compiler that is capable of compiling both 32 bit and 64 bit applications. Then you use this preprocessor directive to switch between building either 32 or 64 bit application.
+>>> Note:
+If the MinGW compiler you have installed is only cabable of compiling 32 bit applications; then you must use this preprocessor directive and set the value to 32, or it will not compile. The same applies if you only have a compiler that support 64 bit compilation.
+
+
+<a name="gcc_msize_linux">
+>>> #GLFW_GCC_MSIZE_LINUX
+</a>
+<pre>
+Cerberus Default: #GLFW_GCC_MSIZE_LINUX="64"
+</pre>
+>>>> Compiler: Linux GCC
+>>>> Operating System: Linux only.
+This preprocessor directive is a carbon copy of the one for MinGW above. If you wish to build for both 32 bit and 64 bit version of a Linux operating system; then you will have to have a reasonable knowledge on who to set up your Linux system to do so.
+
+
+<a name="vs_msize_winnt">
+>>> #GLFW_VS_MSIZE_WINNT
+</a>
+<pre>
+Cerberus Default: #GLFW_VS_MSIZE_WINNT="32"
+</pre>
+>>>> Compiler: Visual Studio
+>>>> Windows Operating system only.
+Like the previous two preprocessor directives above. It allows you to build 32 bit and 64 bit applications. But the minimum version of Visual Studio required is 2013 for noraml GLFW targets and Visual Studio 2015 for GLFW ANGLE.
+
+
+<a name="gcc_cc_opts">
+>>> #GLFW_GCC_CC_OPTS
+</a>
+<pre>
+Cerberus Default: #GLFW_GCC_CC_OPTS=""
+</pre>
+>>>> Compiler: MinGW and Linux GCC
+>>>> Operating System: MS Windows and Linux only.
+>>>> Advanced: Only advanced users of MinGW and Linux GCC should use this preprocessor directive.
+This directive allows you to pass build option to the back-end compilers. See the GCC documentation at https://gcc.gnu.org/onlinedocs/ for the compiler you are using.
+<pre>
+Example:
+#GLFW_GCC_CC_OPTS="-O3 -Wall -Wextra" ' Optimization level 3 and turn on all warings and extras warnings.
+</pre>
+
+
+<a name="gcc_include_paths">
+>>> #GLFW_GCC_INCLUDE_PATHS
+</a>
+<pre>
+Cerberus Default: #GLFW_GCC_INCLUDE_PATHS=""
+</pre>
+>>>> Compiler: MinGW and Linux GCC
+>>>> Operating System: MS Windows and Linux only.
+>>>> Advanced: Only advanced users of MinGW and Linux GCC should use this preprocessor directive.
+This is a convenience directive for passing include header search paths in the format -ISearch_Path_to_header_files.~n
+You can use either a partial or full path to the location. Cerberus will do an automatic search first in the project root for directories, then the projects build directory before searching the Cerberus default stores and any full path.
+<pre>
+Example:
+#GLFW_GCC_INCLUDE_PATHS="Includepath1;IncludePath2"
+</pre>
+
+
+<a name="gcc_user_includes">
+>>> #GLFW_GCC_USER_INCLUDES
+</a>
+<pre>
+Cerberus Default: #GLFW_GCC_USER_INCLUDES=""
+</pre>
+>>>> Compiler: MinGW and Linux GCC
+>>>> Operating System: MS Windows and Linux only.
+>>>> Advanced: Only advanced users of MinGW and Linux GCC should use this preprocessor directive.
+This is a convenience directive for passing header files in the format -include file. See the GCC documentation at https://gcc.gnu.org/onlinedocs/ for the compiler you are using.~n
+You can use either a partial or full path to the location. Cerberus will do an automatic search first in the project root for directories, then the projects build directory before searching the Cerberus default stores and any full path.
+<pre>
+Example:
+#GLFW_GCC_USER_INCLUDES="Includepath1/ThisHeaderFile.h;ThatHeaderFile.h"
+</pre>
+
+
+<a name="xcode_include_paths">
+>>> #GLFW_XCODE_INCLUDE_PATHS
+</a>
+<pre>
+Cerberus Default: #GLFW_XCODE_INCLUDE_PATHS=""
+</pre>
+>>>> Compiler: XCODE
+>>>> Operating System: MacOS X only.
+>>>> Advanced: Only advanced users of XCODE should use this preprocessor directive.
+This is a convenience directive for passing include header files in the format -ISearch_Path_to_header_files.
+You can use either a partial or full path to the location. Cerberus will do an automatic search first in the project root for directories, then the projects build directory before searching the Cerberus default stores and any full path.
+<pre>
+Example:
+#GLFW_XCODE_INCLUDE_PATHS="Includepath1;IncludePath2"
+</pre>
+
+
+<a name="xcode_cc_opts">
+>>> #GLFW_XCODE_CC_OPTS
+</a>
+<pre>
+Cerberus Default: #GLFW_XCODE_CC_OPTS=""
+</pre>
+>>>> Compiler: XCODE
+>>>> Operating System: MacOS X only.
+>>>> Advanced: Only advanced users of XCODE should use this preprocessor directive.
+This directive allows you to pass build option to the back-end compilers. See OTHER_CFLAGS in the Xcode documentation.
+<pre>
+Example:
+#GLFW_XCODE_CC_OPTS="-O3 -Wall -Wextra" ' Optimise level 3 and turn on all warings and extras warnings
+</pre>
+
+<a name="vs_cc_opts">
+>>> #GLFW_VS_CC_OPTS
+</a>
+<pre>
+Cerberus Default: #GLFW_VS_CC_OPTS=""
+</pre>
+>>>> Compiler: Visual Studio
+>>>> Operating System: MS Windows only.
+>>>> Advanced: Only advanced users of Visual Studio should use this preprocessor directive.
+You can you this preprocessor directive to pass addition options to the Visual Studio compiler. See Addition Options in the Visual Studio documentation.
+<pre>
+Example:
+#GLFW_VS_CC_OPTS="/MD /Ox" ' Set Multi threaded DLL and optimizations for fats code
+</pre>
+
+
+<a name="vs_includes">
+>>> #GLFW_VS_INCLUDES
+</a>
+<pre>
+Cerberus Default: #GLFW_VS_INCLUDES=""
+</pre>
+>>>> Compiler: Visual Studio
+>>>> Operating System: MS Windows only.
+>>>> Advanced: Only advanced users of Visual Studio should use this preprocessor directive.
+This is a convenience preprocessor directive. It passes include header search directories in the format /Ipath_to_include_directory. See Addition Includeds Directories in the Visual Studio documentation.
+<pre>
+Example:
+#GLFW_VS_INCLUDES="Includepath1;IncludePath2"
+</pre>
+
+<a name="vs_defines">
+>>> #GLFW_VS_DEFINES
+</a>
+<pre>
+Cerberus Default: #GLFW_VS_DEFINES=""
+</pre>
+>>>> Compiler: Visual Studio
+>>>> Operating System: MS Windows only.
+>>>> Advanced: Only advanced users of Visual Studio should use this preprocessor directive.
+This preprocessor directive is use to pass set #define directives to the back-end compiler. See Preprocessor Definitions in the Visual Studio documentation.
+<pre>
+Example:
+#GLFW_VS_DEFINES="__VISUAL_STUDIO__;_NOT_MINGW_"
+</pre>
+
+<a name="vs_header_paths">
+>>> #GLFW_VS_HEADER_PATHS
+</a>
+<pre>
+Cerberus Default: #GLFW_VS_HEADER_PATHS=""
+</pre>
+>>>> Compiler: Visual Studio
+>>>> Operating System: MS Windows only.
+>>>> Advanced: Only advanced users of Visual Studio should use this preprocessor directive.
+This is a convenience preprocessor directive. It passes header search directories in the format /AIpath_to_include_directory. See Additional #using Directories in the Visual Studio documentation.
+<pre>
+Example:
+#GLFW_VS_HEADER_PATHS="Includepath1;IncludePath2"
+</pre>
+
+
+<a name="glfw_linker_control">
+>> Linker Control
+</a>
+
+<a name="gcc_ld_opts">
+>>> #GLFW_GCC_LD_OPTS
+</a>
+<pre>
+Cerberus Default: #GLFW_GCC_LD_OPTS=""
+</pre>
+>>>> Compiler: MinGw and Linux GCC
+>>>> Operating System: MS Windows and Linux.
+>>>> Advanced: Only advanced users of MinGW and Linux GCC should use this preprocessor directive.
+This preprocessor directive allows you to command options to the linker.
+<pre>
+Example:
+#GLFW_GCC_LD_OPTS="-LPATH_TO_LIBRARIES -Wl,--subsystem,windows"
+</pre>
+
+
+<a name="gcc_lib_opts">
+>>> #GLFW_GCC_LIB_OPTS
+</a>
+<pre>
+Cerberus Default: #GLFW_GCC_LIB_OPTS=""
+</pre>
+>>>> Compiler: MinGw and Linux GCC
+>>>> Operating System: MS Windows and Linux.
+>>>> Advanced: Only advanced users of MinGW and Linux GCC should use this preprocessor directive.
+This preprocessor directive allows you to pass library linking options to the linker.
+<pre>
+Example:
+#GLFW_GCC_LIB_OPTS="-Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 -lopenal32 -lws2_32"
+</pre>
+
+
+<a name="gcc_lib_paths">
+>>> #GLFW_GCC_LIB_PATHS
+</a>
+<pre>
+Cerberus Default: #GLFW_GCC_LIB_PATHS=""
+</pre>
+>>>> Compiler: MinGw and Linux GCC
+>>>> Operating System: MS Windows and Linux.
+>>>> Advanced: Only advanced users of MinGW and Linux GCC should use this preprocessor directive.
+This is a convenience preprocessor directive. It saves you haveing to pass libray search paths in the form -Lpath_to_library
+<pre>
+Example:
+#GLFW_GCC_LIB_PATHS="MyPath1;Mypath2"
+</pre>
+
+
+<a name="gcc_lib_paths">
+>>> #GLFW_XCODE_LIBS_OPTS
+</a>
+<pre>
+Cerberus Default: #GLFW_XCODE_LIBS_OPTS=""
+</pre>
+>>>> Compiler: XCODE
+>>>> Operating System: MacOS X only.
+>>>> Advanced: Only advanced users of XCODE should use this preprocessor directive.
+This preprocessor directive allows you to pass library linking options to the linker. See OTHER_LDFLAGS in the Xcode documentation.
+<pre>
+Example:
+#GLFW_XCODE_LIBS_OPTS="MyPath1;Mypath2"
+</pre>
+
+
+<a name="xcode_ld_opts">
+>>> #GLFW_XCODE_LD_OPTS
+</a>
+<pre>
+Cerberus Default: #GLFW_XCODE_LD_OPTS=""
+</pre>
+>>>> Compiler: XCODE
+>>>> Operating System: MacOS X only.
+>>>> Advanced: Only advanced users of XCODE should use this preprocessor directive.
+This preprocessor directive allows you to command options to the linker. See OTHER_LDFLAGS in the Xcode documentation.
+<pre>
+Example:
+#GLFW_XCODE_LD_OPTS=""
+</pre>
+
+
+<a name="xcode_lib_paths">
+>>> #GLFW_XCODE_LIB_PATHS
+</a>
+<pre>
+Cerberus Default: #GLFW_XCODE_LIB_PATHS=""
+</pre>
+>>>> Compiler: XCODE
+>>>> Operating System: MacOS X only.
+>>>> Advanced: Only advanced users of XCODE should use this preprocessor directive.
+This preprocessor directive is use to pass a list of paths to search for libraries. See LIBRARY_SEARCH_PATHS in the Xcode documentation.
+<pre>
+Example:
+#GLFW_XCODE_LIB_PATHS="MyPath1;Mypath2"
+</pre>
+
+<a name="xcode_frameworks">
+>>> #GLFW_XCODE_FRAMEWORKS
+</a>
+<pre>
+Cerberus Default: #GLFW_XCODE_FRAMEWORKS=""
+</pre>
+>>>> Compiler :XCODE
+>>>> Operating System: MacOS X only.
+>>>> Advanced: Only advanced users of XCODE should use this preprocessor directive.
+This preprocessor directive allows you to pass Mac OS frameworks to the linker for linknig against. See OTHER_LDFLAGS in the Xcode documentation.
+<pre>
+Example:
+#GLFW_XCODE_FRAMEWORKS="MyFramework1;MyFramework2"
+</pre>
+
+<a name="xcode_framework_paths">
+>>> #GLFW_XCODE_FRAMEWORK_PATHS
+</a>
+<pre>
+Cerberus Default: #GLFW_XCODE_FRAMEWORK_PATHS=""
+</pre>
+>>>> Compiler: XCODE
+>>>> Operating System: MacOS X only.
+>>>> Advanced: Only advanced users of XCODE should use this preprocessor directive.
+This preprocessor directive allows you to pass paths to search for Mac OS Framewoks. See FRAMEWORK_SEARCH_PATHS in the Xcode documentation.
+<pre>
+Example:
+#GLFW_XCODE_FRAMEWORK_PATHS="MyFramework1;MyFramework2"
+</pre>
+
+<a name="vs_lib_opts">
+>>> #GLFW_VS_LIB_OPTS
+</a>
+<pre>
+Cerberus Default: #GLFW_VS_LIB_OPTS=""
+</pre>
+>>>> Compiler: Visual Studio
+>>>> Operating System: MS Windows only.
+>>>> Advanced: Only advanced users of Visual Studio should use this preprocessor directive.
+This preprocessor directive allows you to pass library linking options to the linker. See Additional Dependencies in the Visual Studio documentation.
+<pre>
+Example:
+#GLFW_VS_LIB_OPTS="openAl32;Opengl32"
+</pre>
+
+
+<a name="vs_lib_paths">
+>>> #GLFW_VS_LIB_PATHS
+</a>
+<pre>
+Cerberus Default: #GLFW_VS_LIB_PATHS=""
+</pre>
+>>>> Compiler: Visual Studio
+>>>> Operating System: MS Windows only.
+>>>> Advanced: Only advanced users of Visual Studio should use this preprocessor directive.
+This preprocessor directive allows you to pass paths to search for libraries. See Addition Library Directories in the Visual Studio documentation.
+<pre>
+Example:
+#GLFW_VS_LIB_PATHS="MyFramework1;MyFramework2"
+</pre>
+
+
+<a name="deploy">
+>> Deployment Control
+</a>
+
+
+<a name="xcode_bundle_id">
+>>> #GLFW_XCODE_BUNDLE_ID
+</a>
+<pre>
+Cerberus Default: #GLFW_XCODE_BUNDLE_ID=""
+</pre>
+>>>> Compiler: XCODE
+>>>> Operating System: MacOS OS X only.
+This preprocessor directive allows set the bundle identifier for an application bundle. See PRODUCT_BUNDLE_IDENTIFIER in the Xcode documentation.
+<pre>
+Example:
+#GLFW_XCODE_BUNDLE_ID="com.mycompany.myappname"
+</pre>
+
+
+<a name="copy_sharedlibs">
+>>> #GLFW_COPY_SHAREDLIBS
+</a>
+<pre>
+Cerberus Default: #GLFW_COPY_SHAREDLIBS=""
+</pre>
+>>>> Operating System: All
+>>>> Advanced: Only advanced users of the back-end compilers should use this preprocessor directive.
+This preprocessor directive is used to copy share libraries (dll, so and dylib) over to the final build directory. Ideally writers of modules should use this if they are going to use external shared libraries.
+<pre>
+Example:
+#GLFW_COPY_SHAREDLIBS="mysharedlibrary1;mysharedlibrary2"
+</pre>
+
+
+<a name="app_name">
+>>> #GLFW_APP_NAME
+</a>
+<pre>
+Cerberus Default: #GLFW_APP_NAME="CerberusGame"
+</pre>
+>>>> Operating System: All
+This preprocessor directive is used to set the final build executable name.
+<pre>
+Example:
+#GLFW_APP_NAME="mysharedlibrary1;mysharedlibrary2"
+</pre>
+
+
+<a name="app_lable">
+>>> #GLFW_APP_LABEL
+</a>
+<pre>
+Cerberus Default: #GLFW_APP_LABEL="My App"
+</pre>
+>>>> Operating System: All
+Human readable label for application and must be set for cerberus://internal to map to 'per user' application data directory. If not set (the default), cerberus://internal is shared by all users of application. cerberus://external is ALWAYS shared by all users of and application and must contain filesystem friendly chars only - generally, [ A-Z ], [ a-z ], [ 0-9 ], < space >, < underscore > < minus >, < dot > should be OK. But it is recommended that < space > should be avoid when the target is Linux.
+<pre>
+Example:
+#GLFW_APP_LABEL="My Fantasic Application"
+</pre>
+
+<a name="app_publisher">
+>>> #GLFW_APP_PUBLISHER
+</a>
+<pre>
+Cerberus Default: #GLFW_APP_PUBLISHER=""
+</pre>
+>>>> Operating System: All
+Optional human readable publisher name for an application and must contain filesystem friendly chars only - generally, [ A-Z ], [ a-z ], [ 0-9 ], < space >, < underscore > < minus >, < dot > should be OK. But it is recommended that < space > should be avoid when the target is Linux.
+<pre>
+Example:
+#GLFW_APP_LABEL="My Company"
+</pre>
+
+
+<a name="display">
+>> Window Display Control
+</a>
+
+<a name="window_title">
+>>> #GLFW_WINDOW_TITLE
+</a>
+<pre>
+Cerberus Default: #GLFW_WINDOW_TITLE="Cerberus X Game"
+</pre>
+>>>> Operating System: All
+Sets the Main Window title for the application. This is show when the application if in windowed mode.
+<pre>
+Example:
+#GLFW_WINDOW_TITLE="My Cool Game"
+</pre>
+
+
+<a name="window_width">
+>>> #GLFW_WINDOW_WIDTH
+</a>
+<pre>
+Cerberus Default: #GLFW_WINDOW_WIDTH=640
+</pre>
+>>>> Operating System: All
+Sets the Main Window width. Setting both GLFW_WINDOW_WIDTH and GLFW_WINDOW_HEIGHT to 0 will give you a 'windowless' GLFW application.
+<pre>
+Example:
+#GLFW_WINDOW_WIDTH=1024
+</pre>
+
+
+<a name="window_height">
+>>> #GLFW_WINDOW_HEIGHT
+</a>
+<pre>
+Cerberus Default: #GLFW_WINDOW_HEIGHT=480
+</pre>
+>>>> Operating System: All
+Sets the Main Window height. Setting both GLFW_WINDOW_WIDTH and GLFW_WINDOW_HEIGHT to 0 will give you a 'windowless' GLFW application.
+<pre>
+Example:
+#GLFW_WINDOW_HEIGHT=1024
+</pre>
+
+
+<a name="window_resizable">
+>>> #GLFW_WINDOW_RESIZABLE
+</a>
+<pre>
+Cerberus Default: #GLFW_WINDOW_RESIZABLE=False
+</pre>
+>>>> Operating System: All
+Setting this to true will means that the applications window can be resized during running. 
+<pre>
+Example:
+#GLFW_WINDOW_RESIZABLE=True
+</pre>
+
+
+<a name="window_fullscreen">
+>>> #GLFW_WINDOW_HEIGHT
+</a>
+<pre>
+Cerberus Default: #GLFW_WINDOW_FULLSCREEN=False
+</pre>
+>>>> Operating System: All
+Setting this to true will means that the application will start full screen mode. 
+<pre>
+Example:
+#GLFW_WINDOW_FULLSCREEN=True
+</pre>
+
+
+<a name="window_samples">
+>>> #GLFW_WINDOW_SAMPLES
+</a>
+<pre>
+Cerberus Default: #GLFW_WINDOW_SAMPLES=0
+</pre>
+>>>> Operating System: All
+This directive will set the level of Multisample anti-aliasing. See the GLFW documentation and the wiki on the subject.
+<pre>
+Example:
+#GLFW_WINDOW_SAMPLES=0
+</pre>
+
+<a name="window_decorated">
+>>> #GLFW_WINDOW_DECORATED
+</a>
+<pre>
+Cerberus Default: #GLFW_WINDOW_DECORATED=True
+</pre>
+>>>> Operating System: All
+This directive turns off all window decorations such as the window control icons and borders when the application is started.
+<pre>
+Example:
+#GLFW_WINDOW_DECORATED=False
+</pre>
+
+
+<a name="misc">
+>> Miscellaneous
+</a>
+
+
+<a name="glfw_version">
+>>> #GLFW_VERSION
+</a>
+<pre>
+Default: #GLFW_VERSION="3"
+</pre>
+>>>> Operating System: All
+This directive is no longer used as GLFW2 has been removed. This directive is here only for when a new version of GLFW is included with Cerberus.
+
+<a name="vstudio_version">
+>>> #GLFW_VSTUDIO_VERSION
+</a>
+<pre>
+Default: #GLFW_VSTUDIO_VERSION="2017"
+</pre>
+>>>> Compiler: Visual Studio
+>>>> Operating System: MS Windows
+This directive will allow you to select which of the project templates to use for complation.
+
+<a name="icon">
+>>> #GLFW_ICON
+</a>
+<pre>
+Default: #GLFW_ICON=""
+</pre>
+>>>> Compiler: Visual Studio and XCODE
+>>>> Operating System: MS Windows and MacOS X only.
+This directive will allow you to set the application icon. You can pass a full path to the icon image, no need to add the extension. Or, you can set up a directory named 'icons' at the project's directory root level, then place the icon files and iconsets within it.~n
+For MS Windows, you should make your icon image file into the .ico format. You can easily do this with Photoshop/GIMP.~n
+For XCODE, you should create a 'iconset' directory filled with Portable Network Graphic (png) images in the Apple naming format.~n
+e.g. The iconset directory named icons.iconset filled with images in the naming format icon_128x128.png and icon_128x128@2x.png~n
