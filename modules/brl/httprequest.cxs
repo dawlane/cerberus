@@ -1,3 +1,9 @@
+#Rem
+Change Log
+------------------------------------------------------------------------------------------
+2018-07-23 - Dawlane
+					Changed the libcurl preprocessor layout.
+#End
 
 Import brl.asyncevent
 
@@ -10,13 +16,24 @@ Import brl.asyncevent
 
 #If BRL_HTTPREQUEST_IMPLEMENTED
 
-' Link libraries for curl
-#If HOST="linux"
-  #GLFW_GCC_LIB_OPTS+="-lcurl"
-#Endif
-
-#If HOST="winnt"
-  #GLFW_GCC_LIB_OPTS+="-lcurldll"
+' DAWLANE - Link libraries for curl
+#If HOST="macos"
+' To use the frameworks comment #GLFW_COPY_SHAREDLIBS and #GLFW_XCODE_LIBS_OPTS, then uncomment #GLFW_XCODE_FRAMEWORKS.
+  '#GLFW_XCODE_FRAMEWORKS+="libcurl"
+  #GLFW_XCODE_LIBS_OPTS+="-lcurl"
+  #GLFW_COPY_SHAREDLIBS+="libcurl"
+  #COPY_LICENCES+="curl"
+#Else
+	' This is more for MinGw
+	#If HOST="linux"
+		#GLFW_GCC_LIB_OPTS+="-lcurl"
+	#Elseif HOST="winnt"
+		#GLFW_GCC_LIB_OPTS+="-lcurl"
+		#GLFW_VS_LIB_OPTS+="libcurl.lib"
+		#GLFW_COPY_SHAREDLIBS+="libcurl;libcrypto-1_1;libssl-1_1;libcurl;libcrypto-1_1-x64;libssl-1_1-x64"
+		' Copy over the licence files
+		#COPY_LICENCES+="openssl;curl"
+	#Endif
 #Endif
 
 Extern Private
