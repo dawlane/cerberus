@@ -1,8 +1,3 @@
-
-'#GLFW_USE_MINGW=False		'to build with MSVC.
-
-'#GLFW_GCC_MSIZE_WINNT="64"	'to force 64 bit mingw builds. Needs mingw64.
-
 #GLFW_WINDOW_TITLE="Cerberus X Game"
 
 Import mojo

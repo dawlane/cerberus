@@ -1,10 +1,5 @@
 
 'a port of the mojo1 banana...
-
-'#GLFW_USE_MINGW=False	'to build with msvc.
-
-'#GLFW_GCC_MSIZE_WINNT="64"	'to force 64 bit mingw builds. Needs mingw64 and will not work with angle target.
-
 Import mojo2
 
 Public
