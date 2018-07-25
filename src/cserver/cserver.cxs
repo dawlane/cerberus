@@ -16,6 +16,12 @@ usage:
 
 Changelog
 --------------------------------------------------------------------------------
+2018-07-08
+	- added new application preprocessor feature to for when building with visual studio and rebuildall.ps1 script
+
+2018-05-18
+	- added new application preprocessor feature to set application file name
+	
 2018-01-12
 	- now using Strict
 	- documented code a bit
@@ -61,6 +67,16 @@ Changelog
 
 #If TARGET<>"glfw"
 	#Error "Target<>glfw"
+#Endif
+
+' DAWLANE - Make use of the new naming feature
+#If HOST="macos"
+#GLFW_APP_NAME="cserver_macos"
+#ElseIf HOST="linux"
+#GLFW_APP_NAME="cserver_linux"
+#Else
+'#GLFW_VSTUDIO_VERSION="2015"
+#GLFW_APP_NAME="cserver_winnt"
 #Endif
 
 ' framework
