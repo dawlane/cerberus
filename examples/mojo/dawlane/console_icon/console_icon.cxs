@@ -1,0 +1,19 @@
+Strict
+Import os
+Import mojo.keycodes
+
+#CC_USE_ICON=True			' Uncomment to add an icon to the executable.
+'#CC_ICON="shapes"			' Comment this to use the Cerberus default icon
+'#CC_USE_MINGW=false		' Uncomment to use Visual Studio if it is installed.
+#CC_APP_NAME="MyIconApp"	' Change the name of the final executable.
+#CC_VSTUDIO_VERSION="2015"	' Set the Visual Studio solution version to use.
+#MINGW_USE_STATIC=True
+
+Function Main:Int()
+	Local i:=10000
+	While i>0
+		Print "If this works out right you should be seeing a icon for the executable and the console window. Closing in "+i
+		i-=1
+	Wend
+	Return 0
+End Function

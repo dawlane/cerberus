@@ -1,0 +1,3 @@
+EXPORTS
+    MemFree @1
+    Msg @2

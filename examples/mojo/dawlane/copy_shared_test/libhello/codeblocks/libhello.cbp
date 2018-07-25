@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="libhello" />
+		<Option pch_mode="2" />
+		<Option compiler="null" />
+		<Option show_notes="1">
+			<notes>
+				<![CDATA[This Code::Block project is set up to create a simple dynamic library under Windows and Linux using a number of different tool chains.
+These are:
+
+MinGW32/64:
+	There are four of these; two that produce non statically linked object files and two that produce statically linked object files.
+	Which of these you should select depends on if you want to statically link to libstc++-6, libgcc_s_XXX-1 and libwinpthreads.
+
+Linux32/64:
+	Standard Linux GCC toolchain.
+
+VisualStudio 2012 32/64:
+	Set up to use Visual Studio 2012. Note that you will have to copy and addapt the VisualStudio 2010 compiler defaults. Not that too difficult.
+	All you have to do is to create two new default global compiler settings, one for 32 bit and the other for 64 bit. Then go through and
+	change the paths to point to the correct compiler tool chain and libraries.]]>
+			</notes>
+		</Option>
+		<Build>
+			<Target title="MinGW32">
+				<Option output="../../libmingw/Win32/hello" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWin32/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-m32" />
+					<Add option="-Wl,--subsystem,windows" />
+					<Add option="-D_WIN32" />
+					<Add option="-DADD_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add option="-m32" />
+				</Linker>
+			</Target>
+			<Target title="MinGW64">
+				<Option output="../../libmingw/Win64/hello" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWin64/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-m64" />
+					<Add option="-Wl,--subsystem,windows" />
+					<Add option="-D_WIN32" />
+					<Add option="-DADD_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add option="-m64" />
+				</Linker>
+			</Target>
+			<Target title="MinGW32-static">
+				<Option output="../../libmingw/Win32/hello" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWin32/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-m32" />
+					<Add option="-Wl,--subsystem,windows" />
+					<Add option="-D_WIN32" />
+					<Add option="-DADD_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add option="-m32" />
+					<Add option="-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic" />
+				</Linker>
+			</Target>
+			<Target title="MinGW64-static">
+				<Option output="../../libmingw/Win64/hello" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWin64/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-m64" />
+					<Add option="-Wl,--subsystem,windows" />
+					<Add option="-D_WIN32" />
+					<Add option="-DADD_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add option="-m64" />
+					<Add option="-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic" />
+				</Linker>
+			</Target>
+			<Target title="Linux32">
+				<Option output="../../bin/GCC/Linux32/libhello" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseLinux32/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-m32" />
+					<Add option="-fPIC" />
+				</Compiler>
+				<Linker>
+					<Add option="-m32" />
+				</Linker>
+			</Target>
+			<Target title="Linux64">
+				<Option output="../../bin/GCC/Linux64/libhello" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseLinux64/" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-m64" />
+					<Add option="-fPIC" />
+				</Compiler>
+				<Linker>
+					<Add option="-m64" />
+				</Linker>
+			</Target>
+			<Target title="VisualStudio 2012 32">
+				<Option output="../../libmsvc/Win32/hello" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWin32/" />
+				<Option type="3" />
+				<Option compiler="visual_studio_2012_32_bit" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="/MD" />
+					<Add option="/D_UNICODE /DUNICODE" />
+					<Add option="/Gd" />
+					<Add option="/GL" />
+					<Add option="/fp:precise" />
+					<Add option="/GS" />
+					<Add option="/Gy" />
+					<Add option="/Oi" />
+					<Add option="/O2" />
+					<Add option="/W3" />
+					<Add option="/Zc:wchar_t" />
+					<Add option="/Zc:forScope" />
+					<Add option="-DADD_EXPORTS" />
+					<Add option="-DVSC" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DWIN32" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_CRT_SECURE_NO_WARNINGS" />
+					<Add option="/sdl" />
+					<Add option="/analyze-" />
+					<Add option="/Gm-" />
+					<Add option="/errorReport:prompt" />
+					<Add option="/WX-" />
+					<Add option="/Oy-" />
+					<Add option="/EHsc" />
+					<Add option="/nologo" />
+					<Add option='/D&quot;WIN32&quot;' />
+					<Add option='/D&quot;NDEBUG&quot;' />
+					<Add option='/D&quot;_WINDOWS&quot;' />
+					<Add option='/D&quot;_USRDLL&quot;' />
+					<Add option='/D&quot;ADD_EXPORTS&quot;' />
+					<Add option='/D&quot;_WINDLL&quot;' />
+					<Add option='/D&quot;_UNICODE&quot;' />
+					<Add option='/D&quot;UNICODE&quot;' />
+				</Compiler>
+				<Linker>
+					<Add option="/MANIFEST" />
+					<Add option="/LTCG" />
+					<Add option="/NXCOMPAT" />
+					<Add option='/DYNAMICBASE &quot;kernel32.lib&quot; &quot;user32.lib&quot; &quot;gdi32.lib&quot; &quot;winspool.lib&quot; &quot;comdlg32.lib&quot; &quot;advapi32.lib&quot; &quot;shell32.lib&quot; &quot;ole32.lib&quot; &quot;oleaut32.lib&quot; &quot;uuid.lib&quot; &quot;odbc32.lib&quot; &quot;odbccp32.lib&quot;' />
+					<Add option="/DLL" />
+					<Add option="/MACHINE:X86" />
+					<Add option="/OPT:REF" />
+					<Add option="/SAFESEH" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/SUBSYSTEM:WINDOWS" />
+					<Add option="/OPT:ICF" />
+					<Add option="/ERRORREPORT:PROMPT" />
+					<Add option="/NOLOGO" />
+					<Add option="/TLBID:1" />
+					<Add option='/MANIFESTUAC:&quot;level=&apos;asInvoker&apos; uiAccess=&apos;false&apos;&quot;' />
+					<Add option='/ManifestFile:&quot;hello.dll.intermediate.manifest&quot;' />
+				</Linker>
+			</Target>
+			<Target title="VisualStudio 2012 64">
+				<Option output="../../libmsvc/Win64/hello" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/ReleaseWin64/" />
+				<Option type="3" />
+				<Option compiler="visual_studio_2012_64_bit" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="/MD" />
+					<Add option="/D_UNICODE /DUNICODE" />
+					<Add option="/Gd" />
+					<Add option="/GL" />
+					<Add option="/fp:precise" />
+					<Add option="/GS" />
+					<Add option="/Gy" />
+					<Add option="/Oi" />
+					<Add option="/O2" />
+					<Add option="/W3" />
+					<Add option="/Zc:wchar_t" />
+					<Add option="/Zc:forScope" />
+					<Add option="-DADD_EXPORTS" />
+					<Add option="-DVSC" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DWIN32" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_CRT_SECURE_NO_WARNINGS" />
+					<Add option="/sdl" />
+					<Add option="/analyze-" />
+					<Add option="/Gm-" />
+					<Add option="/errorReport:prompt" />
+					<Add option="/WX-" />
+					<Add option="/Oy-" />
+					<Add option="/EHsc" />
+					<Add option="/nologo" />
+					<Add option="/MACHINE:X64" />
+					<Add option='/D&quot;WIN32&quot;' />
+					<Add option='/D&quot;NDEBUG&quot;' />
+					<Add option='/D&quot;_WINDOWS&quot;' />
+					<Add option='/D&quot;_USRDLL&quot;' />
+					<Add option='/D&quot;ADD_EXPORTS&quot;' />
+					<Add option='/D&quot;_WINDLL&quot;' />
+					<Add option='/D&quot;_UNICODE&quot;' />
+					<Add option='/D&quot;UNICODE&quot;' />
+				</Compiler>
+				<Linker>
+					<Add option="/MANIFEST" />
+					<Add option="/LTCG" />
+					<Add option="/NXCOMPAT" />
+					<Add option='/DYNAMICBASE &quot;kernel32.lib&quot; &quot;user32.lib&quot; &quot;gdi32.lib&quot; &quot;winspool.lib&quot; &quot;comdlg32.lib&quot; &quot;advapi32.lib&quot; &quot;shell32.lib&quot; &quot;ole32.lib&quot; &quot;oleaut32.lib&quot; &quot;uuid.lib&quot; &quot;odbc32.lib&quot; &quot;odbccp32.lib&quot;' />
+					<Add option="/DLL" />
+					<Add option="/MACHINE:X64" />
+					<Add option="/OPT:REF" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/SUBSYSTEM:WINDOWS" />
+					<Add option="/OPT:ICF" />
+					<Add option="/ERRORREPORT:PROMPT" />
+					<Add option="/NOLOGO" />
+					<Add option="/TLBID:1" />
+					<Add option='/MANIFESTUAC:&quot;level=&apos;asInvoker&apos; uiAccess=&apos;false&apos;&quot;' />
+					<Add option='/ManifestFile:&quot;hello.dll.intermediate.manifest&quot;' />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-DADD_EXPORTS" />
+		</Compiler>
+		<Unit filename="dllmain.cpp">
+			<Option target="VisualStudio 2012 32" />
+			<Option target="VisualStudio 2012 64" />
+		</Unit>
+		<Unit filename="libhello.cpp" />
+		<Unit filename="libhello.h" />
+		<Unit filename="stdafx.cpp">
+			<Option target="VisualStudio 2012 32" />
+			<Option target="VisualStudio 2012 64" />
+		</Unit>
+		<Unit filename="stdafx.h">
+			<Option target="VisualStudio 2012 32" />
+			<Option target="VisualStudio 2012 64" />
+		</Unit>
+		<Unit filename="targetver.h">
+			<Option target="VisualStudio 2012 32" />
+			<Option target="VisualStudio 2012 64" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

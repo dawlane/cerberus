@@ -1,0 +1,152 @@
+#rem
+	A demonstration on how to create your own shared libraries and use them within you own programs.
+	You can use a semi-colon (;) to seperate paths/links etc.
+	e.g #GLFW_VS_LIB_OPTS+="libhello.lib;libboo.lib"
+	
+	NOTE: The Windows build will uses Visual Studio 2013 by default. Change or comment #GLFW_USE_MINGW=False and #GLFW_VSTUDIO_VERSION="2013".
+	
+	Here is the website for an interesting article on DLL's with MinGw https://www.transmissionzero.co.uk/computing/building-dlls-with-mingw/
+	
+	#GLFW_GCC_LIB_PATHS, #GLFW_VS_HEADER_PATHS, #GLFW_VS_LIB_PATHS
+	Search paths are automatically created, but you can also pass a full search path.
+	The search first looks for a directory in the projects root, then the target .build template, the Cerberus libs directories and then
+	any full directory path name. Note that you cannot pass file paths with any white space characters.
+	
+	Here is an example of how you can pass paths to transcc
+	#GLFW_GCC_LIB_PATHS+="libmsvc/win32;openal;C:\Mingw;../../../libmsvc/win32"
+#end
+
+Strict
+Import mojo
+Import glue	' Import the function bindings
+
+' Filter by Host
+#If HOST="macos"
+	' OSX shared files and Frameworks become part of the application bundle.
+	'#GLFW_XCODE_FRAMEWORKS+="libhello"
+	#GLFW_XCODE_LIB_PATHS+="libmacos"
+	#GLFW_XCODE_LIBS_OPTS+="-lhello"
+	#GLFW_COPY_SHAREDLIBS+="libhello"
+#Else
+	#If HOST="winnt"
+	
+		' WINDOWS MINGW
+		' Uncomment the next line to use Visual Studio and comment out any GLFW_GCC preprocessor directives in any "winnt' sections. Then uncomment any GLFW_VS preprocessor directives.
+		'#GLFW_USE_MINGW=False
+		
+		#rem
+		Depending on the version of MinGw you are using. The binaries built could be either statically linked to the runtime or dynamically linked.
+		As the program sharedtrans (the program that copies over shared librarie) cannot tell if a version of MinGW will produce a statically compiled application.
+		You could end up with MinGW libraries that you do not require. The TDM-GCC produces such statically linked applications where as MinGW-w64 doe not unless
+		instructed to. It should be noted that creating a static appliaction that use shared libraries will require a static export library produced by MinGW.
+		#end
+		'#GLFW_MINGW_STATIC=True	' Uncomment if you are wanting to test MinGW-w64 as a static buidl.
+		
+		#GLFW_GCC_MSIZE_WINNT="64"	' Set the default binary architecture
+		#GLFW_CC_OPTS+="-D_WIN32"	' As the native binding code must handle both Windows and Unix type operating systems, then a pre-processor directive must be passed to the back-end compilers. 
+		' See the libhello.cpp file in the libhello\codeblocks directory.
+		
+		#GLFW_GCC_LIB_PATHS+="libmingw/win32;libmingw/win64;libmingw/static/win32;libmingw/static/win64;openal;C:\Mingw"
+		
+		' WINDOWS VISUAL STUDIO
+		' Select a Visual Studio version project. Note that you still need the correct MSBUILD path in config.winnt.txt located in the Cerberus bin directory.
+		'#GLFW_VSTUDIO_VERSION="2015" ' Only uncomment this if you do have Visual Studio 2015 installed. If it cannot find a valid VS istall, then it defaults to MinGW.
+		#rem
+		Visual Studio requires the use of .LIB export files for shared libraries. Therefore the path will need to be passed to it's location.
+		Please remember that you can only link against a library that is of the same architecture type. Not doing so will cause a compile error. Unlike MinGW, VS doesn't skip
+		incompatible libraries.
+		#end
+		'#GLFW_VS_LIB_PATHS+="libmsvc/win32"
+		'#GLFW_VS_MSIZE_WINNT="32"	' Set the default binary architecture. The default for Visual Studio is 32 bit
+		'#GLFW_VS_LIB_OPTS+="hello.lib" ' The static export library to link against.
+	#Else	
+		' Linux GCC. The default already is 64 bit, but you can change this to 32 bit for a 32 bit build.
+		#GLFW_GCC_MSIZE_LINUX="64"
+	#Endif
+	
+	#rem
+		Linux GCC and MinGW are a like in most cases and can use the same pre-processor directives.
+		But there are special circumstances when you need to link to a shared library. Then you
+		should have or make a static export library that has the shared libraries exported functions.
+		See the next host check below.
+	#end
+	'#GLFW_GCC_LIB_OPTS+="-lhello" ' uncomment this out and comment the-lhellodll ones below.
+	
+	' No matter if it's Windows or Linux a shared library is needed.
+	#If HOST="winnt"
+		#GLFW_COPY_SHAREDLIBS+="hello"
+		#GLFW_GCC_LIB_OPTS+="-lhellodll"
+	#Elseif HOST="linux"
+		#GLFW_GCC_LIB_PATHS+="liblinux/linux32;liblinux/linux64"
+		#GLFW_COPY_SHAREDLIBS+="libhello"
+		#GLFW_GCC_LIB_OPTS+="-lhello"
+	#Endif
+#Endif
+
+' Copy over the licence files
+#COPY_LICENCES+="dummy"
+
+Class CGame Extends App
+	Field show:Bool = False
+	Field msg:String
+	Field input:String
+	Field lines:= New StringList()
+	
+	Method OnCreate:Int()
+	' Messages
+	#If HOST="winnt"
+		lines.AddLast("You will find in the copy_shared_test.build/glfw3/gcc_winnt,or one of")
+		lines.AddLast("the msvc directories the final build folder complete with the dll")
+		lines.AddLast("and licences.")
+	#Endif
+	#If HOST="linux"
+		lines.AddLast("You will find in the copy_shared_test.build/glfw3/gcc_linux")
+		lines.AddLast("directory the Final build folder complete with the lib/so")
+		lines.AddLast("and licences.")
+	#Endif
+	#If HOST="macos"
+		lines.AddLast("You will find in the copy_shared_test.build/glfw3/xcode")
+		lines.AddLast("the licences files. The dylib or Framework will be part of")
+		lines.AddLast("the application bundle under Framworks.")
+	#Endif
+		Return 0
+	End Method
+	
+	Method OnUpdate:Int()
+		' Simple text input
+		Local ch:=GetChar()
+		If Not show
+			If ch=CHAR_ENTER
+				show=True
+				msg=HelloMsg(input)	' Call the function in the shared library
+			Else
+				If ch=CHAR_BACKSPACE And input>0 input=input[ .. input.Length() - 1]
+				If ch>31 input+=String.FromChar(ch)
+			Endif
+		Endif
+		
+		Return 0
+	End Method
+	
+	Method OnRender:Int()
+		Cls
+		If Not show
+			DrawText("Please enter your name: "+input+" <", 10,260)
+		Else
+			Local y:=140
+			DrawText(msg+".", 0,y)
+			y+=12
+			For Local i:=EachIn lines
+				y+=12
+				DrawText(i,0,y)
+			Next
+		Endif
+		Return 0
+	End Method
+	
+End Class
+
+Function Main:Int()
+	New CGame()
+	Return 0
+End Function

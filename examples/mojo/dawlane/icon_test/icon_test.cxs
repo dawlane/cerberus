@@ -1,0 +1,44 @@
+Strict
+
+#rem 
+	Icons are automatically added if there is a directory called icons at the project root directory level.
+	
+	DIRECTORY: MyProject
+					MySource.cxs
+					MySource.data
+					icons
+						icon.iconset
+							icon_XxY.png
+							icon_XxY@2x.png
+						icon.ico
+					
+	icon_XxY.png and icon_XxY@2x.png are Apple naming for icons X is for horizontal and Y is for vertial resolutions.
+	e.g icon_512x512 and @2x is for retina displays. You must stick to the naming used here.
+	icon.ico is for MS Windows. You can make this up in under 2 minutes with GIMP or Photoshop.
+#end
+'#GLFW_USE_MINGW=False
+#GLFW_ICON="shapes" ' Comment this line to fall back to Cerberus default icons. 
+Import mojo
+
+Class CGame Extends App
+	Field icon:Image
+	Method OnCreate:Int()
+		icon=LoadImage("icon_512x512.png")
+		Return 0
+	End Method
+	
+	Method OnUpdate:Int()
+		Return 0
+	End Method
+	
+	Method OnRender:Int()
+		DrawImage( icon, 0,0)
+		DrawText( "Application Icon Demonstration", 250,250)
+		Return 0
+	End Method
+End Class
+
+Function Main:Int()
+	New CGame()
+	Return 0
+End Function	

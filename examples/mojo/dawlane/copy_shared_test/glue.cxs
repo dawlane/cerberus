@@ -1,0 +1,8 @@
+' Import the cpp file
+Import "native/libhello.cpp"
+
+' Bind the wrapper function
+Extern
+	Function HelloMsg:String(msg:String)
+	
+Public
