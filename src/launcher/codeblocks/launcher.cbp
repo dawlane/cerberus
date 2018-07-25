@@ -40,10 +40,10 @@
 		<Linker>
 			<Add option="-ladvapi32" />
 		</Linker>
-		<Unit filename="../resource.rc">
+		<Unit filename="launcher.cpp" />
+		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
-		<Unit filename="launcher.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

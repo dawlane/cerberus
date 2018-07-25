@@ -1,3 +1,7 @@
+#if __VISUAL_STUDIO__
+#include <SDKDDKVer.h>
+#endif
+
 #include <windows.h>
 #include <iostream>
 #include <string>
@@ -27,7 +31,7 @@ bool SetKey(HKEY root, const wstring &subkey, const wstring &name, const wstring
         const wchar_t *p = value.c_str();
         size_t sz = wcslen(p)*2+2;
 
-        if(RegSetValueExW(hKey, name.c_str(), 0, REG_SZ, (LPBYTE)(p), sz) == 0)
+        if(RegSetValueExW(hKey, name.c_str(), 0, REG_SZ, (LPBYTE)(p), static_cast<DWORD>(sz)) == 0)
         {
             RegCloseKey(hKey);
             return true;

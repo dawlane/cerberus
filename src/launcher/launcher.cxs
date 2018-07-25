@@ -31,8 +31,8 @@ Function Main()
 	
 #Else If HOST="linux"
 
-	Execute dir+"/bin/Ted"+args+" >/dev/null 2>/dev/null &"
-
+	Execute dir+"/bin/Ted "+args+" >/dev/null 2>/dev/null &"
+	
 #Endif
 
 End
