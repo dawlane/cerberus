@@ -1,0 +1,9 @@
+Place all shared libraries (.dylib) for MacOS in this directory and any frameworks is the Framework directory.
+You should create universal (32/64 bit) versions, or update the Xcode projects to only use the CPU architecture you require.
+You can use the lipo tool to combine 32/64 bit dylibs into one.
+
+Any licences for them need to be placed in the libs\licences.
+See the README for the libs directory for details on how they should be formatted.
+
+Make sure that any dylibs have the correct install path. Use otool -L to check and install_name_tool to change it to
+@executable_path/../Frameworks/

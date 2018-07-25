@@ -1,0 +1,2 @@
+Place all shared 32 bit libraries (.so) for Linux in this directory. Any licences for them need to be placed in the libs\licences.
+See the README in the libs directory for details on how they should be formated.

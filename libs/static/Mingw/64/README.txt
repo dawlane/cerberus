@@ -1,0 +1,1 @@
+Place 64 bit MinGW static libraries here.
