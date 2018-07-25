@@ -23,8 +23,12 @@ HTML_PLAYER="${CERBERUSDIR}/bin/cserver_linux"
 'The Java JDK is currently available here:
 '	http://www.oracle.com/technetwork/java/javase/downloads/index.html
 '
-JDK_PATH="${HOME}/jdk1.8.0_31"
-JDK_PATH="${HOME}/jdk1.7.0_09"
+JDK_PATH="${HOME}/jdk1.8.0_172" 
+'JDK_PATH="${HOME}/jdk1.8.0_171" 
+'JDK_PATH="${HOME}/jdk1.8.0_151"
+'JDK_PATH="${HOME}/jdk1.8.0_31"
+'JDK_PATH="${HOME}/jdk1.7.0_09"
+
 '--------------------
 
 '--------------------
