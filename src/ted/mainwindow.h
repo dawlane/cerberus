@@ -4,6 +4,12 @@ Ted, a simple text editor/IDE.
 Copyright 2012, Blitz Research Ltd.
 
 See LICENSE.TXT for licensing terms.
+
+Change Log
+--------------------------------------------------------------------------------
+2018-07-23 - dawlane
+		Update Ted to use QtWebEngine and QtWebEnginePage and minor fixes.
+		Should now build with later versions of Qt.
 */
 
 #ifndef MAINWINDOW_H
@@ -24,16 +30,36 @@ namespace Ui {
 class MainWindow;
 }
 
-class Prefs;
-class PrefsDialog;
-
-class HelpView : public QWebView{
+// DAWLANE Qt 5.6+ supported
+#if QT_VERSION>0x050501
+class HelpView : public QWebEngineView{
     Q_OBJECT
 public:
 
 protected:
     void keyPressEvent ( QKeyEvent * event );
 };
+
+class WebEnginePage : public QWebEnginePage
+{
+    Q_OBJECT
+public:
+    bool acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool);
+
+signals:
+    void linkClicked( const QUrl &url);
+};
+#else
+class HelpView : public QWebView{
+    Q_OBJECT
+public:
+protected:
+    void keyPressEvent ( QKeyEvent * event );
+};
+#endif
+
+class Prefs;
+class PrefsDialog;
 
 class MainWindow : public QMainWindow{
     Q_OBJECT
@@ -50,6 +76,9 @@ public:
     void setIcons();
     QIcon getThemeIcon(const QString &theme, const QString &ic, const QString &icd);
     QStringList _completeList;
+
+// DAWLANE Qt 5.6+ supported. Function openFile moved here so that WebEnginePage can access it.
+    QWidget *openFile( const QString &path,bool addToRecent );
 private:
 
     void parseAppArgs();
@@ -61,7 +90,7 @@ private:
 
     QWidget *newFile( const QString &path );
     QWidget *newFileTemplate( const QString &path );
-    QWidget *openFile( const QString &path,bool addToRecent );
+
     bool saveFile( QWidget *widget,const QString &path );
     bool closeFile( QWidget *widget,bool remove=true );
 
@@ -157,7 +186,10 @@ private slots:
 
     void onShowHelp( const QString &text );
 
+// DAWLANE Qt 5.6+ supported -  onLinkClick is not required as QtWebEngine works differently.
+    #if QT_VERSION<=0x050501
     void onLinkClicked( const QUrl &url );
+#endif
 
     void onCloseMainTab( int index );
     void onMainTabChanged( int index );

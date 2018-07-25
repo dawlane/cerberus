@@ -11,7 +11,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleExecutable</key>
-	<string>ted_macos</string>
+	<string>Ted</string>
 	<key>CFBundleName</key>
 	<string>Ted</string>
 	<key>CFBundleDisplayName</key>

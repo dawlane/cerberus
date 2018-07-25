@@ -4,6 +4,12 @@ Ted, a simple text editor/IDE.
 Copyright 2012, Blitz Research Ltd.
 
 See LICENSE.TXT for licensing terms.
+
+Change Log
+--------------------------------------------------------------------------------
+2018-07-23 - dawlane
+		Update Ted to use QtWebEngine and QtWebEnginePage and minor fixes.
+		Should now build with later versions of Qt.
 */
 
 #include "mainwindow.h"
@@ -34,9 +40,12 @@ See LICENSE.TXT for licensing terms.
 #define HOST QString("")
 #endif
 
+// DAWLANE - Not needed with version of Qt that support a name string.
+#if QT_VERSION<=0x050001
 #define _QUOTE(X) #X
 //xxxxxxx
 #define _STRINGIZE( X ) _QUOTE(X)
+#endif
 
 static MainWindow *mainWindow;
 
@@ -50,8 +59,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow( parent ),_ui( new Ui::Mai
 
     mainWindow=this;
 
-    //Untested fix for QT5 ala dawlane
-#if QT_VERSION <= 0x050000
+    //Untested fix for QT5 ala dawlane - Changed this from <= to just plain <
+#if QT_VERSION<0x050001
     QTextCodec::setCodecForCStrings( QTextCodec::codecForName( "UTF-8" ) );
 #endif
 
@@ -76,9 +85,19 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow( parent ),_ui( new Ui::Mai
     QSettings::setDefaultFormat( QSettings::IniFormat );
     QSettings::setPath( QSettings::IniFormat,QSettings::UserScope,cfgPath );
 
+// DAWLANE Qt 5.6+ supported
+#if QT_VERSION>0x050501
+    /*
+     * TODO:
+     * Get WebEngineView working with pdf files.
+     * Get WebEngineView working with full screen for youtube.
+     */
+    QWebEngineSettings::defaultSettings()->setAttribute( QWebEngineSettings::PluginsEnabled,true);
+    QWebEngineSettings::defaultSettings()->setAttribute( QWebEngineSettings::FullScreenSupportEnabled,true);
+#else
     //Enables pdf viewing!
     QWebSettings::globalSettings()->setAttribute( QWebSettings::PluginsEnabled,true );
-
+#endif
     //setIconSize( QSize(20,20) );
 
 
@@ -534,8 +553,17 @@ QWidget *MainWindow::openFile( const QString &cpath,bool addToRecent ){
         }
         if( !helpView ){
             helpView=new HelpView;
+// DAWLANE Qt 5.6+ supported
+#if QT_VERSION>0x050501
+            // QWebEnginePage already uses links.
+            // Uncomment these to set the QWebEnginePage so you can over-ride acceptNavigationRequest to open external browsers.
+            helpView->setPage(new WebEnginePage);
+            //connect( helpView,SIGNAL(linkClicked(QUrl)),SLOT(onLinkClicked(QUrl)) );
+#else
             helpView->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
             connect( helpView,SIGNAL(linkClicked(QUrl)),SLOT(onLinkClicked(QUrl)) );
+#endif
+
             _mainTabWidget->addTab( helpView,"Help" );
         }
 
@@ -1591,7 +1619,12 @@ void MainWindow::onProcFinished(){
         loadHelpIndex();
         for( int i=0;i<_mainTabWidget->count();++i ){
             HelpView *helpView=qobject_cast<HelpView*>( _mainTabWidget->widget( i ) );
+// DAWLANE Qt 5.6+ supported
+#if QT_VERSION>0x050501
+            if( helpView ) helpView->triggerPageAction( QWebEnginePage::ReloadAndBypassCache );
+#else
             if( helpView ) helpView->triggerPageAction( QWebPage::ReloadAndBypassCache );
+#endif
         }
         onHelpHome();
     }
@@ -2139,7 +2172,9 @@ void MainWindow::onHelpAbout(){
         }
     }
     QString webSite = "https://www.cerberus-x.com";
-    QString ABOUT= "<html><head><style>a{color:#FFEE00;}</style></head><body>"
+// DAWLANE - Fixed the Correct displaying of the Qt version.
+#if QT_VERSION<0x050001
+	QString ABOUT= "<html><head><style>a{color:#FFEE00;}</style></head><body>"
             "Ted V" TED_VERSION "<br><br>"
             "Cerberus V" +CERBERUS_VERSION+ "<br>"
             "Trans V"+ _transVersion +"<br>"
@@ -2149,7 +2184,20 @@ void MainWindow::onHelpAbout(){
             "Cerberus X is maintained by Michael Hartlef & Martin Leidel.<br<br>"
             "Further additions done by serveral member of the Cerberus X community.<br>"
             "Please visit <a href=\""+webSite+"\">www.cerberus-x.com</a> for more information on Cerberus X."
+            "</body></html>";   
+#else
+	QString ABOUT= "<html><head><style>a{color:#FFEE00;}</style></head><body>"
+            "Ted V" TED_VERSION "<br><br>"
+            "Cerberus V" +CERBERUS_VERSION+ "<br>"
+            "Trans V"+ _transVersion +"<br>"
+            "QT V" +(QT_VERSION_STR)+"<br><br>"
+            "A simple editor/IDE for the Cerberus programming language.<br><br>"
+            "Copyright Blitz Research Ltd for Monkey X.<br><br>"
+            "Cerberus X is maintained by Michael Hartlef & Martin Leidel.<br<br>"
+            "Further additions done by serveral member of the Cerberus X community.<br>"
+            "Please visit <a href=\""+webSite+"\">www.cerberus-x.com</a> for more information on Cerberus X."
             "</body></html>";
+#endif
 
     QMessageBox::information( this,"About Ted",ABOUT );
 }
@@ -2198,6 +2246,32 @@ void MainWindow::onShowHelp( const QString &topic ){
     openFile( url,false );
 }
 
+// DAWLANE - QtWebEnginge/Page uses a different way to call hypertext links.
+#if QT_VERSION>0x050501
+bool WebEnginePage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::NavigationType type, bool )
+{
+    qDebug() << "URL: " << url;
+    if (type == QWebEnginePage::NavigationTypeLinkClicked)
+    {
+        QString str=url.toString();
+        QString lstr=str.toLower();
+
+        if( lstr.startsWith( "file:///" ) ){
+            QString ext=";"+extractExt(lstr)+";";
+            if( textFileTypes.contains( ext ) || codeFileTypes.contains( ext ) ){
+                mainWindow->openFile( str.mid( 8 ),false );
+                return false;
+            }
+           mainWindow->openFile( str,false );
+            return false;
+        }
+
+        QDesktopServices::openUrl( str );
+        return false;
+    }
+        return true;
+}
+#else
 void MainWindow::onLinkClicked( const QUrl &url ){
 
     QString str=url.toString();
@@ -2215,6 +2289,7 @@ void MainWindow::onLinkClicked( const QUrl &url ){
 
     QDesktopServices::openUrl( str );
 }
+#endif
 
 void MainWindow::onHelpRebuild(){
     if( _consoleProc || _cerberusPath.isEmpty() ) return;
