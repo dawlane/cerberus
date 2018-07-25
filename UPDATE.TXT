@@ -1,0 +1,30 @@
+***** v2018-07-25 *****
+Changes made by dawlane
+NEW: [C++Tool] Added support to build console applications with VisualStudio.
+NEW: [C++Tool] Added support to add an icon to the executable. Windows Only. See dawlane example console_icon.
+NEW: [C++Tool] Added preprocessor directives for use with Visual Studio.
+MOD: [DOCS] Updated BUILDING.txt and rebuildall.PS1 script for Windows to add new features and fix bugs.
+MOD: [DOCS] Updated the documents for the preprocessor config section. They've had a face lift.
+MOD: [Ted] for Windows now uses Qt 5.9.2. Note that link to external sites opens the web browser.
+MOD: [TEMPLATES] Updated Visual Studio solution files to fix a few glitches and add icon support.
+MOD: [LIBS] Restructured libs directory for new method of storing licences, shared and static libraries.
+MOD: [SCRIPTS] New rebuildall scripts for both Powershell and BASH. rebuildall.sh supports both Linux and OS X.
+NEW: [ARCHIVES] Archived backup files for library store in src directory.
+MOD: [TRANSCC] Added new preprocessor directives to pass parameters to back-end compiler for GLFW and C++Tool.
+NEW: [TRANSCC] Added support of MinGW-w64 compilers.
+NEW: [TRANSCC] Transcc has new functions for searching paths for libraries. Only GLFW supported.
+MOD: [C++Tool] Updated config file to set POSIX building to the default of MinGW-w64 compilers.
+NEW: [SHAREDTRANS] Added a new helper application to copy shared libraries over to final build folder.
+MOD: [CSERVER] Minor change so new rebuildall scripts can compile it on MacOS.
+MOD: [os and brl.filesystem] CopyFile will also copy over -rwx permissions on Linux and MacOS.
+MOD: [GLFW.ANGLE] Updates to templates for MinGW and Visual Studio to support 32/64 compilation.
+MOD: [GLFW] Updates to templates for MinGW and Visual Studio to support 32/64 compilation.
+MOD: [GLFW] Updated Xcode template to Xcode 7.3 for new preprocessor directives.
+FIX: [iOS] Added missing empty directories with .gitignore holding file.
+NEW: [LAUNCHER] Add xcode C++ project to build launcher.
+MOD: [TED] Updated Qt project files to suppress C++11 warnings.
+MOD: [TED] Updated name in Info.plist file for ted_macos to Ted.
+MOD: [examples] Remove preprocessor directives from bouncyaliens.
+NEW: [examples] Added new example to show how to use the new preprocessor directive with shared libraries.
+MOD: [brl.httprequester] Modified preprocessor directives for new versions.
+MOD: Removed unneeded files in source directory. These are old build directories, old BlitzMax and Cerberus/Monkey files. They are now stored in a zip file.
