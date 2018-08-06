@@ -76,7 +76,7 @@ Class GlfwBuilder Extends Builder
 			Local headerSearchList:=GetConfigVar( "GLFW_GCC_INCLUDE_PATHS" )
 			Local userIncludesList:String[]=GetConfigVar( "GLFW_GCC_USER_INCLUDES" ).Split( ";" )
 			Local mingwUsePosix:=""
-			Local gccVersion:=GCCVer()
+			Local gccVersion:=GCCVer().Trim()
 
 			Local ccopts:="",ldopts:="", libopts:="", libcopy:="", appName:=GetConfigVar( "GLFW_APP_NAME" ), sysroot:="", toolchain:="", cerbRoot:=""
 
@@ -128,7 +128,9 @@ Class GlfwBuilder Extends Builder
 				cerbRoot+=tcc.cerberusdir+"/libs/shared/Linux"+msize+";"+tcc.cerberusdir+"/libs/static/Linux/"+msize
 				
 				' GCC verions greater than 5 will require -no-pie options to work correctly.
-				If gccVersion>"5" ldopts+=" -no-pie"
+				If Int(gccVersion)>5
+					If GetConfigVar( "GCC_LINUX_NOPIE" )="1" ldopts+=" -no-pie"
+				Endif
 			Endif
 			
 			' Process the seach paths for libraries etc.

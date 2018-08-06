@@ -264,6 +264,7 @@ function Architecture(){
     local msize=""
     local msize_opt=""
     local str_arch=""
+    local str_nopie=""
     
     case $TARGET in
         "macos" )
@@ -278,7 +279,14 @@ function Architecture(){
                     echo "This script is running on a $str_arch bit host operating system, so building $str_arch bit binaries."
                     msize_opt="-m$str_arch"; msize=("-msize=$str_arch");;
             esac
-            str_ccopts="$msize_opt -Wno-unused-result";;
+
+            # Determine the current version of GCC installed.
+            local gcc=$(expr `gcc -dumpversion | cut -f1 -d.`)
+            if [ $gcc -gt 5 ]; then
+                str_nopie="-no-pie"
+                HighlightMSG "GCC 6+ detected. Passing the no pie option to GCC."
+            fi
+            str_ccopts=" $msize_opt $str_nopie -Wno-unused-result";;
     esac
     # Set the global variable to hold the options.
     COMPILER_OPTS=("$str_ccopts" "$msize_opt" "$msize" "$str_arch")
@@ -346,6 +354,7 @@ function BootBuild(){
     local str_config=$2
     local str_ccopts=${COMPILER_OPTS[0]}
     local str_msize_opt=${COMPILER_OPTS[1]}
+    local str_no_pie=${COMPILER[4]}
     local config=""
     if [ $str_config = "release" ]; then
         config="-O3 -DNDEBUG"
@@ -359,7 +368,7 @@ function BootBuild(){
     if [ $TARGET = "macos" ]; then
         ExecuteCMD "clang++" " $config $str_ccopts -o \"$str_srcRoot/bin/transcc_$TARGET\" transcc/transcc.build/cpptool/main.cpp"
     else
-        ExecuteCMD "g++" " $str_msize_opt $config $str_ccopts $str_msize_opt -o \"$str_srcRoot/bin/transcc_$TARGET\" transcc/transcc.build/cpptool/main.cpp -lpthread"
+        ExecuteCMD "g++" " $config $str_ccopts $str_msize_opt -o \"$str_srcRoot/bin/transcc_$TARGET\" transcc/transcc.build/cpptool/main.cpp -lpthread"
     fi
 }
 
@@ -540,8 +549,7 @@ function BuildTed(){
         ExecuteCMD "make"
 
         # Deploy
-        echo
-        HeaderMSG "Deploying Qt Libraries"
+        HeaderMSG "Deploying Qt Dependencies" "true"
         ExecuteCMD "macdeployqt" "$str_srcRoot/bin/Ted.app -verbose=2 -always-overwrite"
         declare -a qtdylib=('audio' 'bearer' 'imageformats' 'mediaservice' 'printsupport' 'sqldrivers')
         for i in "${qtdylib[@]}"
@@ -556,6 +564,7 @@ function BuildTed(){
         HighlightMSG "Building....."
         ExecuteCMD "make"
         # Deploy packages to make as standalone. See Ted project file (Ted.pro)
+        HeaderMSG "Deploying Qt libraries" "true"
         if [ $QTDEPLOY -eq 1 ]; then
             ExecuteCMD "make" "install"
         fi
@@ -780,7 +789,7 @@ function BuildPackage(){
     if [ $USE_GIT -eq 1 ]; then
         GitBuild "$str_srcRoot" $pkgName ${args[@]}
     else
-        HeaderMSG "Creating test package"
+        HeaderMSG "Creating test package" "true"
         if [ -d "$str_deployRoot" ]; then DeleteItem "$str_deployRoot"; fi
         mkdir -p "$str_deployRoot/$pkgName"
         HighlightMSG "Created at $str_deployRoot/$pkgName"

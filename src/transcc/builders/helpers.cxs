@@ -160,7 +160,6 @@ Function GCCVer:String()
 		Case "linux"
 			Local str:=""
 			Local err:=ExecutePipe( "expr `gcc -dumpversion | cut -f1 -d.`", str )
-			Print "GCC VERSION Major is "+str
 			If err<>0 Die "Failed to determine GCC version with command expr `gcc -dumpversion | cut -f1 -d.`"
 			Return str
 	End Select

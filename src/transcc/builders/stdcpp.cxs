@@ -96,7 +96,7 @@ Class StdcppBuilder Extends Builder
 			Local buildStatic:=GetConfigVar( "MINGW_USE_STATIC" )
 			Local useMinGW:=GetConfigVar( "CC_USE_MINGW" )
 			Local useIcon:=GetConfigVar( "CC_USE_ICON" )
-			Local gccVersion:=GCCVer()
+			Local gccVersion:=GCCVer().Trim()
 			
 			' Work out how msize has to be passed based on the operating system and compiler chosen
 			If tcc.opt_msize<>""
@@ -186,7 +186,9 @@ Class StdcppBuilder Extends Builder
 					' Do not warn if a caller of a function marked with attribute warn_unused_result does not use its return value. The default is -Wunused-result. 
 					ccopts+=" -Wno-unused-result" + CCOptions( msize )
 					' GCC verions greater than 5 will require -no-pie options to work correctly.
-					If gccVersion>"5" libopts+=" -no-pie "
+					If Int(gccVersion)>5
+						If GetConfigVar( "GCC_LINUX_NOPIE" )="1" libopts+=" -no-pie"
+					Endif
 					' Link to pthreading library
 					libopts+=" -lpthread" + LibsOptions( msize )
 			End Select

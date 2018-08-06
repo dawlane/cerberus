@@ -21,11 +21,11 @@ Change Log
 '#CC_USE_MINGW=False	' Uncomment this to build with Visual Studio or the tools
 ' Use this CC_MSIZE to over project default values. These are: MinGW to 32 bit binaries, while VS to 64 bit binaries
 '#CC_MSIZE="32"
-		
+
 #CC_USE_ICON=True	' Use an icon.
 '#CC_APP_NAME="transcc" ' Set the final executable name.
 
-Const VERSION:="2018-08-04 preview"
+Const VERSION:="2018-08-07 preview"
 
 Function Main()
 	Local tcc:=New TransCC

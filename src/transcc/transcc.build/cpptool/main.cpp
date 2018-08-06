@@ -15,6 +15,7 @@
 #define CFG_CONFIG release
 #define CFG_CPP_DOUBLE_PRECISION_FLOATS 1
 #define CFG_CPP_GC_MODE 1
+#define CFG_GCC_LINUX_NOPIE 0
 #define CFG_HOST linux
 #define CFG_LANG cpp
 #define CFG_MINGW_USE_POSIX 1
@@ -6105,7 +6106,7 @@ String c_TransCC::p_GetReleaseVersion(){
 }
 void c_TransCC::p_Run(Array<String > t_args){
 	gc_assign(this->m_args,t_args);
-	bbPrint(String(L"TRANS cerberus compiler V2018-08-04 preview",43));
+	bbPrint(String(L"TRANS cerberus compiler V2018-08-07 preview",43));
 	m_cerberusdir=RealPath(bb_os_ExtractDir(AppPath())+String(L"/..",3));
 	SetEnv(String(L"CERBERUSDIR",11),m_cerberusdir);
 	SetEnv(String(L"MONKEYDIR",9),m_cerberusdir);
@@ -8436,7 +8437,7 @@ void c_GlfwBuilder::p_MakeGcc(){
 		String t_headerSearchList=bb_config_GetConfigVar(String(L"GLFW_GCC_INCLUDE_PATHS",22));
 		Array<String > t_userIncludesList=bb_config_GetConfigVar(String(L"GLFW_GCC_USER_INCLUDES",22)).Split(String(L";",1));
 		String t_mingwUsePosix=String();
-		String t_gccVersion=bb_helpers_GCCVer();
+		String t_gccVersion=bb_helpers_GCCVer().Trim();
 		String t_ccopts=String();
 		String t_ldopts=String();
 		String t_libopts=String();
@@ -8483,8 +8484,10 @@ void c_GlfwBuilder::p_MakeGcc(){
 		}else{
 			t_toolchain=String(L"linux",5);
 			t_cerbRoot=t_cerbRoot+(m_tcc->m_cerberusdir+String(L"/libs/shared/Linux",18)+t_msize+String(L";",1)+m_tcc->m_cerberusdir+String(L"/libs/static/Linux/",19)+t_msize);
-			if(t_gccVersion>String(L"5",1)){
-				t_ldopts=t_ldopts+String(L" -no-pie",8);
+			if((t_gccVersion).ToInt()>5){
+				if(bb_config_GetConfigVar(String(L"GCC_LINUX_NOPIE",15))==String(L"1",1)){
+					t_ldopts=t_ldopts+String(L" -no-pie",8);
+				}
 			}
 		}
 		String t_searchPaths=String();
@@ -9384,7 +9387,7 @@ void c_StdcppBuilder::p_MakeTarget(){
 		String t_buildStatic=bb_config_GetConfigVar(String(L"MINGW_USE_STATIC",16));
 		String t_useMinGW=bb_config_GetConfigVar(String(L"CC_USE_MINGW",12));
 		String t_useIcon=bb_config_GetConfigVar(String(L"CC_USE_ICON",11));
-		String t_gccVersion=bb_helpers_GCCVer();
+		String t_gccVersion=bb_helpers_GCCVer().Trim();
 		if(m_tcc->m_opt_msize!=String()){
 			bbPrint(String(L"Over-ride of CC_MSIZE via command option. msize is now set to ",62)+m_tcc->m_opt_msize);
 			String t_4=HostOS();
@@ -9484,8 +9487,10 @@ void c_StdcppBuilder::p_MakeTarget(){
 			}else{
 				if(t_6==String(L"linux",5)){
 					t_ccopts=t_ccopts+(String(L" -Wno-unused-result",19)+p_CCOptions(t_msize,String()));
-					if(t_gccVersion>String(L"5",1)){
-						t_libopts=t_libopts+String(L" -no-pie ",9);
+					if((t_gccVersion).ToInt()>5){
+						if(bb_config_GetConfigVar(String(L"GCC_LINUX_NOPIE",15))==String(L"1",1)){
+							t_libopts=t_libopts+String(L" -no-pie",8);
+						}
 					}
 					t_libopts=t_libopts+(String(L" -lpthread",10)+p_LibsOptions(t_msize,String()));
 				}
@@ -21180,7 +21185,6 @@ String bb_helpers_GCCVer(){
 	if(t_2==String(L"linux",5)){
 		String t_str=String();
 		int t_err=ExecutePipe(String(L"expr `gcc -dumpversion | cut -f1 -d.`",37),t_str);
-		bbPrint(String(L"GCC VERSION Major is ",21)+t_str);
 		if(t_err!=0){
 			bb_transcc_Die(String(L"Failed to determine GCC version with command expr `gcc -dumpversion | cut -f1 -d.`",82));
 		}
