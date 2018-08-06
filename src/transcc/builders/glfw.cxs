@@ -1,6 +1,8 @@
 #Rem
 Change Log
 ----------------------------------------------------------------------------------------------
+2018-08-02 - Dawlane
+					Added detection for Linux GCC versions greater than GCC 5. This  
 2018-07-23 - Dawlane
 					External shared libraries are now transfered the external application sharedtrans
 					Added support to search for shared library and other build files to pass to the back-end compiler.
@@ -74,6 +76,7 @@ Class GlfwBuilder Extends Builder
 			Local headerSearchList:=GetConfigVar( "GLFW_GCC_INCLUDE_PATHS" )
 			Local userIncludesList:String[]=GetConfigVar( "GLFW_GCC_USER_INCLUDES" ).Split( ";" )
 			Local mingwUsePosix:=""
+			Local gccVersion:=GCCVer()
 
 			Local ccopts:="",ldopts:="", libopts:="", libcopy:="", appName:=GetConfigVar( "GLFW_APP_NAME" ), sysroot:="", toolchain:="", cerbRoot:=""
 
@@ -123,6 +126,9 @@ Class GlfwBuilder Extends Builder
 				
 				' Build a cerberus libs search path
 				cerbRoot+=tcc.cerberusdir+"/libs/shared/Linux"+msize+";"+tcc.cerberusdir+"/libs/static/Linux/"+msize
+				
+				' GCC verions greater than 5 will require -no-pie options to work correctly.
+				If gccVersion>"5" ldopts+=" -no-pie"
 			Endif
 			
 			' Process the seach paths for libraries etc.

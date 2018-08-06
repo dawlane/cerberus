@@ -1,9 +1,20 @@
+#Rem
+This file is for additional functions to assist in the manipulation of building projects.
+Change Log
+----------------------------------------------------------------------------------------------
+2018-08-02 - Dawlane
+					Added a function to execute external applications and return information from stdout and stderr.
+					Makes use of cpp code in the native folder.
+#End
+
 Import transcc
 Import os
-#rem
-	This file is for additional functions to assist in the manipulation of building projects.
-	DAWLANE ADDED FUNCTIONS START
-#end
+Import "native/exec.cpp"
+
+' DAWLANE ADDED FUNCTIONS START
+Extern
+	Function ExecutePipe( cmd$, ref$ )
+Public
 
 ' Add quote around a string
 Function QuoteMe:String( str:String )
@@ -141,6 +152,19 @@ Function CopyICON:Int( userPath:String = "icon", extension:String, prjPath:Strin
 			Return CopyFile( cerbPath+"/src/archives/icons/cerberus."+extension, targetFile ) ' Should return 1 if all went well
 		Endif
 	Endif
+End Function
+
+' Detect GCC versions
+Function GCCVer:String()
+	Select HostOS()
+		Case "linux"
+			Local str:=""
+			Local err:=ExecutePipe( "expr `gcc -dumpversion | cut -f1 -d.`", str )
+			Print "GCC VERSION Major is "+str
+			If err<>0 Die "Failed to determine GCC version with command expr `gcc -dumpversion | cut -f1 -d.`"
+			Return str
+	End Select
+	Return ""
 End Function
 ' DAWLANE ADDED FUNCTIONS END 
 

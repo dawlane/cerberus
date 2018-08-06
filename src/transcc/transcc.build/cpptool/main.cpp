@@ -2519,6 +2519,53 @@ int ExitApp( int retcode ){
 	return 0;
 }
 
+// Windows, Linux, OSX dirty conversion from multi-byte to wchar
+String MBTOWC(const char* ptr, size_t bytes){
+	String result;
+	int len;
+	wchar_t dest;
+	mbtowc (NULL, NULL, 0);
+	while (bytes>0) {
+		len = mbtowc(&dest,ptr,bytes);
+		if (len<1) break;
+		result+=String(dest,1);
+		ptr+=len;
+		bytes-=len;
+	}
+	return result;
+}
+
+/*
+	Add the abillity to pipe child process output.
+	Note that for MS Windows only console mode applications are supported at this time and hasn't been tested yet
+*/
+int ExecutePipe( String cmd, String &ref ){
+	FILE* filestream;
+	char streambuffer[4096];
+	int exitcode=-1;
+	#ifdef _WIN32
+	filestream=_popen(String(cmd+" 2>&1").ToCString<char>(), "r");
+	#else
+	filestream=popen(String(cmd+" 2>&1").ToCString<char>(), "r");
+	#endif
+	if(filestream==NULL ||cmd==""){
+		ref=String("Invalid child process.\n");
+		#ifdef _WIN32
+		_pclose(filestream);
+		#else
+		pclose(filestream);
+		#endif
+		return exitcode;
+		}
+	while(fgets(streambuffer,sizeof(streambuffer), filestream) !=NULL){
+		ref+=MBTOWC(streambuffer,sizeof(streambuffer));
+	}
+	#ifdef _WIN32
+	return _pclose(filestream);
+	#else
+	return pclose(filestream);
+	#endif
+}
 
 // ***** thread.h *****
 
@@ -5303,6 +5350,7 @@ class c_CppTranslator : public c_CTranslator{
 	void mark();
 };
 int bb_helpers_CopyICON(String,String,String,String,String,String);
+String bb_helpers_GCCVer();
 class c_Enumerator5 : public Object{
 	public:
 	c_Stack* m_stack;
@@ -6057,7 +6105,7 @@ String c_TransCC::p_GetReleaseVersion(){
 }
 void c_TransCC::p_Run(Array<String > t_args){
 	gc_assign(this->m_args,t_args);
-	bbPrint(String(L"TRANS cerberus compiler V2018-07-25 preview",43));
+	bbPrint(String(L"TRANS cerberus compiler V2018-08-04 preview",43));
 	m_cerberusdir=RealPath(bb_os_ExtractDir(AppPath())+String(L"/..",3));
 	SetEnv(String(L"CERBERUSDIR",11),m_cerberusdir);
 	SetEnv(String(L"MONKEYDIR",9),m_cerberusdir);
@@ -8388,6 +8436,7 @@ void c_GlfwBuilder::p_MakeGcc(){
 		String t_headerSearchList=bb_config_GetConfigVar(String(L"GLFW_GCC_INCLUDE_PATHS",22));
 		Array<String > t_userIncludesList=bb_config_GetConfigVar(String(L"GLFW_GCC_USER_INCLUDES",22)).Split(String(L";",1));
 		String t_mingwUsePosix=String();
+		String t_gccVersion=bb_helpers_GCCVer();
 		String t_ccopts=String();
 		String t_ldopts=String();
 		String t_libopts=String();
@@ -8434,6 +8483,9 @@ void c_GlfwBuilder::p_MakeGcc(){
 		}else{
 			t_toolchain=String(L"linux",5);
 			t_cerbRoot=t_cerbRoot+(m_tcc->m_cerberusdir+String(L"/libs/shared/Linux",18)+t_msize+String(L";",1)+m_tcc->m_cerberusdir+String(L"/libs/static/Linux/",19)+t_msize);
+			if(t_gccVersion>String(L"5",1)){
+				t_ldopts=t_ldopts+String(L" -no-pie",8);
+			}
 		}
 		String t_searchPaths=String();
 		if(t_libsearchList!=String() || t_dylibCopy!=String()){
@@ -9332,6 +9384,7 @@ void c_StdcppBuilder::p_MakeTarget(){
 		String t_buildStatic=bb_config_GetConfigVar(String(L"MINGW_USE_STATIC",16));
 		String t_useMinGW=bb_config_GetConfigVar(String(L"CC_USE_MINGW",12));
 		String t_useIcon=bb_config_GetConfigVar(String(L"CC_USE_ICON",11));
+		String t_gccVersion=bb_helpers_GCCVer();
 		if(m_tcc->m_opt_msize!=String()){
 			bbPrint(String(L"Over-ride of CC_MSIZE via command option. msize is now set to ",62)+m_tcc->m_opt_msize);
 			String t_4=HostOS();
@@ -9431,6 +9484,9 @@ void c_StdcppBuilder::p_MakeTarget(){
 			}else{
 				if(t_6==String(L"linux",5)){
 					t_ccopts=t_ccopts+(String(L" -Wno-unused-result",19)+p_CCOptions(t_msize,String()));
+					if(t_gccVersion>String(L"5",1)){
+						t_libopts=t_libopts+String(L" -no-pie ",9);
+					}
 					t_libopts=t_libopts+(String(L" -lpthread",10)+p_LibsOptions(t_msize,String()));
 				}
 			}
@@ -21118,6 +21174,19 @@ int bb_helpers_CopyICON(String t_userPath,String t_extension,String t_prjPath,St
 			return CopyFile(t_cerbPath+String(L"/src/archives/icons/cerberus.",29)+t_extension,t_targetFile);
 		}
 	}
+}
+String bb_helpers_GCCVer(){
+	String t_2=HostOS();
+	if(t_2==String(L"linux",5)){
+		String t_str=String();
+		int t_err=ExecutePipe(String(L"expr `gcc -dumpversion | cut -f1 -d.`",37),t_str);
+		bbPrint(String(L"GCC VERSION Major is ",21)+t_str);
+		if(t_err!=0){
+			bb_transcc_Die(String(L"Failed to determine GCC version with command expr `gcc -dumpversion | cut -f1 -d.`",82));
+		}
+		return t_str;
+	}
+	return String();
 }
 c_Enumerator5::c_Enumerator5(){
 	m_stack=0;
