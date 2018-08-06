@@ -7,9 +7,15 @@ See LICENSE.TXT for licensing terms.
 
 Change Log
 --------------------------------------------------------------------------------
+2018-07-31 - dawlane
+        Heavy changes to allow single instance running of Ted. Lets us open multiple files from Explorer.
+        All zero/null pointer updated to the nullptr as per C++11 standard.
+        All QApplication static members now using derived CerberusApplication class.
+        All mainWindow references are now set to the CerberusApplication member mainWindow.
+        Work-around to Mac OS invisible QTabBar close button. Themes need to be set and load on first run.
 2018-07-23 - dawlane
-		Update Ted to use QtWebEngine and QtWebEnginePage and minor fixes.
-		Should now build with later versions of Qt.
+        Update Ted to use QtWebEngine and QtWebEnginePage and minor fixes.
+        Should now build with later versions of Qt. Qt 5.9.2 tested.
 */
 
 #include "mainwindow.h"
@@ -23,10 +29,11 @@ Change Log
 #include "prefs.h"
 #include "process.h"
 #include "findinfilesdialog.h"
+#include "cerberusapplication.h"
 
 #include <QHostInfo>
 
-#define TED_VERSION "2018-05-26"
+#define TED_VERSION "2018-07-31"
 
 #define SETTINGS_VERSION 2
 
@@ -40,24 +47,25 @@ Change Log
 #define HOST QString("")
 #endif
 
-// DAWLANE - Not needed with version of Qt that support a name string.
+// DAWLANE - Not needed with versions of Qt that support a name string.
 #if QT_VERSION<=0x050001
 #define _QUOTE(X) #X
 //xxxxxxx
 #define _STRINGIZE( X ) _QUOTE(X)
 #endif
 
-static MainWindow *mainWindow;
+// DAWLANE - mainWindow is a static member of CerberusApplication.
+MainWindow *CerberusApplication::mainWindow;
 
 void cdebug( const QString &q ){
-    if( mainWindow ) mainWindow->cdebug( q );
+    if( CerberusApplication::mainWindow ) CerberusApplication::mainWindow->cdebug( q );
 }
 
 //***** MainWindow *****
 //
 MainWindow::MainWindow(QWidget *parent) : QMainWindow( parent ),_ui( new Ui::MainWindow ){
 
-    mainWindow=this;
+    CerberusApplication::mainWindow=this;
 
     //Untested fix for QT5 ala dawlane - Changed this from <= to just plain <
 #if QT_VERSION<0x050001
@@ -103,9 +111,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow( parent ),_ui( new Ui::Mai
 
     _ui->setupUi( this );
 
-    _codeEditor=0;
-    _lockedEditor=0;
-    _helpWidget=0;
+    _codeEditor=nullptr;
+    _lockedEditor=nullptr;
+    _helpWidget=nullptr;
     _helpTopicId=0;
     _rebuildingHelp=false;
 
@@ -164,7 +172,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow( parent ),_ui( new Ui::Mai
     connect( _mainTabWidget,SIGNAL(tabCloseRequested(int)),SLOT(onCloseMainTab(int)) );
 
     //init console widgets
-    _consoleProc=0;
+    _consoleProc=nullptr;
     _consoleTextWidget=new QTextEdit;
     _consoleTextWidget->setReadOnly( true );
 //    _consoleTextWidget->setFocusPolicy( Qt::NoFocus );    //Oops, disables copy...
@@ -201,7 +209,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow( parent ),_ui( new Ui::Mai
     _emptyCodeWidget=new QWidget;
     _emptyCodeWidget->setFocusPolicy( Qt::NoFocus );
 
-    _debugTreeModel=0;
+    _debugTreeModel=nullptr;
     _debugTreeWidget=new QTreeView;
     _debugTreeWidget->setHeaderHidden( true );
     _debugTreeWidget->setFocusPolicy( Qt::NoFocus );
@@ -300,13 +308,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow( parent ),_ui( new Ui::Mai
     _findDialog->readSettings();
     connect( _findDialog,SIGNAL(findReplace(int)),SLOT(onFindReplace(int)) );
 
-    _findInFilesDialog=new FindInFilesDialog( 0 );
+    _findInFilesDialog=new FindInFilesDialog( nullptr );
     _findInFilesDialog->readSettings();
     connect( _findInFilesDialog,SIGNAL(showCode(QString,int,int)),SLOT(onShowCode(QString,int,int)) );
 
     //loadHelpIndex();
-
-    parseAppArgs();
+    // DAWLANE - Cannot directly pass arguments() to parseAppArgs
+    QStringList args = CerberusApplication::arguments();
+    parseAppArgs(args);
 
     updateWindowTitle();
 
@@ -419,8 +428,7 @@ void MainWindow::loadHelpIndex(){
     connect( _indexWidget,SIGNAL(currentIndexChanged(QString)),SLOT(onShowHelp(QString)) );
 }
 
-void MainWindow::parseAppArgs(){
-    QStringList args=QApplication::arguments();
+void MainWindow::parseAppArgs(QStringList &args){
     for( int i=1;i<args.size();++i ){
         QString arg=fixPath( args.at(i) );
         if( QFile::exists( arg ) ){
@@ -456,7 +464,7 @@ CodeEditor *MainWindow::editorWithPath( const QString &path ){
             }
         }
     }
-    return 0;
+    return nullptr;
 }
 
 void MainWindow::showImage(const QString &path) {
@@ -487,13 +495,13 @@ QWidget *MainWindow::newFile( const QString &cpath ){
         if( !_monkey2Path.isEmpty() ) srcTypes+=" *.mx2 *.monkey2";
 
         path=fixPath( QFileDialog::getSaveFileName( this,"New File",_defaultDir,"Source Files ("+srcTypes+")" ) );
-        if( path.isEmpty() ) return 0;
+        if( path.isEmpty() ) return nullptr;
     }
 
     QFile file( path );
     if( !file.open( QIODevice::WriteOnly | QIODevice::Truncate ) ){
         QMessageBox::warning( this,"New file","Failed to create new file: "+path );
-        return 0;
+        return nullptr;
     }
     file.close();
 
@@ -512,14 +520,14 @@ QWidget *MainWindow::newFileTemplate( const QString &cpath ){
         if( !_monkey2Path.isEmpty() ) srcTypes+=" *.mx2 *.monkey2";
 
         path=fixPath( QFileDialog::getSaveFileName( this,"New File from template",_defaultDir,"Source Files ("+srcTypes+")" ) );
-        if( path.isEmpty() ) return 0;
+        if( path.isEmpty() ) return nullptr;
     }
     QFile::copy(cpath, path);
 
     QFile file( path );
     if( !file.open( QIODevice::ReadOnly ) ){
         QMessageBox::warning( this,"New file","Failed to create new file from template: "+path );
-        return 0;
+        return nullptr;
     }
 
     file.close();
@@ -536,7 +544,7 @@ QWidget *MainWindow::openFile( const QString &cpath,bool addToRecent ){
 
     if (isImageFile(path)) {
         showImage(path);
-        return 0;
+        return nullptr;
     }
 
     if( isUrl( path ) ){
@@ -546,7 +554,7 @@ QWidget *MainWindow::openFile( const QString &cpath,bool addToRecent ){
             if( QFile::exists( path2 ) ) path="file:///"+path2;
         }
 */
-        HelpView *helpView=0;
+        HelpView *helpView=nullptr;
         for( int i=0;i<_mainTabWidget->count();++i ){
             helpView=qobject_cast<HelpView*>( _mainTabWidget->widget( i ) );
             if( helpView ) break;
@@ -584,7 +592,7 @@ QWidget *MainWindow::openFile( const QString &cpath,bool addToRecent ){
         if( !_monkey2Path.isEmpty() ) srcTypes+=" *.mx2 *.monkey2";
 
         path=fixPath( QFileDialog::getOpenFileName( this,"Open File",_defaultDir,"Source Files ("+srcTypes+");;Image Files(*.jpg *.png *.bmp);;All Files(*.*)" ) );
-        if( path.isEmpty() ) return 0;
+        if( path.isEmpty() ) return nullptr;
 
         _defaultDir=extractDir( path );
     }
@@ -596,12 +604,12 @@ QWidget *MainWindow::openFile( const QString &cpath,bool addToRecent ){
         return editor;
     }
 
-    editor=new CodeEditor(0,this);
+    editor=new CodeEditor(nullptr,this);
 
     if( !editor->open( path ) ){
         delete editor;
         QMessageBox::warning( this,"Open File Error","Error opening file: "+path );
-        return 0;
+        return nullptr;
     }
 
     editor->_mainWnd = this;
@@ -709,12 +717,12 @@ bool MainWindow::closeFile( QWidget *widget,bool really ){
     if( !really ) return true;
 
     if( widget==_codeEditor ){
-        _codeEditor=0;
+        _codeEditor=nullptr;
     }else if( widget==_helpWidget ){
-        _helpWidget=0;
+        _helpWidget=nullptr;
     }
     if( widget==_lockedEditor ){
-        _lockedEditor=0;
+        _lockedEditor=nullptr;
     }
 
     _mainTabWidget->removeTab( _mainTabWidget->indexOf( widget ) );
@@ -777,7 +785,7 @@ bool MainWindow::isValidBlitzmaxPath( const QString &path ){
 }
 
 QString MainWindow::defaultCerberusPath(){
-    QString path=QApplication::applicationDirPath();
+    QString path=CerberusApplication::applicationDirPath();
     while( !path.isEmpty() ){
         if( isValidCerberusPath( path ) ) return path;
         path=extractDir( path );
@@ -827,6 +835,25 @@ void MainWindow::enumTargets(){
 
 }
 
+// DAWLANE - Made theme loading into a method set correctly to avoid odd visuals.
+void MainWindow::loadTheme(QString &appPath, Prefs *prefs)
+{
+    QString css = "";
+    QString cssFile = "";
+    cssFile = prefs->getString( "theme" );
+    QFile f(appPath+"/themes/"+cssFile+"/"+cssFile+".css");
+    if(f.open(QFile::ReadOnly)) {
+        css = f.readAll();
+    }
+    f.close();
+
+    //css += "QDockWidget::title{text-align:center;background: #ff0000; }";
+
+    css.replace("url(:","url("+appPath+"/themes/"+cssFile);
+
+    qApp->setStyleSheet(css);
+}
+
 void MainWindow::readSettings(){
 
     QSettings settings;
@@ -834,7 +861,10 @@ void MainWindow::readSettings(){
     Prefs *prefs=Prefs::prefs();
 
 
-
+    QString appPath=QCoreApplication::applicationDirPath();
+#ifdef Q_OS_MAC
+    appPath = extractDir(extractDir(extractDir(appPath)));
+#endif
 
     if( settings.value( "settingsVersion" ).toInt()<1 ){
 
@@ -873,6 +903,10 @@ void MainWindow::readSettings(){
         if( !_cerberusPath.isEmpty() ){
             _projectTreeModel->addProject( _cerberusPath );
         }
+
+        // DAWLANE - Make sure that our theme is set correctly to avoid odd visuals on first run.
+        writeSettings();
+        loadTheme(appPath, prefs);
 
         enumTargets();
 
@@ -985,11 +1019,8 @@ void MainWindow::readSettings(){
 
     _defaultDir=fixPath( settings.value( "defaultDir" ).toString() );
 
-    QString appPath=QCoreApplication::applicationDirPath();
-#ifdef Q_OS_MAC
-    appPath = extractDir(extractDir(extractDir(appPath)));
-#endif
-
+    loadTheme(appPath, prefs);
+/*
     QString css = "";
     QString cssFile = "";
     cssFile = prefs->getString( "theme" );
@@ -1004,8 +1035,9 @@ void MainWindow::readSettings(){
     css.replace("url(:","url("+appPath+"/themes/"+cssFile);
 
     qApp->setStyleSheet(css);
+*/
 
-    QApplication::processEvents();
+    CerberusApplication::processEvents();
     QString tempPath ="";
     QDir recoredDir(appPath+"/templates/");
     QStringList allFiles = recoredDir.entryList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst);
@@ -1116,7 +1148,7 @@ void MainWindow::updateTargetsWidget( QString fileType ){
 
     if( _buildFileType!=fileType ){
 
-        disconnect( _targetsWidget,0,0,0 );
+        disconnect( _targetsWidget,nullptr,nullptr,nullptr );
         _targetsWidget->clear();
 
         if( fileType=="cxs" || fileType=="monkey" ){
@@ -1147,8 +1179,8 @@ void MainWindow::updateTargetsWidget( QString fileType ){
 //
 void MainWindow::updateActions(){
 
-    bool ed=_codeEditor!=0;
-    bool db=_debugTreeModel!=0;
+    bool ed=_codeEditor!=nullptr;
+    bool db=_debugTreeModel!=nullptr;
     bool wr=ed && !_codeEditor->isReadOnly();
     bool sel=ed && _codeEditor->textCursor().hasSelection();
 
@@ -1204,9 +1236,9 @@ void MainWindow::updateActions(){
     _ui->actionStep->setEnabled( db );
     _ui->actionStep_In->setEnabled( db );
     _ui->actionStep_Out->setEnabled( db );
-    _ui->actionKill->setEnabled( _consoleProc!=0 );
+    _ui->actionKill->setEnabled( _consoleProc!=nullptr );
     _ui->actionLock_Build_File->setEnabled( _codeEditor!=_lockedEditor && isBuildable( _codeEditor ) );
-    _ui->actionUnlock_Build_File->setEnabled( _lockedEditor!=0 );
+    _ui->actionUnlock_Build_File->setEnabled( _lockedEditor!=nullptr );
 
     //targets widget
     if( isBuildable( buildEditor ) ){
@@ -1214,10 +1246,10 @@ void MainWindow::updateActions(){
     }
 
     //help menu
-    _ui->actionHelpBack->setEnabled( _helpWidget!=0 );
-    _ui->actionHelpForward->setEnabled( _helpWidget!=0 );
-    _ui->actionHelpQuickHelp->setEnabled( _codeEditor!=0 );
-    _ui->actionHelpRebuild->setEnabled( _consoleProc==0 );
+    _ui->actionHelpBack->setEnabled( _helpWidget!=nullptr );
+    _ui->actionHelpForward->setEnabled( _helpWidget!=nullptr );
+    _ui->actionHelpQuickHelp->setEnabled( _codeEditor!=nullptr );
+    _ui->actionHelpRebuild->setEnabled( _consoleProc==nullptr );
 }
 
 void MainWindow::updateWindowTitle(){
@@ -1298,7 +1330,7 @@ void MainWindow::onProjectMenu( const QPoint &pos ){
 
     QFileInfo info=_projectTreeModel->fileInfo( index );
 
-    QMenu *menu=0;
+    QMenu *menu=nullptr;
 
     if( _projectTreeModel->isProject( index ) ){
         menu=_projectPopupMenu;
@@ -1494,7 +1526,7 @@ void MainWindow::runCommand( QString cmd,QWidget *fileWidget ){
 
     if( !_consoleProc->start( cmd ) ){
         delete _consoleProc;
-        _consoleProc=0;
+        _consoleProc=nullptr;
         QMessageBox::warning( this,"Process Error","Failed to start process: "+cmd );
         return;
     }
@@ -1630,14 +1662,14 @@ void MainWindow::onProcFinished(){
     }
 
     if( _debugTreeModel ){
-        _debugTreeWidget->setModel( 0 );
+        _debugTreeWidget->setModel( nullptr );
         delete _debugTreeModel;
-        _debugTreeModel=0;
+        _debugTreeModel=nullptr;
     }
 
     if( _consoleProc ){
         delete _consoleProc;
-        _consoleProc=0;
+        _consoleProc=nullptr;
     }
 
     updateActions();
@@ -1728,7 +1760,7 @@ void MainWindow::onFileClose(){
 void MainWindow::onFileCloseAll(){
     for(;;){
         int i;
-        CodeEditor *editor=0;
+        CodeEditor *editor=nullptr;
         for( i=0;i<_mainTabWidget->count();++i ){
             editor=qobject_cast<CodeEditor*>( _mainTabWidget->widget( i ) );
             if( editor ) break; 
@@ -1745,11 +1777,11 @@ void MainWindow::onFileCloseOthers(){
 
     for(;;){
         int i;
-        CodeEditor *editor=0;
+        CodeEditor *editor=nullptr;
         for( i=0;i<_mainTabWidget->count();++i ){
             editor=qobject_cast<CodeEditor*>( _mainTabWidget->widget( i ) );
             if( editor && editor!=_codeEditor ) break;
-            editor=0;
+            editor=nullptr;
         }
         if( !editor ) return;
 
@@ -1828,7 +1860,7 @@ void MainWindow::onFilePrefs(){
 }
 
 void MainWindow::onFileQuit(){
-    if( confirmQuit() ) QApplication::quit();
+    if( confirmQuit() ) CerberusApplication::quit();
 }
 
 //***** Edit menu *****
@@ -1930,7 +1962,7 @@ void MainWindow::onFindReplace( int how ){
     if( how==0 ){
 
         if( !_codeEditor->findNext( findText,cased,wrap ) ){
-            QApplication::beep();
+            CerberusApplication::beep();
 //            QMessageBox::information( this,"Find Next","Text not found" );
 //            _findDialog->activateWindow();
         }
@@ -1939,7 +1971,7 @@ void MainWindow::onFindReplace( int how ){
 
         if( _codeEditor->replace( findText,replaceText,cased ) ){
             if( !_codeEditor->findNext( findText,cased,wrap ) ){
-                QApplication::beep();
+                CerberusApplication::beep();
 //                QMessageBox::information( this,"Replace","Text not found" );
 //                _findDialog->activateWindow();
             }
@@ -2089,7 +2121,7 @@ void MainWindow::onBuildLockFile(){
 
 void MainWindow::onBuildUnlockFile(){
     if( CodeEditor *wasLocked=_lockedEditor ){
-        _lockedEditor=0;
+        _lockedEditor=nullptr;
         updateTabLabel( wasLocked );
     }
     updateActions();
@@ -2259,10 +2291,14 @@ bool WebEnginePage::acceptNavigationRequest(const QUrl &url, QWebEnginePage::Nav
         if( lstr.startsWith( "file:///" ) ){
             QString ext=";"+extractExt(lstr)+";";
             if( textFileTypes.contains( ext ) || codeFileTypes.contains( ext ) ){
-                mainWindow->openFile( str.mid( 8 ),false );
+#ifdef Q_OS_WIN
+                CerberusApplication::mainWindow->openFile( str.mid( 8 ),false ); // Windows strip the full file:///
+#else
+                CerberusApplication::mainWindow->openFile( str.mid( 7 ),false ); // Unix systems leave the leading forward slash.
+#endif
                 return false;
             }
-           mainWindow->openFile( str,false );
+           CerberusApplication::mainWindow->openFile( str,false );
             return false;
         }
 
@@ -2300,12 +2336,12 @@ void MainWindow::onHelpRebuild(){
 
     _rebuildingHelp=true;
 
-    runCommand( cmd,0 );
+    runCommand( cmd,nullptr );
 }
 
 void HelpView::keyPressEvent ( QKeyEvent * event ){
     if( event->key()==Qt::Key_F1 ){
-        mainWindow->onShowHelp();
+        CerberusApplication::mainWindow->onShowHelp();
     }
 }
 

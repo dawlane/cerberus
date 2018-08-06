@@ -7,9 +7,15 @@ See LICENSE.TXT for licensing terms.
 
 Change Log
 --------------------------------------------------------------------------------
+2018-07-31 - dawlane
+        Heavy changes to allow single instance running of Ted. Lets us open multiple files from Explorer.
+        All zero/null pointer updated to the nullptr as per C++11 standard.
+        All QApplication static members now using derived CerberusApplication class.
+        All mainWindow references are now set to the CerberusApplication member mainWindow.
+        Work-around to Mac OS invisible QTabBar close button. Themes need to be set and load on first run.
 2018-07-23 - dawlane
-		Update Ted to use QtWebEngine and QtWebEnginePage and minor fixes.
-		Should now build with later versions of Qt.
+        Update Ted to use QtWebEngine and QtWebEnginePage and minor fixes.
+        Should now build with later versions of Qt. Qt 5.9.2 tested.
 */
 
 #ifndef MAINWINDOW_H
@@ -34,8 +40,6 @@ class MainWindow;
 #if QT_VERSION>0x050501
 class HelpView : public QWebEngineView{
     Q_OBJECT
-public:
-
 protected:
     void keyPressEvent ( QKeyEvent * event );
 };
@@ -65,7 +69,7 @@ class MainWindow : public QMainWindow{
     Q_OBJECT
 public:
 
-    MainWindow( QWidget *parent=0 );
+    MainWindow( QWidget *parent=nullptr );
     ~MainWindow();
 
     void cdebug( const QString &str );
@@ -79,9 +83,10 @@ public:
 
 // DAWLANE Qt 5.6+ supported. Function openFile moved here so that WebEnginePage can access it.
     QWidget *openFile( const QString &path,bool addToRecent );
+// DAWLANE Move void parseAppArgs(); to public to pass new arguments if another instance of Ted was started.
+    void parseAppArgs(QStringList &args);
 private:
 
-    void parseAppArgs();
     void loadHelpIndex();
 
     bool isBuildable( CodeEditor *editor );
@@ -99,6 +104,7 @@ private:
     QString defaultCerberusPath();
     void enumTargets();
 
+    void loadTheme(QString &appPath, Prefs *prefs);
     void readSettings();
     void writeSettings();
 
