@@ -625,8 +625,9 @@ Function BuildTed([string]$_str_config) {
     if ($global:errorcode -eq 1) { ErrorMSG "Failed execute build Ted" }
     Set-Location ..
     Remove-Item "$global:str_srcRoot\src\build-ted-Desktop-$_str_config" -force -recurse
-    HeaderMSG "Deploying Qt Shared dynamic libraries"
-    ExecuteCMD "windeployqt" "--$($_str_config.ToLower()) --no-svg --no-angle --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --no-translations --core `"$global:str_srcRoot\bin\Ted.exe`""
+    
+    HeaderMSG "Delpoying Qt Libraries"
+    ExecuteCMD "windeployqt" "--$($_str_config.ToLower()) --no-svg --no-angle --no-compiler-runtime --no-system-d3d-compiler --no-quick-import --core `"$global:str_srcRoot\bin\Ted.exe`""
     if ($global:errorcode -eq 1) { ErrorMSG "Failed execute windeployqt" }
     $folders = "audio", "bearer", "imageformats", "mediaservice", "playlistformats", "position", "printsupport", "sensors", "sensorgestures", "sqldrivers", "opengl32sw.dll"
     foreach ($folder in $folders) {
