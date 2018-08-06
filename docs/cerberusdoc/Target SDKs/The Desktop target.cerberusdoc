@@ -58,10 +58,9 @@ The installer presents you with:</br>
 </table>
 
 If you wish to do 32/64 bit cross compiling, then you should select sjlj. But be warned that sjlj has been known to have problems when certain compiler flags have been passed.</br>
-The people behind MinGW-w64 recommend using only the defaults shown for exceptions (dwarf or seh). This means that if you wish to compile for both 32 bit and 64 bit; then you have to have both compiler tool chains installed.</br>
-This means that you would have to change the MINGW_PATH variable in config.winnt.txt every time you wish to compile for a different CPU architecture.</br>
+The people behind MinGW-w64 recommend using only the defaults shown for exceptions (dwarf or seh). This means that if you wish to compile for both 32 bit and 64 bit; then you have to have both compiler tool chains installed. This also means that you would have to change the MINGW_PATH variable in config.winnt.txt every time you wish to compile for a different CPU architecture.</br>
 It should also be noted that MinGW-w64's default build system requires that a number of dynamic link libraries to be included with the final executable.</br>
-You can of course pass the `-static` parameter in one of the linker option config directives or use the directive #GLFW_MINGW_STATIC or #CC_MINGW_STATIC set to true to embed these as part of the final executable, but there may be licence restriction if doing so.
-There is also the issue with static linkage of needed to use static export libraries to use external shared dynamic libraries.</br>
-
+You can of course pass the `-static` parameter as one of the linker options using one of the directives related to passing options to the back-end compiler, or use the directive #GLFW_MINGW_STATIC or #CC_MINGW_STATIC set to true to embed these as part of the final executable, but there may be licence restriction if doing so.</br>
+Using the `-static` linker option will have implications, as the compiler will try to link everything as static. Doing it that way can give you issues with shared libraries that would require the possibility of needing static export library for it, and posible licence issues.</br>
+It is recommend only advanced users who understand the back-end compile and linker options should use pass options directly to the back-end compilers.</br>
 >> IN ALL VERSION OF MINGW YOU SHOULD CAREFULLY READ THE LICENCE FILES AND DOCUMENTATION.
