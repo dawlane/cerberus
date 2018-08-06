@@ -4,9 +4,17 @@
 #
 #-------------------------------------------------
 # Change log
+# 2018-08-06 - Dawlane
+#                   Removed 'dependencies without needing windeployqt and macdeployqt' as there are issues.
+#                   Added code the runs windeployqt and macdeployqt after a compiler. Currently not implemented yet.
+# 2018-07-31 - Dawlane
+#                   Windows and MacOS now uses install to filter out required libraries.
+#                   Added a way to copy over dependencies without needing windeployqt and macdeployqt. Qt5.9.2 tested only.
+#                   Don't forget to add a build step to install if using Qt creator!
 # 2018-07-23 - Dawlane
-#						Updated to use with Qt5.6+
-#						Linux should now no longer rely on the distributions repositories for Qt. Qt5.9.2 tested only.
+#                   Updated to use with Qt5.6+
+#                   Linux should now no longer rely on the distributions repositories for Qt. Qt5.9.2 tested only.
+#                   Don't forget to add a build step to install if using Qt creator!
 
 QT -= qml quick location positioning quickcontrols2
 QT += core gui network widgets
@@ -30,7 +38,9 @@ SOURCES += main.cpp\
     prefs.cpp \
     prefsdialog.cpp \
     process.cpp \
-    findinfilesdialog.cpp
+    findinfilesdialog.cpp \
+    cerberusapplication.cpp \
+    cerberusguard.cpp
 
 HEADERS  += mainwindow.h \
     codeeditor.h \
@@ -42,7 +52,9 @@ HEADERS  += mainwindow.h \
     prefs.h \
     prefsdialog.h \
     process.h \
-    findinfilesdialog.h
+    findinfilesdialog.h \
+    cerberusapplication.h \
+    cerberusguard.h
 
 FORMS    += mainwindow.ui \
     finddialog.ui \
@@ -58,9 +70,17 @@ DESTDIR = ../../bin
 
 win32{
         RC_FILE = appicon.rc
+        CONFIG += C++11
+        #DEPLOY_COMMAND = windeployqt
 }
 
 linux{
+        # GCC 6+
+        GCC += $$system( expr `gcc -dumpversion | cut -f1 -d.` )
+        greaterThan(GCC, 5) {
+            QMAKE_LFLAGS+=-no-pie
+        }
+
         CONFIG += C++11
 # Suppress warings
         QMAKE_STRIP = echo
@@ -92,7 +112,6 @@ linux{
 
         # Plugins
         # NOT USED, BUT KEPT AS REFERENCE: bearer imageformats platforminputcontexts position printsupport
-
         platforms.files += $$[QT_INSTALL_PLUGINS]/platforms/libqxcb.so
         platforms.path += $(DESTDIR)/plugins/platforms
 
@@ -111,15 +130,19 @@ linux{
         webengineprocess.files += $$[QT_INSTALL_DATA]/libexec/QtWebEngineProcess
         webengineprocess.path += $(DESTDIR)/libexec
 
-        config1.files += $(_PRO_FILE_PWD_)/configs/bin/qt.conf
+        config1.files += $(_PRO_FILE_PWD_)/configs/linux/bin/qt.conf
         config1.path += $(DESTDIR)
 
-        config2.files += $(_PRO_FILE_PWD_)/configs/libexec/qt.conf
+        config2.files += $(_PRO_FILE_PWD_)/configs/linux/libexec/qt.conf
         config2.path += $(DESTDIR)/libexec
 
         #target.extra = strip $(TARGET); cp -f $(TARGET) $${PREFIX}/bin/$(TARGET)
         INSTALLS += libs platforms translations resources webengineprocess config1 config2 xcbglintegrations
         install:   $(INSTALLS)
+
+        DISTFILES += \
+            configs/libexec/qt.conf \
+            configs/bin/qt.conf
 }
 
 mac{
@@ -128,9 +151,24 @@ mac{
         QMAKE_INFO_PLIST = Info.plist
         ICON = ted.icns
         CONFIG += C++11
+        #DEPLOY_COMMAND = macdeployqt
 }
 
-DISTFILES += \
-    configs/libexec/qt.conf \
-    configs/bin/qt.conf
+# This lot should auto deploy the Qt libraries with windeployqt/macdeployqt. But it pulls in a lot of baggage that's not needed.
+# isEmpty(TARGET_EXT) {
+#    win32 {
+#        TARGET_CUSTOM_EXT = .exe
+#    }
+#    mac {
+#        TARGET_CUSTOM_EXT = .app
+#    }
+#} else {
+#    TARGET_CUSTOM_EXT = $${TARGET_EXT}
+#}
+
+#win32 | mac{
+#    DEPLOY_TARGET = $$shell_quote($$shell_path($${DESTDIR}/$${TARGET}$${TARGET_CUSTOM_EXT}))
+#
+#    QMAKE_POST_LINK = $${DEPLOY_COMMAND} $${DEPLOY_TARGET}
+#}
 
