@@ -25,7 +25,7 @@ Most of the compiler and linker preprocessor configuration settings here are for
 [#GLFW_GCC_LD_OPTS](#gcc_ld_opts)~n
 [#GLFW_GCC_LIB_OPTS](#gcc_lib_opts)~n
 [#GLFW_GCC_LIB_PATHS](#gcc_lib_paths)~n
-[#GLFW_XCODE_LIBS_OPTS](#xcode_lib_opts)~n
+[#GLFW_XCODE_LIB_OPTS](#xcode_lib_opts)~n
 [#GLFW_XCODE_LD_OPTS](#xcode_ld_opts)~n
 [#GLFW_XCODE_LIB_PATHS](#xcode_lib_paths)~n
 [#GLFW_XCODE_FRAMEWORKS](#xcode_frameworks)~n
@@ -87,8 +87,9 @@ Use this to switch between the back-end compiler tool chains. The default is set
 >>>> Operating System: MS Windows only.
 >>>> Advanced: Only advanced users of MinGW should use this preprocessor directive.
 This preprocessor directive is for MinGW compilers that do not create stand alone applications, such as the original MinGW-w64 who's default is to require dynamic run-time libraries to be distributed along with the final executable. It's used to statically link libstdc++6, the libgcc run-time and winptheard into the main executable.~n
-MinGW compilers such as TDM-GCC do not need to use any static or POSIX preprocessor directives as these types of compilers usually are cabable of building stand alone applications.
-NOTE: The preprocessor directive [[Programming/Config Settings/C++TOOL SETTINGS##MINGW_USE_POSIX]] default is set to 'True'. If you are using a non POSIX version of MinGW with [#GLFW_MINGW_STATIC](#mingw_static) or it's sister preprocessor directive [[Programming/Config Settings/C++TOOL SETTINGS##MINGW_USE_STATIC]]. Then you should set #MINGW_USE_POSIX to 'False'. Also note that the helper application [[Tools/Sharedtrans]] cannot tell if a version of MinGW already creates stand-allone applications and will still copy over run-time libraries that have to be manually removed.
+MinGW compilers such as TDM-GCC do not need to use any static or POSIX preprocessor directives as these types of compilers usually are cabable of building stand alone applications.~n
+NOTE: The preprocessor directive [[Programming/Config Settings/C++TOOL SETTINGS##MINGW_USE_POSIX]] default is set to 'True'. If you are using a non POSIX version of MinGW with [#GLFW_MINGW_STATIC](#mingw_static) or it's sister preprocessor directive [[Programming/Config Settings/C++TOOL SETTINGS##MINGW_USE_STATIC]]. Then you should set #MINGW_USE_POSIX to 'False'.~n
+Also note that the helper application [[Tools/Sharedtrans]] cannot tell if a version of MinGW already creates stand-allone applications and will still copy over run-time libraries that have to be manually removed.
 <pre>
 Example:
 ' Use non POSIX static linking.
@@ -161,7 +162,7 @@ This is a convenience directive for passing include header search paths in the f
 You can use either a partial or full path to the location. Cerberus will do an automatic search first in the project root for directories, then the projects build directory before searching the Cerberus default stores and any full path.
 <pre>
 Example:
-#GLFW_GCC_INCLUDE_PATHS="Includepath1;IncludePath2"
+#GLFW_GCC_INCLUDE_PATHS="Includepath1;IncludePath2;#{THIRDPARTY_PATH}/desktop/openal/include"
 </pre>
 
 
@@ -195,7 +196,7 @@ This is a convenience directive for passing include header files in the format -
 You can use either a partial or full path to the location. Cerberus will do an automatic search first in the project root for directories, then the projects build directory before searching the Cerberus default stores and any full path.
 <pre>
 Example:
-#GLFW_XCODE_INCLUDE_PATHS="Includepath1;IncludePath2"
+#GLFW_XCODE_INCLUDE_PATHS="Includepath1;IncludePath2;#{THIRDPARTY_PATH}/desktop/openal/include"
 </pre>
 
 
@@ -226,7 +227,7 @@ Cerberus Default: #GLFW_VS_CC_OPTS=""
 You can you this preprocessor directive to pass addition options to the Visual Studio compiler. See Addition Options in the Visual Studio documentation.
 <pre>
 Example:
-#GLFW_VS_CC_OPTS="/MD /Ox" ' Set Multi threaded DLL and optimizations for fats code
+#GLFW_VS_CC_OPTS="/MD /Ox" ' Set Multi threaded DLL and optimizations for fast code
 </pre>
 
 
@@ -242,7 +243,7 @@ Cerberus Default: #GLFW_VS_INCLUDES=""
 This is a convenience preprocessor directive. It passes include header search directories in the format /Ipath_to_include_directory. See Addition Includeds Directories in the Visual Studio documentation.
 <pre>
 Example:
-#GLFW_VS_INCLUDES="Includepath1;IncludePath2"
+#GLFW_VS_INCLUDES="Includepath1;IncludePath2;#{THIRDPARTY_PATH}/desktop/openal/include"
 </pre>
 
 <a name="vs_defines">
@@ -272,7 +273,7 @@ Cerberus Default: #GLFW_VS_HEADER_PATHS=""
 This is a convenience preprocessor directive. It passes header search directories in the format /AIpath_to_include_directory. See Additional #using Directories in the Visual Studio documentation.
 <pre>
 Example:
-#GLFW_VS_HEADER_PATHS="Includepath1;IncludePath2"
+#GLFW_VS_HEADER_PATHS="Includepath1;IncludePath2;#{THIRDPARTY_PATH}/desktop/openal/include"
 </pre>
 
 
@@ -324,12 +325,12 @@ Cerberus Default: #GLFW_GCC_LIB_PATHS=""
 This is a convenience preprocessor directive. It saves you haveing to pass libray search paths in the form -Lpath_to_library
 <pre>
 Example:
-#GLFW_GCC_LIB_PATHS="MyPath1;Mypath2"
+#GLFW_GCC_LIB_PATHS="MyPath1;Mypath2;;#{THIRDPARTY_PATH}/desktop/openal/lib/MinGW/#{GLFW_GCC_MSIZE_WINNT}"
 </pre>
 
 
-<a name="gcc_lib_paths">
->>> #GLFW_XCODE_LIBS_OPTS
+<a name="xcode_lib_opts">
+>>> #GLFW_XCODE_LIB_OPTS
 </a>
 <pre>
 Cerberus Default: #GLFW_XCODE_LIBS_OPTS=""
@@ -340,7 +341,7 @@ Cerberus Default: #GLFW_XCODE_LIBS_OPTS=""
 This preprocessor directive allows you to pass library linking options to the linker. See OTHER_LDFLAGS in the Xcode documentation.
 <pre>
 Example:
-#GLFW_XCODE_LIBS_OPTS="MyPath1;Mypath2"
+#GLFW_XCODE_LIB_OPTS="-lglfwgame;-lcurl"
 </pre>
 
 
@@ -372,7 +373,7 @@ Cerberus Default: #GLFW_XCODE_LIB_PATHS=""
 This preprocessor directive is use to pass a list of paths to search for libraries. See LIBRARY_SEARCH_PATHS in the Xcode documentation.
 <pre>
 Example:
-#GLFW_XCODE_LIB_PATHS="MyPath1;Mypath2"
+#GLFW_XCODE_LIB_PATHS="MyPath1;Mypath2;#{THIRDPARTY_PATH}/desktop/lib/MacOS"
 </pre>
 
 <a name="xcode_frameworks">
@@ -402,7 +403,7 @@ Cerberus Default: #GLFW_XCODE_FRAMEWORK_PATHS=""
 This preprocessor directive allows you to pass paths to search for Mac OS Framewoks. See FRAMEWORK_SEARCH_PATHS in the Xcode documentation.
 <pre>
 Example:
-#GLFW_XCODE_FRAMEWORK_PATHS="MyFramework1;MyFramework2"
+#GLFW_XCODE_FRAMEWORK_PATHS="MyFrameworkPath1;MyFrameworkPath2;#{THIRDPARTY_PATH}/libs/MacOS/Frameworks"
 </pre>
 
 <a name="vs_lib_opts">
@@ -433,7 +434,7 @@ Cerberus Default: #GLFW_VS_LIB_PATHS=""
 This preprocessor directive allows you to pass paths to search for libraries. See Addition Library Directories in the Visual Studio documentation.
 <pre>
 Example:
-#GLFW_VS_LIB_PATHS="MyFramework1;MyFramework2"
+#GLFW_VS_LIB_PATHS="MyFrameworkPath1;MyFrameworkPath2;#{THIRDPARTY_PATH}/desktop/libs/#{GLFW_VSTUDIO_VERSION}/#{GLFW_VS_MSIZE_WINNT}"
 </pre>
 
 
@@ -468,7 +469,7 @@ Cerberus Default: #GLFW_COPY_SHAREDLIBS=""
 This preprocessor directive is used to copy share libraries (dll, so and dylib) over to the final build directory. Ideally writers of modules should use this if they are going to use external shared libraries.
 <pre>
 Example:
-#GLFW_COPY_SHAREDLIBS="mysharedlibrary1;mysharedlibrary2"
+#GLFW_COPY_SHAREDLIBS="mysharedlibrary1;mysharedlibrary2;#{THIRDPARTY_PATH}/libs/MacOS"
 </pre>
 
 

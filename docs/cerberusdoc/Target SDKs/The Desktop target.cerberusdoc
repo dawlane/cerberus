@@ -31,6 +31,8 @@ The Qt5 runtime libraries usually come pre-installed.
 You will find more detailed instructions for cross-compiling 32/64 bit applications in the file BUILDING.txt located in the directory called src.</br>
 It explains how to set up a 64 bit distribution of Ubunt/LinuxMin/Debian to cross compile to 32 bit.
 
+>>> Please be aware that GCC versions from version 6 on wards have a option pre-compiled in that was added as an additional security feature. This option is known to cause issues with launching applications via the file browser. In Cerberus this is disabled by default when you compile and desktop code, but you should re-enable it by setting the precompiler directive GCC_LINUX_NOPIE to False and use your own launcher to execute the binary created.
+
 >> Notes
 
 Windows:</br>
@@ -63,4 +65,4 @@ It should also be noted that MinGW-w64's default build system requires that a nu
 You can of course pass the `-static` parameter as one of the linker options using one of the directives related to passing options to the back-end compiler, or use the directive #GLFW_MINGW_STATIC or #CC_MINGW_STATIC set to true to embed these as part of the final executable, but there may be licence restriction if doing so.</br>
 Using the `-static` linker option will have implications, as the compiler will try to link everything as static. Doing it that way can give you issues with shared libraries that would require the possibility of needing static export library for it, and posible licence issues.</br>
 It is recommend only advanced users who understand the back-end compile and linker options should use pass options directly to the back-end compilers.</br>
->> IN ALL VERSION OF MINGW YOU SHOULD CAREFULLY READ THE LICENCE FILES AND DOCUMENTATION.
+>> IN ALL VERSIONS OF MINGW YOU SHOULD CAREFULLY READ THE LICENCE FILES AND DOCUMENTATION.

@@ -36,8 +36,8 @@ This is a list of all precompiler configuration settings for the C++ Tool target
 >>>> Operating System: MS Windows only.
 >>>> Advanced: Only advanced users of MinGW should use this preprocessor directive.
 This preprocessor directive is for MinGW compilers that do not create stand alone applications, such as the original MinGW-w64 who's default is to require dynamic run-time libraries to be distributed along with the final executable. It's used to statically link libstdc++6, the libgcc run-time and winptheard into the main executable.~n
-MinGW compilers such as TDM-GCC do not need to use any static or POSIX preprocessor directives as these types of compilers usually are cabable of building stand alone applications.
-NOTE: The preprocessor directive [#MINGW_USE_POSIX](#posix) default is set to 'True'. If you are using a non POSIX version of MinGW with [#MINGW_USE_STATIC](#static) or it's sister preprocessor directive [[Programming/Config Settings/GLFW DESKTOP SETTINGS##GLFW_MINGW_STATIC]]. Then you should set #MINGW_USE_POSIX to 'False'.
+MinGW compilers such as TDM-GCC do not need to use any static or POSIX preprocessor directives as these types of compilers usually are cabable of building stand alone applications.~n
+NOTE: The preprocessor directive [#MINGW_USE_POSIX](#posix) default is set to 'True'. If you are using a non POSIX version of MinGW with [#MINGW_USE_STATIC](#static) or it's sister preprocessor directive [[Programming/Config Settings/GLFW DESKTOP SETTINGS##GLFW_MINGW_STATIC]]. Then you should set #MINGW_USE_POSIX to 'False'.~n
 Also note that the helper application sharedtrans cannot tell if a version of MinGW already creates stand-allone applications and will still copy over run-time libraries that have to be manually removed.
 <pre>
 Example:
@@ -55,7 +55,7 @@ Example:
 >>>> Compiler: MinGW and Visual Studio
 >>>> Operating System: MS Windows only.
 >>>> Advanced: Only advanced users of MinGW should use this preprocessor directive.
-How you set this directive dependeds on if you have a MinGW compiler that has POSIX threading. It's used in conjunction with [#MINGW_USE_STATIC](#static} and [[Programming/Config Settings/GLFW DESKTOP SETTINGS##GLFW_MINGW_STATIC]].
+How you set this directive dependeds on if you have a MinGW compiler that has POSIX threading. It's used in conjunction with [#MINGW_USE_STATIC](#static) and [[Programming/Config Settings/GLFW DESKTOP SETTINGS##GLFW_MINGW_STATIC]].
 
 
 <a name="use_mingw">

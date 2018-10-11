@@ -26,3 +26,9 @@ The following app config settings are currently supported:
 * [[Programming/Config Settings/MOJO SETTINGS]]
 
 >> Note that not all settings are supported by all targets, and when not supported they will silently fail.
+>> Note that some settings can be passed as a kind of macro into other config settings that deal with paths. Currently GLFW and C++Tool Visual Studio targets only.
+A "macro" must start with a hash-brace `#{`, have the configuration setting you wish to use, and end with brace `}` as below.
+<pre>
+#GLFW_VS_LIB_PATHS+="libs/static/VisualStudio/common/#{GLFW_VSTUDIO_VERSION}/#{GLFW_VS_MSIZE_WINNT};${THIRDPART_PATH}/desktop/openal/libs/Win#{GLFW_VS_MSIZE_WINNT}"
+</pre>
+There is a special marco called THIRDPARTY_PATH, which is taken from the config files within the bin directory. If you change this, then you must also copy over the contentents of the `thirdparty` directory located within the `src` directory.

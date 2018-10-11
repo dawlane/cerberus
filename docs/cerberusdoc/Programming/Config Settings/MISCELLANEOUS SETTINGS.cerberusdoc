@@ -9,6 +9,7 @@ This is a list of miscellaneous preprocessor directives that do not fit into any
 [#REFLECTION_FILTER](#reflection_filter)~n
 [#COPY_LICENCES](#copy_licences)~n
 [#GCC_LINUX_NOPIE](#linux_nopie)~n
+[#SHOW_SEARCH_PATH_CHECK](#search_path_check)~n
 
 
 <a name="dd_floats">
@@ -95,3 +96,13 @@ Place your licence files in a sub directory in the cerberus\libs\licences direct
 >>>> Operating System: Linux
 >>>> INTERMEDIATE: Some knoledge is required of linux desktop environments and file hierarchy and minimal scripting in the distributions default console mode application.
 Some newer distributions of Linux come with GCC 6 on-ward. These versions generate code that has the [Position Independant Executable (PIE)](https://en.wikipedia.org/wiki/Position-independent_code#PIE) linker option switchd on. Unfortunately some of these distributions come with a file browser that cannot detect that these are actually executable code and will not run them when double clicked. If a version of GCC is detected that is greater than version 5 (the version of GGC where this option in not in the GCC documentation); then this preprocessor directive will turn this feature off. But bewarned that you will lose the security feature that PIE implements. It is advised that you set `#GCC_LINUX_NOPIE` to false for the final build and distribute a script to set up a [desktop entry file](https://www.freedesktop.org/wiki/Specifications/desktop-entry-spec), a type of application launcher. Creating such a script is beyond the limits of this documentation, but it is recommended that you research how these desktop entries are created and where they should be placed within the Linux file hierarchy.
+
+
+<a name="search_path_check">
+>>> #SHOW_SEARCH_PATH_CHECK
+</a>
+<pre>Cerberus Default: #SHOW_SEARCH_PATH_CHECK=False""
+</pre>
+>>>> Compiler: All
+>>>> Operating System: All
+This directive is mostly used for displaying and debugging the search paths generated. You should use this to get information if there is a problem with locating header files or libraries to link against. 
