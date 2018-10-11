@@ -49,6 +49,8 @@ Thumbs.db
 /libs/**/*.framework
 !/libs/**/*.txt
 /src/archives/icons
+/src/thirdparty/makfiles/obj
+
 *.bak
 # git will read all frameworks as unstaged on MacOS X. You should compress all frameworks into tar.gz format
 *.framework
