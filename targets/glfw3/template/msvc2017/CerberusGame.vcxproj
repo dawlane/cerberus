@@ -37,7 +37,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{837CD2C9-E8B3-4E25-99BE-EEE25C1FEFBA}</ProjectGuid>
     <RootNamespace>CerberusGame</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug32|Win32'" Label="Configuration">
@@ -158,7 +158,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(CerberusIncludes);../stb;../openal/include;../glfw3/include;../glfw3/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CerberusIncludes);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>__VISUAL_STUDIO__;$(CerberusDefines);WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -170,8 +170,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CerberusPath)/libs/static/VisualStudio/2012/32;../openal/libs/Win32;$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;openal32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
@@ -182,7 +182,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(CerberusIncludes);../stb;../openal/include;../glfw3/include;../glfw3/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CerberusIncludes);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>__VISUAL_STUDIO__;$(CerberusDefines);WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -195,8 +195,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CerberusPath)/libs/static/VisualStudio/2012/32;../openal/libs/Win32;$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;openal32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
@@ -207,7 +207,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(CerberusIncludes);../stb;../openal/include;../glfw3/include;../glfw3/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CerberusIncludes);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>__VISUAL_STUDIO__;$(CerberusDefines);WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -219,8 +219,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CerberusPath)/libs/static/VisualStudio/2012/64;../openal/libs/Win64;$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;openal32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
@@ -231,7 +231,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(CerberusIncludes);../stb;../openal/include;../glfw3/include;../glfw3/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CerberusIncludes);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>__VISUAL_STUDIO__;$(CerberusDefines);WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -244,8 +244,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(CerberusPath)/libs/static/VisualStudio/2012/64;../openal/libs/Win64;$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;openal32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
@@ -258,7 +258,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(CerberusIncludes);../stb;../openal/include;../glfw3/include;../glfw3/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CerberusIncludes);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>__VISUAL_STUDIO__;$(CerberusDefines);WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -269,8 +269,8 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(CerberusPath)/libs/static/VisualStudio/2012/32;../openal/libs/Win32;$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;openal32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
@@ -283,7 +283,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(CerberusIncludes);../stb;../openal/include;../glfw3/include;../glfw3/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CerberusIncludes);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>__VISUAL_STUDIO__;$(CerberusDefines);WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -294,8 +294,8 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(CerberusPath)/libs/static/VisualStudio/2012/64;../openal/libs/Win64;$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;openal32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
@@ -308,7 +308,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(CerberusIncludes);../stb;../openal/include;../glfw3/include;../glfw3/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CerberusIncludes);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>__VISUAL_STUDIO__;$(CerberusDefines);WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -320,8 +320,8 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(CerberusPath)/libs/static/VisualStudio/2012/32;../openal/libs/Win32;$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;openal32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
@@ -334,7 +334,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>
       </SDLCheck>
-      <AdditionalIncludeDirectories>$(CerberusIncludes);../stb;../openal/include;../glfw3/include;../glfw3/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CerberusIncludes);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>__VISUAL_STUDIO__;$(CerberusDefines);WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -346,43 +346,24 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(CerberusPath)/libs/static/VisualStudio/2012/64;../openal/libs/Win64;$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;openal32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(CerberusLibraryPaths);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;Ws2_32.lib;$(CerberusLinker);%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\glfw3\src\context.c" />
-    <ClCompile Include="..\glfw3\src\egl_context.c" />
-    <ClCompile Include="..\glfw3\src\init.c" />
-    <ClCompile Include="..\glfw3\src\input.c" />
-    <ClCompile Include="..\glfw3\src\monitor.c" />
-    <ClCompile Include="..\glfw3\src\osmesa_context.c" />
-    <ClCompile Include="..\glfw3\src\vulkan.c" />
-    <ClCompile Include="..\glfw3\src\wgl_context.c" />
-    <ClCompile Include="..\glfw3\src\win32_init.c" />
-    <ClCompile Include="..\glfw3\src\win32_joystick.c" />
-    <ClCompile Include="..\glfw3\src\win32_monitor.c" />
-    <ClCompile Include="..\glfw3\src\win32_thread.c" />
-    <ClCompile Include="..\glfw3\src\win32_time.c" />
-    <ClCompile Include="..\glfw3\src\win32_window.c" />
-    <ClCompile Include="..\glfw3\src\window.c" />
     <ClCompile Include="..\main.cpp" />
-    <ClCompile Include="..\stb\stb_image.c" />
-    <ClCompile Include="..\stb\stb_vorbis.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\glfw3\src\win32_joystick.h" />
-    <ClInclude Include="..\glfw3\src\win32_platform.h" />
     <ClInclude Include="..\main.h" />
     <ClInclude Include="..\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\CerberusGame.rc" />
+    <Image Include="..\icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\icon.ico" />
+    <ResourceCompile Include="..\CerberusGame.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

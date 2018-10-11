@@ -1,3 +1,5 @@
+# GLFW MAKEFILE LINUX TAREGET
+$(info EXECUTING GLFW DESKTOP TEMPLATE MAKEFILE)
 
 CC=gcc
 CFLAGS=
@@ -5,61 +7,65 @@ CFLAGS=
 CXX=g++
 CXXFLAGS=
 
+# Set Compiler flag options
 CPPFLAGS=$(CCOPTS) \
 -Wno-int-to-pointer-cast \
 -Wno-free-nonheap-object \
 -Wno-unused-result \
--I../glfw3/include \
--I../openal/include \
--I../stb \
--I../glfw3/deps \
--I../glfw3/deps/vulkan \
 -D_GLFW_HAS_GLXGETPROCADDRESS \
 -pthread
 
-SHAREPATH=$(APPLIBPATH)/shared/Linux$(ARCH)
-STATICPATH=$(APPLIBPATH)/static/Linux/$(ARCH)
-
 LD=g++
-LDFLAGS=$(LDOPTS) -L$(SHAREPATH) -L$(STATICPATH) '-Wl,-rpath,$$ORIGIN/libs'
-LDLIBS=-lGL -lX11 -lXxf86vm -lXi -lXrandr -lXinerama -lXcursor $(LIBOPTS) -lpthread -ldl 
 
-vpath %.c ../glfw3/src
-vpath %.c ../stb
+# Set the default library paths
+SHAREPATH=$(CERBERUSDIR)/libs/shared/Linux$(ARCH)
+STATICPATH=$(CERBERUSDIR)/libs/static/Linux/$(ARCH)
+
+# Pass the liner options
+LDFLAGS=$(LDOPTS) -L$(STATICPATH) -L$(SHAREPATH) '-Wl,-rpath,$$ORIGIN/libs'
+LDLIBS=-lglfwgame -lGL -lX11 -lXxf86vm -lXi -lXrandr -lXinerama -lXcursor $(LIBOPTS) -lpthread -ldl
+
+# Set the primary path to where the main.cpp file is located
 vpath %.cpp ..
+OBJS0=main.o
 
-OBJS0=\
-context.o \
-init.o \
-input.o \
-monitor.o \
-window.o \
-glx_context.o \
-x11_init.o \
-x11_monitor.o \
-x11_window.o \
-posix_time.o \
-posix_thread.o \
-linux_joystick.o \
-vulkan.o \
-egl_context.o \
-osmesa_context.o \
-xkb_unicode.o \
-stb_vorbis.o \
-stb_image.o \
-main.o
-
+# The build directory for binary object creation
 TMP=build/$(dir $(OUT))
 
+# File extension substitution
 OBJS=$(patsubst %.o,$(TMP)%.o,$(OBJS0))
 
-all : $(OUT)
+# Compile
+all : glfwobjects mainobjects $(OUT)
 
-$(OUT) : $(OBJS)
+# Call the external Makefile that creates the libglfwgame.a static library.
+# Note You should always pass the OS, the Ceberus root directory and any other compiler flags that are required.
+# In this case only the OS, Cerberus root directory and CCOPTS options need to be passed.
+.PHONY: glfwobjects
+glfwobjects:
+	$(info )
+	$(info EXECUTING BUILDING OF GLFW GAME STATIC LIBRARY MAKEFILE)
+	$(MAKE) -f $(CERBERUSDIR)/src/thirdparty/desktop/makefiles/glfwgame.gcc OS=Linux CERBERUSDIR=$(CERBERUSDIR) CCOPTS="$(CCOPTS)"
+
+.PHONY: mainobjects
+mainobjects:
+	$(info )
+	$(info CONTINUING WITH GLFW DESKTOP TEMPLATE MAKEFILE)
+
+# Compile the source code files
+$(OUT): $(OBJS)
+	$(info )
+	$(info LINKING OBJECT FILES)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
 $(TMP)%.o : %.c
+	$(info )
+	$(info COMPILING C FILES)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 $(TMP)%.o : %.cpp
+	$(info )
+	$(info COMPILING C++ FILES)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+

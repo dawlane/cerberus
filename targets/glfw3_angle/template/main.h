@@ -39,6 +39,8 @@
 // Graphics/Audio stuff
 
 //OpenGL...
+#define GLFW_INCLUDE_ES2 1
+#define GLFW_INCLUDE_GLEXT 1
 #include <GLFW/glfw3.h>
 
 //OpenAL...

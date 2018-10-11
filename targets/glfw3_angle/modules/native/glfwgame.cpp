@@ -595,6 +595,7 @@ void BBGlfwGame::SetDeviceWindow( int width,int height,int flags ){
 	glfwWindowHint( GLFW_REFRESH_RATE,60 );
 	
 	glfwWindowHint( GLFW_CLIENT_API,GLFW_OPENGL_ES_API );
+	glfwWindowHint( GLFW_CONTEXT_CREATION_API,GLFW_EGL_CONTEXT_API );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR,2 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR,0 );
 	

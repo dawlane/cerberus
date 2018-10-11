@@ -3,6 +3,31 @@
 #GLFW_USE_MINGW=True
 #GLFW_MINGW_STATIC=False
 
+#rem
+	As this is a GLFW + OpenAL target. The header and library files are located in a number of locations.
+	The default location is in the `thirdparty` directory located within the src directory.
+	But this location could change, so the solution is to use a config variable defined in the config files
+	(config.winnt.txt, config.macos.txt, config.linux.txt) located within the bin directory.
+	Transcc now has a simple macro expansion function. These are basically the preprocessor configs settings.
+#end
+' Include paths
+#GLFW_GCC_INCLUDE_PATHS+="#{THIRDPARTY_PATH}/desktop/stb;#{THIRDPARTY_PATH}/desktop/glfw3/include;#{THIRDPARTY_PATH}/desktop/openal/include"
+#GLFW_VS_INCLUDES+="#{THIRDPARTY_PATH}/desktop/stb;#{THIRDPARTY_PATH}/desktop/glfw3/include;#{THIRDPARTY_PATH}/desktop/openal/include"
+#GLFW_XCODE_INCLUDE_PATHS+="#{THIRDPARTY_PATH}/desktop/stb;#{THIRDPARTY_PATH}/desktop/glfw3/include;#{THIRDPARTY_PATH}/desktop/openal/include"
+
+' Library paths
+#GLFW_VS_LIB_PATHS+="#{THIRDPARTY_PATH}/desktop/stb;libs/static/VisualStudio/#{GLFW_VSTUDIO_VERSION}/#{GLFW_VS_MSIZE_WINNT};#{THIRDPARTY_PATH}/desktop/openal/libs/Win#{GLFW_VS_MSIZE_WINNT}"
+
+' Library linking
+' Choose between either a debug or release static linking for Visual Studio. Note that MinGW and Linux should do this via the makefile due to linking order.
+#If CONFIG="release"
+#GLFW_VS_LIB_OPTS+="libglfwgame.lib;openal32.lib"
+#Else
+#GLFW_VS_LIB_OPTS+="libglfwgame_d.lib;openal32.lib"
+#Endif
+
+#GLFW_XCODE_LIB_OPTS+="-lglfwgame"
+
 #GLFW_GCC_MSIZE_WINNT="64"
 #GLFW_GCC_MSIZE_LINUX="64"
 #GLFW_VS_MSIZE_WINNT="32"

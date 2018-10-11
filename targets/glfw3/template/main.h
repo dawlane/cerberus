@@ -11,6 +11,7 @@
 #include <signal.h>
 
 #if _WIN32
+#define _GLFW_WIN32
 #include <winsock2.h>
 #if __VISUAL_STUDIO__
 #include "resource.h"
@@ -48,6 +49,7 @@
 //
 #include <al.h>
 #include <alc.h>
+
 
 //stb_image lib
 //
