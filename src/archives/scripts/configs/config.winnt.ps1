@@ -144,6 +144,10 @@ VS_VERSION=2017
 AGK_PATH=`"C:/Program Files (x86)/The Game Creators/AGK2`"
 '
 '--------------------
+
+'Third-party Sources
+'This is the path where any external third-party library source code should be placed
+THIRDPARTY_PATH=`"`${CERBERUSDIR}/src/thirdparty`"
 "
 if(-Not($android_sdk -eq "")){
    $config -replace "d:\programme\AndroidSDK", "$android_sdk" 

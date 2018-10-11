@@ -65,8 +65,11 @@ ANDROID_NDK_PATH="${HOME}/Library/Android/ndk-bundle"
 
 'Old ndk..
 ANDROID_NDK_PATH="${HOME}/android-ndk-r9"
-'--------------------
 
+'--------------------
+'Third-party Sources
+'This is the path where any external third-party library source code should be placed
+THIRDPARTY_PATH="${CERBERUSDIR}/src/thirdparty"
 EOF
 
 # If there were arguments passed to set up paths
