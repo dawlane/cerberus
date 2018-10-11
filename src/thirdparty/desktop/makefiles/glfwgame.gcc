@@ -1,0 +1,290 @@
+# Cerberus default game library using GLFW 3.2 and stb
+# FILE VERSION 1.0.0
+
+$(info )
+$(info BUILDING GLFW GAME STATIC LIBRARY)
+# Pre-set some variables
+CFLAGS = 
+CXXFLAGS = 
+
+# If no ARCHITECTURE definintion is passed; then define it as empty to be filled in later.
+ifndef ARCH
+ARCH = 
+endif
+
+# If no OPERATING SYSTEM definintion is passed, then define it as empty to be filled in later.
+ifndef OS
+OS = 
+endif
+
+# Guess the OPERATING SYSTEM.
+ifeq (,$(OS))
+	UNIX := $(shell uname -s)
+	ifeq ($(UNIX),Linux)
+		OS = Linux
+	else
+		ifeq ($(UNIX),Darwin)
+			OS = MacOS
+		else
+			OS = Window_NT
+		endif
+	endif	
+endif
+
+# Throw an error if the OS is unknown.
+ifeq (,$(OS))
+$(error UNABLE TO DETERMINE OPERATING SYSTEM)
+endif
+
+# Get this makefile's path location
+WKDIR := $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
+# Test to see if the Cerberus directory has been passed else use the makefile's path as a relative starting point.
+ifneq (,$(CERBERUSDIR))
+REALOUT := $(realpath $(CERBERUSDIR))
+else
+REALOUT := $(realpath $(WKDIR)/../../../../)
+endif
+
+# These object files are common to all GLFW desktops.
+OBJS0 = \
+	context.o \
+	init.o \
+	input.o \
+	monitor.o \
+	window.o \
+	stb_vorbis.o \
+	stb_image.o \
+	vulkan.o
+
+# Add compiler tools and switchs, as well as setting specific commands for the target OS.
+# Check for Windows first!
+ifeq ($(OS),Windows_NT)
+	CC = gcc
+	CXX = g++
+	TARGET = WINDOWS
+	MKDIR = @mkdir "$(subst /,\\,$(1))" 2> nul || exit 0
+	AR = @ar
+
+	# Windows specific compiler options.
+	OPTS = -O3 -DNDEBUG \
+		-Wno-free-nonheap-object \
+		-I./glfw3/include \
+		-I./glfw3/src \
+		-I./stb \
+		-I./zlib-1.2.8 \
+		-I./lpng1610
+
+	# Window specific object files.
+	OBJS0 += \
+		win32_init.o \
+		win32_joystick.o\
+        win32_monitor.o \
+		win32_time.o \
+		win32_window.o \
+        wgl_context.o \
+		egl_context.o \
+		win32_tls.o
+	
+	# Auto detect OS architecture.
+	ifeq (,$(ARCH))
+		# If, `PROCESSOR_ARCHITEW6432` is not set. Then the process bitness is the same as the OS. e.g. 32 bit app on 32 bit OS. 
+		ifeq (,$(PROCESSOR_ARCHITEW6432))
+			ifeq (AMD64,$(PROCESSOR_ARCHITECTURE))
+				override ARCH = 64
+        		OPTS += -m64
+    		endif
+			ifeq (x86,$(PROCESSOR_ARCHITECTURE))
+        		override ARCH = 32
+        	    OPTS += -m32	
+        	endif
+		else
+			# If, `PROCESSOR_ARCHITEW6432` define is set. Then it's a 32 bit process on a 64 bit OS. e.g. 32 bit app on a 64 bit OS.
+			ifeq (x86,$(PROCESSOR_ARCHITEW6432))
+        		override ARCH = 32
+        	    OPTS += -m32
+			else
+				# Just in case, set the default compiler switches to 64 bit.
+				override ARCH = 64
+        	    OPTS += -m64
+        	endif
+		endif
+	else
+		# If the `ARCH` define was passed: set the compiler switches to build for that architecture.
+		ifeq ($(ARCH),64)
+			OPTS += -m64
+		else
+			ifeq ($(ARCH),32)
+				OPTS += -m32
+			else
+				NO_ARCH = 1
+			endif
+		endif
+	endif
+	# Set the output and object build directory paths.
+	OBJDIRS = $(WKDIR)obj/gcc_winnt$(ARCH)/
+	TARGETDIR = $(REALOUT)/libs/static/MinGW/$(ARCH)
+else
+	# If the OS isn't Windows, then it's either Linux or Mac OSX (aka darwin)
+	ifeq ($(OS),Linux)
+		CC = gcc
+		CXX = g++
+		MKDIR = @mkdir -p "$(1)"
+		AR = @ar
+		TARGET = LINUX
+
+		# Linux specific compiler options.
+		OPTS = -O3 -DNDEBUG -pthread \
+			-Wno-int-to-pointer-cast \
+			-Wno-free-nonheap-object \
+			-Wno-unused-result
+
+		# Linux specific object files.
+		OBJS0 += \
+			x11_init.o \
+			x11_monitor.o \
+			x11_window.o \
+            xkb_unicode.o \
+			posix_time.o \
+			posix_tls.o \
+			glx_context.o \
+            egl_context.o \
+			linux_joystick.o
+
+		# Auto detect OS architecture for Linux
+		ifeq ($(ARCH),)
+			UNAME_P :=  $(shell uname -p)
+			ifeq ($(UNAME_P),x86_64)
+				override ARCH = 64
+				OPTS += -m64
+			else
+				override ARCH = 32
+				OPTS += -m32
+			endif
+		else
+			# OS architecture known
+			ifeq ($(ARCH),64)
+				OPTS += -m64
+			else
+				ifeq ($(ARCH),32)
+					OPTS += -m32
+				else
+					NO_ARCH = 1
+				endif
+			endif
+		endif
+		# Set the output and object build directories.
+		OBJDIRS = $(WKDIR)obj/gcc_linux$(ARCH)/
+		TARGETDIR = $(REALOUT)/libs/static/Linux/$(ARCH)/
+	endif
+
+	# OS is Darwin aka MAC OS X
+	ifeq ($(OS),MacOS)
+		CC = clang
+		CXX = clang++
+		TARGET = MACOS
+		MKDIR = @mkdir -p "$(1)"
+		AR = @ar
+		ARCH=64
+
+		OBJS0 += \
+			cocoa_init.o \
+			cocoa_joystick.o \
+            		cocoa_monitor.o \
+			cocoa_window.o \
+			cocoa_time.o \
+			posix_tls.o \
+        		nsgl_context.o
+			
+		OPTS = -Os -DNDEBUG \
+			-Wno-parentheses \
+			-Wno-dangling-else \
+			-mmacosx-version-min=10.9 \
+			-D_GLFW_USE_CONFIG_H \
+			-Wno-logical-op-parentheses \
+			-stdlib=libc++
+		# Set the output and object build directories.
+		OBJDIRS = $(WKDIR)obj/clang_macos/
+		TARGETDIR = $(REALOUT)/libs/static/MacOS/
+	endif
+endif
+
+# Display the system and architecture to build for.
+$(info TARGET SYSTEM $(filter $(TARGET),WINDOWS LINUX MACOS) ARCHITECTURE $(ARCH))
+
+# Stop execution of makefile if the architecture could not be resolved.
+ifndef NO_ARCH
+NO_ARCH =
+endif
+ifeq (1,$(NO_ARCH))
+$(error UNABLE TO DETERMINE SYSTEM ARCHITECTURE)
+endif
+
+# Add additional include locations here.
+CPPFLAGS = $(OPTS) \
+	$(CCOPTS) \
+	-D_GLFW_USE_CONFIG_H
+
+# Add source paths here. Note the first parameter is the file type e.g. %.c, %.cpp, %.m. The second is the path.
+vpath %.c $(WKDIR)/../glfw3/src
+vpath %.m $(WKDIR)/../glfw3/src
+vpath %.c $(WKDIR)/../stb
+
+# Common output paths
+TARGET_LIB = $(TARGETDIR)/libglfwgame.a
+
+# Standard sorting of the object files 
+OBJS = $(patsubst %.o,$(OBJDIRS)%.o,$(OBJS0))
+
+# The recipes......
+.PHONY: all clean clean_obj
+
+# all will create the directories, build the library and remove used object files.
+all:  $(OBJDIRS) $(TARGETDIR) libglfwgame clean_obj
+
+# Standard libraries rule
+libglfwgame: $(TARGET_LIB)
+# Only build the library if the archive doesn't exist.
+ifeq (,$(wildcard $(TARGET_LIB)))
+$(TARGET_LIB): $(OBJS)
+	@echo CREATING LIBRARY ARCHIVE FILE 
+	$(AR) -rcs $@ $^
+$(OBJDIRS)%.o : %.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+$(OBJDIRS)%.o : %.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+ifeq (MACOS,$(TARGET))
+$(OBJDIRS)%.o : %.m
+	$(CC) -m64 $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
+$(OBJDIRS)%.o : %.mm
+	$(CC) -m64 $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $< 
+endif
+else
+	$(info ARCHIVE ALREADY EXISTS)
+endif
+
+# Create the directories
+$(TARGETDIR):
+	@echo CREATING OUTPUT DIRECTORY $(TARGETDIR)
+	-$(call MKDIR,$(TARGETDIR))
+
+$(OBJDIRS):
+	@echo CREATING OBJECT DIRECTORY $(@)
+	-$(call MKDIR,$@)
+
+# Clean up
+clean: clean_obj
+	@echo CLEANED LIBRARY ARCHIVE FILE
+ifeq ($(TARGET),$(filter $(TARGET),LINUX MACOS))
+	@rm -f  $(TARGET_LIB)
+else
+	@if exist $(subst /,\,$(TARGET_LIB)) del $(subst /,\,$(TARGET_LIB))
+endif
+
+clean_obj:
+	@echo CLEANED LIBRARY OBJECTS
+ifeq ($(TARGET),$(filter $(TARGET),LINUX MACOS))
+	@rm -rf $(OBJDIRS)
+else
+	@if exist $(subst /,\,$(OBJDIRS)) rmdir /s /q $(subst /,\,$(OBJDIRS))
+endif
