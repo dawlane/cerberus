@@ -56,6 +56,7 @@ Class Builder
 		SetConfigVar "TARGET",ENV_TARGET
 		SetConfigVar "CONFIG",ENV_CONFIG
 		SetConfigVar "SAFEMODE",ENV_SAFEMODE
+		SetConfigVar "THIRDPARTY_PATH",tcc.THIRDPARTY_PATH
 		
 		app=ParseApp( tcc.opt_srcpath )
 

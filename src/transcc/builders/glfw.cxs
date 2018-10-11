@@ -1,6 +1,12 @@
 #Rem
 Change Log
 ----------------------------------------------------------------------------------------------
+2018-10-14 - Dawlane
+					Made changes on how the search paths are evaluated. Use a poor-man's macro expansion to get preprocessor variables for some paths. 
+2018-08-13 - Dawlane
+					Added the Ceberus root directory as part of the search paths.
+					Fixed finding header path search for Visual Studio /I options.
+					Made it so GLFW is built as an external library.
 2018-08-02 - Dawlane
 					Added detection for Linux GCC versions greater than GCC 5. This  
 2018-07-23 - Dawlane
@@ -33,11 +39,18 @@ Class GlfwBuilder Extends Builder
 		Local staticFlag:=0 ' DAWLANE - Need for MinGW-w64
 		
 		Local msize:=GetConfigVar( "GLFW_GCC_MSIZE_"+HostOS.ToUpper() )
+		Local searchChk:= Bool(GetConfigVar( "SHOW_SEARCH_PATH_CHECK" ))
+		Local gccVersion:=GCCVer()
+
+		' Make sure that the default directories exist or there could be trouble passing those paths to search.
+		CreateDefaultDirs( tcc.cerberusdir, msize, gccVersion, "" )
 		
 		' Over-ride from command line for architecture bilding.
 		If tcc.opt_msize<>""
 			Print "Over-ride of GCC_MSIZE via command option -msize. msize is now set to "+tcc.opt_msize
 			If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize
+			' Important: If you are going to change any thing via the command line that can affect macros. Make sure that you update it. 
+			SetConfigVar "GLFW_GCC_MSIZE_"+HostOS.ToUpper(),msize
 		End
 		
 		Local tconfig:=casedConfig+msize
@@ -58,6 +71,7 @@ Class GlfwBuilder Extends Builder
 		SaveString main,"main.cpp"
 		
 		If tcc.opt_build
+
 			' Only Windows has icons in the executable, so don't bother copying the icon over if on Linux.
 			If HostOS()="winnt"
 				Local iconPath:=GetConfigVar( "GLFW_ICON" )
@@ -70,15 +84,14 @@ Class GlfwBuilder Extends Builder
 			CreateDir "build"
 			CreateDir "build/"+tconfig
 			
-			' Get any shared libraries and their paths
-			Local dylibCopy:=GetConfigVar( "GLFW_COPY_SHAREDLIBS" )
-			Local libsearchList:=GetConfigVar( "GLFW_GCC_LIB_PATHS" )
-			Local headerSearchList:=GetConfigVar( "GLFW_GCC_INCLUDE_PATHS" )
-			Local userIncludesList:String[]=GetConfigVar( "GLFW_GCC_USER_INCLUDES" ).Split( ";" )
+			' Get any external dependencies
+			Local dylibCopy:=GetConfigVar( "GLFW_COPY_SHAREDLIBS" )		' Get any shared libraries and their paths
+			Local libsearchList:=GetConfigVar( "GLFW_GCC_LIB_PATHS" )	' Get any library paths to search
+			Local headerSearchList:=GetConfigVar( "GLFW_GCC_INCLUDE_PATHS" )	' Get any header paths to search
+			Local userIncludesList:String[]=GetConfigVar( "GLFW_GCC_USER_INCLUDES" ).Split( ";" )	' Get any headers needed
 			Local mingwUsePosix:=""
-			Local gccVersion:=GCCVer().Trim()
 
-			Local ccopts:="",ldopts:="", libopts:="", libcopy:="", appName:=GetConfigVar( "GLFW_APP_NAME" ), sysroot:="", toolchain:="", cerbRoot:=""
+			Local ccopts:="",ldopts:="", libopts:="", libcopy:="", appName:=GetConfigVar( "GLFW_APP_NAME" ), sysroot:="", toolchain:=""
 
 			If msize ccopts+=" -m"+msize;ldopts+=" -m"+msize
 
@@ -103,7 +116,7 @@ Class GlfwBuilder Extends Builder
 				Local use_static:Bool=False
 				cmd="mingw32-make"
 				
-				' Set build for static if selected
+				' Set build for static if selected and get the state of the MINGW_USE_POSIX switch
 				If tcc.opt_w64static Or GetConfigVar( "GLFW_MINGW_STATIC" )="1"
 					use_static=True
 					toolchain="mingw-static"
@@ -112,68 +125,66 @@ Class GlfwBuilder Extends Builder
 					toolchain="mingw"
 				Endif
 				
-				' If using MinGW with static building
+				' If using MinGW with static building, then set the static flag and display
 				If use_static
 					staticFlag=1
-					Print "MinGW static build."
 				Endif
 				
 				' Build a cerberus libs search path
-				cerbRoot=tcc.cerberusdir+"/libs/shared/win"+msize+";"+tcc.cerberusdir+"/libs/static/mingw/"+msize
-			Else
+				libsearchList+=";libs/shared/win#{GLFW_GCC_MSIZE_WINNT};libs/static/mingw/#{GLFW_GCC_MSIZE_WINNT};"
+			Else				
 				' Unless there is another OS, this could only be Linux!
 				toolchain="linux"
 				
-				' Build a cerberus libs search path
-				cerbRoot+=tcc.cerberusdir+"/libs/shared/Linux"+msize+";"+tcc.cerberusdir+"/libs/static/Linux/"+msize
+				' Build a known search path for the libraries.
+				libsearchList+=";libs/shared/Linux#{GLFW_GCC_MSIZE_LINUX};libs/static/Linux/#{GLFW_GCC_MSIZE_LINUX};"
 				
-				' GCC verions greater than 5 will require -no-pie options to work correctly.
-				If Int(gccVersion)>5
-					If GetConfigVar( "GCC_LINUX_NOPIE" )="1" ldopts+=" -no-pie"
+				' GCC verions greater than 5 will require -no-pie options to work correctly with somefile browsers.
+				If Int(gccVersion[0])>5
+					If GetConfigVar( "GCC_LINUX_NOPIE" )="1"
+						ldopts+=" -no-pie"
+						Print "Building binary using -no-pie linker option."
+					Endif
 				Endif
 			Endif
 			
-			' Process the seach paths for libraries etc.
-			Local searchPaths:=""
-			
+			' Process the search paths for libraries etc.
+			Local sharedTransSearch:=""
 			' Search for the existance of library paths
 			If libsearchList<>"" Or dylibCopy<>""
-				libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), cerbRoot.Split( ";" ) )
-				ReadOut(libsearchList.Split(";"), "GenerateSearchPaths Returned for : GLFW_GCC_LIB_PATHS")
-				searchPaths=libsearchList
-			
+				libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), tcc.cerberusdir, "GLFW_GCC_LIB_PATHS", searchChk )
+				sharedTransSearch=libsearchList
 				' Create a bunch of Mingw/Linux -Lpath to search
-				libsearchList=DefineGCCPaths( libsearchList, "L" )
-				ReadOut(libsearchList.Split("-n"), "DefineGCCPaths Returned for : GLFW_GCC_LIB_PATHS")
+				libsearchList=DefineGCCPaths( libsearchList, "L", , "GLFW_GCC_LIB_PATHS", searchChk )
 			Endif
 			
-			cerbRoot=tcc.cerberusdir+"/includes"
+			' Include paths 
+			headerSearchList+=";includes;"+tcc.THIRDPARTY_PATH
 			If headerSearchList<>""
-				headerSearchList=GenerateSearchPaths( headerSearchList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), cerbRoot.Split( ";" ) )
-				ReadOut(headerSearchList.Split(";"), "GenerateSearchPaths Returned for : GLFW_GCC_INCLUDE_PATHS")
-			
+				headerSearchList=GenerateSearchPaths( headerSearchList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), tcc.cerberusdir, "GLFW_GCC_INCLUDE_PATHS", searchChk )
 				' Create a bunch of Mingw/Linux -Lpath to search
-				headerSearchList=DefineGCCPaths( headerSearchList, "I" )
-				ReadOut(headerSearchList.Split("~n"), "DefineGCCPaths Returned for : GLFW_GCC_INCLUDES")
+				headerSearchList=DefineGCCPaths( headerSearchList, "I", , "GLFW_GCC_INCLUDE_PATHS", searchChk )
 			Endif
 			
-			' Process any includes passed
+			' Process any header includes passed
 			Local includes:=""
 			If userIncludesList.Length()>0
 				For Local i:=0 Until userIncludesList.Length()
 					If userIncludesList[i]<>"" includes+=" -include "+userIncludesList[i]
 				Next
-				If includes<>"" Print "GLFW_GCC_INCLUDES: "; Print includes
+				If searchChk
+					If includes<>"" Print "GLFW_GCC_INCLUDES: "; Print includes
+				Endif
 			Endif
 			
 			' Copy any shared libraries
 			' Note that the option toolpath is optional in most cases, but MinGW has all it's runtime libraries there. So it makes sense to point to a path that to the sharetrans_winnt
 			' program to look for them there. See the text file in the sharedtrans source directory.
-			Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q"+msize+"~q -srcdirs=~q"+searchPaths+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/"+tconfig+"~q -toolchain=~q"+toolchain+"~q -toolpath=~q"+tcc.MINGW_PATH+"~q"	
+			Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q"+msize+"~q -srcdirs=~q"+sharedTransSearch+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/"+tconfig+"~q -toolchain=~q"+toolchain+"~q -toolpath=~q"+tcc.MINGW_PATH+"~q"	
 			CopyLicences( casedConfig, "gcc", tcc.cerberusdir+"/libs", msize )
 			
 			' DAWLANE - Pass a bunch of stuff to the Makefiles to sort out.
-			Execute cmd+" STATIC=~q"+staticFlag+"~q POSIX=~q"+mingwUsePosix+"~q CCOPTS=~q"+ccopts+" "+headerSearchList+" "+includes+"~q LDOPTS=~q"+ldopts+" "+libsearchList+"~q LIBOPTS=~q"+libopts+"~q APPLIBPATH=~q"+tcc.cerberusdir+"/libs~q HOSTOS=~q"+HostOS+"~q ARCH=~q"+msize+"~q OUT=~q"+tconfig+"/"+appName+"~q "
+			Execute cmd+" THIRD_PARTY_PATH=~q"+tcc.THIRDPARTY_PATH+"~q STATIC=~q"+staticFlag+"~q POSIX=~q"+mingwUsePosix+"~q CCOPTS=~q"+ccopts+" "+headerSearchList+" "+includes+"~q LDOPTS=~q"+ldopts+" "+libsearchList+"~q LIBOPTS=~q"+libopts+"~q CERBERUSDIR=~q"+tcc.cerberusdir+"~q HOSTOS=~q"+HostOS+"~q ARCH=~q"+msize+"~q OUT=~q"+tconfig+"/"+appName+"~q "
 
 			If tcc.opt_run
 
@@ -191,24 +202,30 @@ Class GlfwBuilder Extends Builder
 
 	' DAWLANE - Removed VS2010 stuff, added support for search path and to pass options to Visual Studio.
 	'***** Msvc *****
-	Method MakeMsvc:Void( version:String="" )
+	Method MakeMsvc:Void( version:String )
+		SetConfigVar "GLFW_VSTUDIO_VERSION", String( version )
+		Local searchChk:= Bool(GetConfigVar( "SHOW_SEARCH_PATH_CHECK" ))
+		Local empty:String[]
 
 		Print ""
 		If tcc.MSBUILD_PATH="" Die "Cannot find MSBuild.exe. Is Visual Studio installed and the MSBUILD_PATH set correctly?"
 		
-		Local msize:=GetConfigVar( "GLFW_VS_MSIZE_"+HostOS.ToUpper() ), toolchain:="", cerbRoot:=""
+		Local msize:=GetConfigVar( "GLFW_VS_MSIZE_"+HostOS.ToUpper() ), toolchain:=""
 		
 		' Over-ride from command line
 		If tcc.opt_msize<>""
-			Print "Over-ride of GCC_MSIZE via command option -msize. msize is now set to "+tcc.opt_msize
+			Print "Over-ride of GLFW_VS_MSIZE via command option -msize. msize is now set to "+tcc.opt_msize
 			If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize
+			' Important: If you are going to change any thing via the command line that can affect macros. Make sure that you update it. 
+			SetConfigVar "GLFW_VS_MSIZE_"+HostOS.ToUpper(),msize
 		End
+
+		' Make sure that the default directories exist or there could be trouble passing those paths to search.
+		CreateDefaultDirs( tcc.cerberusdir, msize, empty , version )
 		
-		Local tconfig:=casedConfig+msize
-		
-		Local dylibCopy:=GetConfigVar( "GLFW_COPY_SHAREDLIBS" )
-		
+		Local tconfig:=casedConfig+msize, dylibCopy:=GetConfigVar( "GLFW_COPY_SHAREDLIBS" )
 		Local ccopts:="",ldopts:="", libopts:="", libcopy:="", appName:=GetConfigVar( "GLFW_APP_NAME" )
+		
 		If appName = "" appName="CerberusGame"
 		
 		'ccopts+=" "+GetConfigVar( "GLFW_VS_CC_OPTS" ).Replace( ";"," " )
@@ -216,10 +233,7 @@ Class GlfwBuilder Extends Builder
 		Local includesList:="", headerList:="", libsearchList:=""
 		
 		' Visual Studio projects use semicolon seperators, so no need to do anything special, unless doing a path check.
-		libsearchList+=GetConfigVar( "GLFW_VS_LIB_PATHS" )
 		libopts+=GetConfigVar( "GLFW_VS_LIB_OPTS" )
-		includesList+=GetConfigVar( "GLFW_VS_INCLUDES" )
-		headerList+=GetConfigVar( "GLFW_VS_HEADER_PATHS" )	
 		
 		CreateDir "msvc"+version+"/"+tconfig
 		CreateDir "msvc"+version+"/"+tconfig+"/internal"
@@ -241,25 +255,28 @@ Class GlfwBuilder Extends Builder
 			If Not ( CopyICON( iconPath, "ico", RealPath( CurrentDir()+"../../../" ), RealPath( CurrentDir() ), tcc.cerberusdir, RealPath( CurrentDir()+"/msvc"+version+"/build/"+tconfig+"/CerberusGame.res" ) ) ) Die "Faild To copy the application icon over."
 
 			ChangeDir "msvc"+version
-			
 			' Search paths for known locations etc,
-			cerbRoot=tcc.cerberusdir+"/libs/shared/win"+msize
-			
+			libsearchList+=GetConfigVar( "GLFW_VS_LIB_PATHS" )+";libs/shared/Win#{GLFW_VS_MSIZE_WINNT};libs/static/VisualStudio/#{GLFW_VSTUDIO_VERSION}/#{GLFW_VS_MSIZE_WINNT}"
 			If libsearchList<>"" Or dylibCopy<>""
-				libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), cerbRoot.Split( ";" ) )
-				ReadOut(libsearchList.Split(";"), "GenerateSearchPaths Returned for : GLFW_VS_LIB_PATHS")
+				libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), tcc.cerberusdir, "GLFW_VS_LIB_PATHS", searchChk )
 			Endif
 			
-			cerbRoot=tcc.cerberusdir+"/includes"
+			headerList+=GetConfigVar( "GLFW_VS_HEADER_PATHS" )+";includes"
 			If headerList<>""
-				headerList=GenerateSearchPaths( headerList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), cerbRoot.Split( ";" ) )
-				ReadOut(headerList.Split(";"), "GenerateSearchPaths Returned for : GLFW_VS_HEADER_PATHS" )
+				headerList=GenerateSearchPaths( headerList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), tcc.cerberusdir, "GLFW_VS_HEADER_PATHS", searchChk )
+			Endif
+			
+			includesList+=GetConfigVar( "GLFW_VS_INCLUDES" )+";includes"
+			If includesList<>""
+				includesList=GenerateSearchPaths( includesList, RealPath( CurrentDir()+"/"+tconfig+"/../../../../" ), RealPath( CurrentDir()+"/"+tconfig+"/../../" ), tcc.cerberusdir, "GLFW_VS_INCLUDES", searchChk )
 			Endif
 			
 			' CerberusIncludePaths=/AI, CerberusIncludes=/I, CerberusLinker=*.lib, CerberusLibraryPaths=/LIBPATH
-			Local parms:="/p:projectname="+QuoteMe( appName )+" /p:CerberusPath="+QuoteMe( tcc.cerberusdir )+" /p:CerberusLibraryPaths="+QuoteMe( libsearchList )
-			parms+=" /p:CerberusIncludePaths="+QuoteMe( headerList )+" /p:CerberusLinker="+QuoteMe( libopts )+" /p:CerberusIncludes="+QuoteMe( includesList )
-			parms+=" /p:CerberusDefines="+QuoteMe( GetConfigVar( "GLFW_VS_DEFINES" ) )+" /p:CerberusCompilerOpts="+QuoteMe( GetConfigVar( "GLFW_VS_CC_OPTS" ) )
+			Local glfwLib:=tcc.THIRDPARTY_PATH+"/desktop/makefiles/glfwgame_msvc"+version+"/libglfwgame.sln /p:Defines=~q_GLFW_USE_CONFIG_H~q"
+			Local appParms:=" CerberusGame.sln /p:projectname="+QuoteMe( appName )+" /p:CerberusLibraryPaths="+QuoteMe( libsearchList )
+			appParms+=" /p:CerberusIncludePaths="+QuoteMe( headerList )+" /p:CerberusLinker="+QuoteMe( libopts )+" /p:CerberusIncludes="+QuoteMe( includesList )
+			appParms+=" /p:CerberusDefines="+QuoteMe( GetConfigVar( "GLFW_VS_DEFINES" ) )+" /p:CerberusCompilerOpts="+QuoteMe( GetConfigVar( "GLFW_VS_CC_OPTS" ) )
+			Local commonParams:=" /p:Configuration="+tconfig+" /p:CerberusPath="+QuoteMe( tcc.cerberusdir )+" /p:VS_VER="+version+" /p:ARCH="+msize+" /p:ThirdpartyPath="+QuoteMe( tcc.THIRDPARTY_PATH )
 			
 			' Copy any shared libraries
 			' Note that the option toolpath is optional in most cases, but MinGW has all it's runtime libraries there. So it makes sense to point to a path that to the sharetrans_winnt
@@ -267,8 +284,13 @@ Class GlfwBuilder Extends Builder
 			Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q"+msize+"~q -srcdirs=~q"+libsearchList+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/"+tconfig+"~q -toolchain=~qvisualstudio~q"
 			CopyLicences( casedConfig, "winnt", tcc.cerberusdir+"/libs", msize )
 			
-			Print "Executing "+tcc.MSBUILD_PATH+" /p:Configuration="+tconfig+" "+parms
-			Execute "~q"+tcc.MSBUILD_PATH+"~q /p:Configuration="+tconfig+" "+parms
+			' Execute the building of libglfwgame
+			Print "Building libglfwgame static library"
+			Execute "~q"+tcc.MSBUILD_PATH+"~q "+glfwLib+" "+commonParams
+			
+			' Build the main application
+			Print "Executing "+tcc.MSBUILD_PATH+" /p:Configuration="+tconfig
+			Execute "~q"+tcc.MSBUILD_PATH+"~q "+appParms+" "+commonParams
 			
 			If tcc.opt_run
 			
@@ -280,23 +302,28 @@ Class GlfwBuilder Extends Builder
 		Endif
 	End
 
-	' DAWLANE - Removed Added support for search path and to pass options to Xcode.
+	' DAWLANE - Added support for search path and to pass options to Xcode.
 	'***** Xcode *****	
 	Method MakeXcode:Void()
 
 		CreateDataDir "xcode/data"
 
 		Local main:=LoadString( "main.cpp" )
+		Local searchChk:= Bool(GetConfigVar( "SHOW_SEARCH_PATH_CHECK" ))
+		Local empty:String[]
 		
 		main=ReplaceBlock( main,"TRANSCODE",transCode )
 		main=ReplaceBlock( main,"CONFIG",Config() )
 		
 		SaveString main,"main.cpp"
+
+		' Make sure that the default directories exist or there could be trouble passing those paths to search.
+		CreateDefaultDirs( tcc.cerberusdir, "", empty, "" )
 		
 		If tcc.opt_build
 			
 			' Read the pre-processor data to over-ride the defaults
-			Local ccopts:="", ldopts:="", libsopts:="", headerList:="", cerbRoot:="", libsearchList:="", frameworks:="", sharedsearch:=""
+			Local ccopts:="", ldopts:="", libsopts:="", headerList:="", cerbRoot:="", libsearchList:="", frameworks:="", sharedtranssearch:=""
 			Local frameworSearchkList:="", frameworkStack:= New StringStack()
 			Local dylibCopy:=GetConfigVar( "GLFW_COPY_SHAREDLIBS" ), frameworkList:StringStack= New StringStack( GetConfigVar( "GLFW_XCODE_FRAMEWORKS" ).Split( ";" ) )
 			Local appName:=GetConfigVar( "GLFW_APP_NAME" ), bundleID:=GetConfigVar( "GLFW_XCODE_BUNDLE_ID" )
@@ -309,33 +336,27 @@ Class GlfwBuilder Extends Builder
 			' Other Xcode options to read
 			ccopts+=GetConfigVar( "GLFW_XCODE_CC_OPTS" ).Replace( ";"," " )
 			ldopts+=GetConfigVar( "GLFW_XCODE_LD_OPTS" ).Replace( ";"," " )
-			libsopts+=GetConfigVar( "GLFW_XCODE_LIBS_OPTS" ).Replace( ";"," " ) 
+			libsopts+=GetConfigVar( "GLFW_XCODE_LIB_OPTS" ).Replace( ";"," " ) 
 			
 			' Generate the library paths to search if a shared library list is passed
-			cerbRoot=tcc.cerberusdir+"/libs/shared/MacOS"
-			libsearchList=GetConfigVar( "GLFW_XCODE_LIB_PATHS" )
+			libsearchList=GetConfigVar( "GLFW_XCODE_LIB_PATHS" )+";lib/shared/MacOS;libs/static/MacOS"
 			If libsearchList<>"" Or dylibCopy<>""
-				sharedsearch=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ) )
-				libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ), True ).Replace( ";", " " )
-				ReadOut(libsearchList.Split(" "), "GenerateSearchPaths Returned for : GLFW_XCODE_LIB_PATHS" )
+				sharedtranssearch=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), tcc.cerberusdir, "GLFW_XCODE_LIB_PATHS", searchChk )
+				libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), tcc.cerberusdir, "GLFW_XCODE_LIB_PATHS", searchChk, True ).Replace( ";", " " )
 			Endif
 			
 			' Generate the include paths to search
-			cerbRoot=tcc.cerberusdir+"/includes"
-			headerList=GetConfigVar( "GLFW_XCODE_INCLUDE_PATHS" )
+			headerList=GetConfigVar( "GLFW_XCODE_INCLUDE_PATHS" )+";includes"
 			If headerList<>""
-				headerList=GenerateSearchPaths( headerList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ) ) ' Don't return a quoted string
+				headerList=GenerateSearchPaths( headerList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), tcc.cerberusdir, "GLFW_XCODE_INCLUDE_PATHS", searchChk ) ' Don't return a quoted string
 				headerList=DefineGCCPaths( headerList, "I", True ) ' Do return a quoted string
-				ReadOut(headerList.Split("~n"), "GenerateSearchPaths Returned for : GLFW_XCODE_INCLUDE_PATHS" )
 			Endif
 			
 			' Construct a string for passing the framework names
-			cerbRoot=tcc.cerberusdir+"/libs/shared/MacOS/Frameworks;/Library/Frameworks;"+GetEnv( "HOME" )+"/Library/Frameworks"
-			frameworSearchkList=GetConfigVar( "GLFW_XCODE_FRAMEWORK_PATHS" )
+			frameworSearchkList=GetConfigVar( "GLFW_XCODE_FRAMEWORK_PATHS" )+";libs/shared/MacOS/Frameworks;/Library/Frameworks;"+GetEnv( "HOME" )+"/Library/Frameworks"
 			frameworkList.RemoveEach( "" )
 			If frameworSearchkList<>"" Or frameworkList.Length() > 0
-				frameworSearchkList=GenerateSearchPaths( frameworSearchkList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ), True ).Replace( ";", " " )
-				ReadOut(frameworSearchkList.Split(" "), "GenerateSearchPaths Returned for : GLFW_XCODE_FRAMEWORK_PATHS" )
+				frameworSearchkList=GenerateSearchPaths( frameworSearchkList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), tcc.cerberusdir, "GLFW_XCODE_FRAMEWORK_PATHS", searchChk, True ).Replace( ";", " " )
 			Endif
 			
 			For Local i:=Eachin frameworkList
@@ -348,12 +369,12 @@ Class GlfwBuilder Extends Builder
 			
 '			Execute "set -o pipefail && xcodebuild -configuration "+casedConfig+" | egrep -A 5 ~q(error|warning):~q"
 			Local params:="OTHER_CFLAGS='"+ccopts+"' LIBRARY_SEARCH_PATHS='"+libsearchList+"' OTHER_LDFLAGS='"+ldopts+" "+libsopts+" "+frameworks+"' PRODUCT_NAME='"+StripQuotes( appName )
-			params+="' PRODUCT_BUNDLE_IDENTIFIER='"+bundleID+"' FRAMEWORK_SEARCH_PATHS='"+frameworSearchkList+"' CERBERUS_PATH='"+tcc.cerberusdir+"' CERBERUS_ICONSET_PATH='"+iconPath+"'"' HEADER_SEARCH_PATHS='"+headerList+"'"
+			params+="' PRODUCT_BUNDLE_IDENTIFIER='"+bundleID+"' FRAMEWORK_SEARCH_PATHS='"+frameworSearchkList+"' CERBERUS_PATH='"+tcc.cerberusdir+"' CERBERUS_ICONSET_PATH='"+iconPath+"' THIRDPARTY_PATH='"+tcc.THIRDPARTY_PATH+"'" ' HEADER_SEARCH_PATHS='"+headerList+"'"
 			
 			Execute "xcodebuild -configuration "+casedConfig+" "+params
 			
 			' Copy any shared libraries after the build is done.
-			Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q64~q -srcdirs=~q"+sharedsearch+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/build/"+casedConfig+"/"+StripQuotes(appName)+".app~q -toolchain=~qmacos~q"
+			Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q64~q -srcdirs=~q"+sharedtranssearch+"~q -libs=~q"+dylibCopy+"~q -dst=~q"+CurrentDir()+"/build/"+casedConfig+"/"+StripQuotes(appName)+".app~q -toolchain=~qmacos~q"
 
 			
 			' Add frameworks to the final bundle

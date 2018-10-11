@@ -15,14 +15,15 @@
 #define CFG_CONFIG release
 #define CFG_CPP_DOUBLE_PRECISION_FLOATS 1
 #define CFG_CPP_GC_MODE 1
-#define CFG_GCC_LINUX_NOPIE 0
-#define CFG_HOST linux
+#define CFG_GCC_LINUX_NOPIE 1
+#define CFG_HOST winnt
 #define CFG_LANG cpp
 #define CFG_MINGW_USE_POSIX 1
 #define CFG_MODPATH 
 #define CFG_RELEASE 1
 #define CFG_SAFEMODE 0
 #define CFG_TARGET stdcpp
+#define CFG_THIRDPARTY_PATH C:/Users/dawla/Desktop/krautapps/cerberus/src/thirdparty
 //${CONFIG_END}
 
 //${TRANSCODE_BEGIN}
@@ -3196,6 +3197,7 @@ class c_TransCC : public Object{
 	String m_HTML_PLAYER;
 	String m_FLASH_PLAYER;
 	String m_VSDEFAULT;
+	String m_THIRDPARTY_PATH;
 	c_StringMap3* m__builders;
 	c_StringMap6* m__targets;
 	c_Target* m_target;
@@ -5350,8 +5352,10 @@ class c_CppTranslator : public c_CTranslator{
 	String p_TransAssignStmt2(c_AssignStmt*);
 	void mark();
 };
+Array<String > bb_helpers_GCCVer();
+void bb_helpers_CreateDefaultDirs(String,String,Array<String >,String);
 int bb_helpers_CopyICON(String,String,String,String,String,String);
-String bb_helpers_GCCVer();
+Array<String > bb_helpers_MacroExpansion(Array<String >,bool);
 class c_Enumerator5 : public Object{
 	public:
 	c_Stack* m_stack;
@@ -5364,9 +5368,8 @@ class c_Enumerator5 : public Object{
 	void mark();
 };
 String bb_helpers_QuoteMe(String);
-String bb_helpers_GenerateSearchPaths(String,String,String,Array<String >,bool);
-void bb_helpers_ReadOut(Array<String >,String);
-String bb_helpers_DefineGCCPaths(String,String,bool);
+String bb_helpers_GenerateSearchPaths(String,String,String,String,String,bool,bool);
+String bb_helpers_DefineGCCPaths(String,String,bool,String,bool);
 int bb_helpers_CopyLicences(String,String,String,String);
 class c_JsTranslator : public c_CTranslator{
 	public:
@@ -5779,6 +5782,7 @@ c_TransCC::c_TransCC(){
 	m_HTML_PLAYER=String();
 	m_FLASH_PLAYER=String();
 	m_VSDEFAULT=String();
+	m_THIRDPARTY_PATH=String();
 	m__builders=(new c_StringMap3)->m_new();
 	m__targets=(new c_StringMap6)->m_new();
 	m_target=0;
@@ -5976,7 +5980,13 @@ void c_TransCC::p_LoadConfig(){
 														if(t_3==String(L"VS_VERSION",10)){
 															m_VSDEFAULT=t_rhs;
 														}else{
-															bbPrint(String(L"Trans: ignoring unrecognized config var: ",41)+t_lhs);
+															if(t_3==String(L"THIRDPARTY_PATH",15)){
+																if(!((m_THIRDPARTY_PATH).Length()!=0) && FileType(t_path)==2){
+																	m_THIRDPARTY_PATH=t_path;
+																}
+															}else{
+																bbPrint(String(L"Trans: ignoring unrecognized config var: ",41)+t_lhs);
+															}
 														}
 													}
 												}
@@ -6106,7 +6116,7 @@ String c_TransCC::p_GetReleaseVersion(){
 }
 void c_TransCC::p_Run(Array<String > t_args){
 	gc_assign(this->m_args,t_args);
-	bbPrint(String(L"TRANS cerberus compiler V2018-08-07 preview",43));
+	bbPrint(String(L"TRANS cerberus compiler V2018-10-10 preview",43));
 	m_cerberusdir=RealPath(bb_os_ExtractDir(AppPath())+String(L"/..",3));
 	SetEnv(String(L"CERBERUSDIR",11),m_cerberusdir);
 	SetEnv(String(L"MONKEYDIR",9),m_cerberusdir);
@@ -7618,6 +7628,7 @@ void c_Builder::p_Make(){
 	bb_config_SetConfigVar2(String(L"TARGET",6),bb_config_ENV_TARGET);
 	bb_config_SetConfigVar2(String(L"CONFIG",6),bb_config_ENV_CONFIG);
 	bb_config_SetConfigVar2(String(L"SAFEMODE",8),String(bb_config_ENV_SAFEMODE));
+	bb_config_SetConfigVar2(String(L"THIRDPARTY_PATH",15),m_tcc->m_THIRDPARTY_PATH);
 	gc_assign(m_app,bb_parser_ParseApp(m_tcc->m_opt_srcpath));
 	bbPrint(String(L"Semanting...",12));
 	if((bb_config_GetConfigVar(String(L"REFLECTION_FILTER",17))).Length()!=0){
@@ -8406,11 +8417,15 @@ String c_GlfwBuilder::p_Config(){
 void c_GlfwBuilder::p_MakeGcc(){
 	int t_staticFlag=0;
 	String t_msize=bb_config_GetConfigVar(String(L"GLFW_GCC_MSIZE_",15)+HostOS().ToUpper());
+	bool t_searchChk=((bb_config_GetConfigVar(String(L"SHOW_SEARCH_PATH_CHECK",22))).Length()!=0);
+	Array<String > t_gccVersion=bb_helpers_GCCVer();
+	bb_helpers_CreateDefaultDirs(m_tcc->m_cerberusdir,t_msize,t_gccVersion,String());
 	if(m_tcc->m_opt_msize!=String()){
 		bbPrint(String(L"Over-ride of GCC_MSIZE via command option -msize. msize is now set to ",70)+m_tcc->m_opt_msize);
 		if(m_tcc->m_opt_msize==String(L"32",2) || m_tcc->m_opt_msize==String(L"64",2)){
 			t_msize=m_tcc->m_opt_msize;
 		}
+		bb_config_SetConfigVar2(String(L"GLFW_GCC_MSIZE_",15)+HostOS().ToUpper(),t_msize);
 	}
 	String t_tconfig=m_casedConfig+t_msize;
 	String t_dst=String(L"gcc_",4)+HostOS();
@@ -8437,7 +8452,6 @@ void c_GlfwBuilder::p_MakeGcc(){
 		String t_headerSearchList=bb_config_GetConfigVar(String(L"GLFW_GCC_INCLUDE_PATHS",22));
 		Array<String > t_userIncludesList=bb_config_GetConfigVar(String(L"GLFW_GCC_USER_INCLUDES",22)).Split(String(L";",1));
 		String t_mingwUsePosix=String();
-		String t_gccVersion=bb_helpers_GCCVer().Trim();
 		String t_ccopts=String();
 		String t_ldopts=String();
 		String t_libopts=String();
@@ -8445,7 +8459,6 @@ void c_GlfwBuilder::p_MakeGcc(){
 		String t_appName=bb_config_GetConfigVar(String(L"GLFW_APP_NAME",13));
 		String t_sysroot=String();
 		String t_toolchain=String();
-		String t_cerbRoot=String();
 		if((t_msize).Length()!=0){
 			t_ccopts=t_ccopts+(String(L" -m",3)+t_msize);
 			t_ldopts=t_ldopts+(String(L" -m",3)+t_msize);
@@ -8478,32 +8491,28 @@ void c_GlfwBuilder::p_MakeGcc(){
 			}
 			if(t_use_static){
 				t_staticFlag=1;
-				bbPrint(String(L"MinGW static build.",19));
 			}
-			t_cerbRoot=m_tcc->m_cerberusdir+String(L"/libs/shared/win",16)+t_msize+String(L";",1)+m_tcc->m_cerberusdir+String(L"/libs/static/mingw/",19)+t_msize;
+			t_libsearchList=t_libsearchList+String(L";libs/shared/win#{GLFW_GCC_MSIZE_WINNT};libs/static/mingw/#{GLFW_GCC_MSIZE_WINNT};",82);
 		}else{
 			t_toolchain=String(L"linux",5);
-			t_cerbRoot=t_cerbRoot+(m_tcc->m_cerberusdir+String(L"/libs/shared/Linux",18)+t_msize+String(L";",1)+m_tcc->m_cerberusdir+String(L"/libs/static/Linux/",19)+t_msize);
-			if((t_gccVersion).ToInt()>5){
+			t_libsearchList=t_libsearchList+String(L";libs/shared/Linux#{GLFW_GCC_MSIZE_LINUX};libs/static/Linux/#{GLFW_GCC_MSIZE_LINUX};",84);
+			if((t_gccVersion[0]).ToInt()>5){
 				if(bb_config_GetConfigVar(String(L"GCC_LINUX_NOPIE",15))==String(L"1",1)){
 					t_ldopts=t_ldopts+String(L" -no-pie",8);
+					bbPrint(String(L"Building binary using -no-pie linker option.",44));
 				}
 			}
 		}
-		String t_searchPaths=String();
+		String t_sharedTransSearch=String();
 		if(t_libsearchList!=String() || t_dylibCopy!=String()){
-			t_libsearchList=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../../../",13)),RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../",7)),t_cerbRoot.Split(String(L";",1)),false);
-			bb_helpers_ReadOut(t_libsearchList.Split(String(L";",1)),String(L"GenerateSearchPaths Returned for : GLFW_GCC_LIB_PATHS",53));
-			t_searchPaths=t_libsearchList;
-			t_libsearchList=bb_helpers_DefineGCCPaths(t_libsearchList,String(L"L",1),false);
-			bb_helpers_ReadOut(t_libsearchList.Split(String(L"-n",2)),String(L"DefineGCCPaths Returned for : GLFW_GCC_LIB_PATHS",48));
+			t_libsearchList=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../../../",13)),RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../",7)),m_tcc->m_cerberusdir,String(L"GLFW_GCC_LIB_PATHS",18),t_searchChk,false);
+			t_sharedTransSearch=t_libsearchList;
+			t_libsearchList=bb_helpers_DefineGCCPaths(t_libsearchList,String(L"L",1),false,String(L"GLFW_GCC_LIB_PATHS",18),t_searchChk);
 		}
-		t_cerbRoot=m_tcc->m_cerberusdir+String(L"/includes",9);
+		t_headerSearchList=t_headerSearchList+(String(L";includes;",10)+m_tcc->m_THIRDPARTY_PATH);
 		if(t_headerSearchList!=String()){
-			t_headerSearchList=bb_helpers_GenerateSearchPaths(t_headerSearchList,RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../../../",13)),RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../",7)),t_cerbRoot.Split(String(L";",1)),false);
-			bb_helpers_ReadOut(t_headerSearchList.Split(String(L";",1)),String(L"GenerateSearchPaths Returned for : GLFW_GCC_INCLUDE_PATHS",57));
-			t_headerSearchList=bb_helpers_DefineGCCPaths(t_headerSearchList,String(L"I",1),false);
-			bb_helpers_ReadOut(t_headerSearchList.Split(String(L"\n",1)),String(L"DefineGCCPaths Returned for : GLFW_GCC_INCLUDES",47));
+			t_headerSearchList=bb_helpers_GenerateSearchPaths(t_headerSearchList,RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../../../",13)),RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../",7)),m_tcc->m_cerberusdir,String(L"GLFW_GCC_INCLUDE_PATHS",22),t_searchChk,false);
+			t_headerSearchList=bb_helpers_DefineGCCPaths(t_headerSearchList,String(L"I",1),false,String(L"GLFW_GCC_INCLUDE_PATHS",22),t_searchChk);
 		}
 		String t_includes=String();
 		if(t_userIncludesList.Length()>0){
@@ -8512,14 +8521,16 @@ void c_GlfwBuilder::p_MakeGcc(){
 					t_includes=t_includes+(String(L" -include ",10)+t_userIncludesList[t_i]);
 				}
 			}
-			if(t_includes!=String()){
-				bbPrint(String(L"GLFW_GCC_INCLUDES: ",19));
-				bbPrint(t_includes);
+			if(t_searchChk){
+				if(t_includes!=String()){
+					bbPrint(String(L"GLFW_GCC_INCLUDES: ",19));
+					bbPrint(t_includes);
+				}
 			}
 		}
-		p_Execute(m_tcc->m_cerberusdir+String(L"/bin/sharedtrans_",17)+HostOS()+String(L" -arch=\"",8)+t_msize+String(L"\" -srcdirs=\"",12)+t_searchPaths+String(L"\" -libs=\"",9)+t_dylibCopy+String(L"\" -dst=\"",8)+CurrentDir()+String(L"/",1)+t_tconfig+String(L"\" -toolchain=\"",14)+t_toolchain+String(L"\" -toolpath=\"",13)+m_tcc->m_MINGW_PATH+String(L"\"",1),true);
+		p_Execute(m_tcc->m_cerberusdir+String(L"/bin/sharedtrans_",17)+HostOS()+String(L" -arch=\"",8)+t_msize+String(L"\" -srcdirs=\"",12)+t_sharedTransSearch+String(L"\" -libs=\"",9)+t_dylibCopy+String(L"\" -dst=\"",8)+CurrentDir()+String(L"/",1)+t_tconfig+String(L"\" -toolchain=\"",14)+t_toolchain+String(L"\" -toolpath=\"",13)+m_tcc->m_MINGW_PATH+String(L"\"",1),true);
 		bb_helpers_CopyLicences(m_casedConfig,String(L"gcc",3),m_tcc->m_cerberusdir+String(L"/libs",5),t_msize);
-		p_Execute(t_cmd+String(L" STATIC=\"",9)+String(t_staticFlag)+String(L"\" POSIX=\"",9)+t_mingwUsePosix+String(L"\" CCOPTS=\"",10)+t_ccopts+String(L" ",1)+t_headerSearchList+String(L" ",1)+t_includes+String(L"\" LDOPTS=\"",10)+t_ldopts+String(L" ",1)+t_libsearchList+String(L"\" LIBOPTS=\"",11)+t_libopts+String(L"\" APPLIBPATH=\"",14)+m_tcc->m_cerberusdir+String(L"/libs\" HOSTOS=\"",15)+HostOS()+String(L"\" ARCH=\"",8)+t_msize+String(L"\" OUT=\"",7)+t_tconfig+String(L"/",1)+t_appName+String(L"\" ",2),true);
+		p_Execute(t_cmd+String(L" THIRD_PARTY_PATH=\"",19)+m_tcc->m_THIRDPARTY_PATH+String(L"\" STATIC=\"",10)+String(t_staticFlag)+String(L"\" POSIX=\"",9)+t_mingwUsePosix+String(L"\" CCOPTS=\"",10)+t_ccopts+String(L" ",1)+t_headerSearchList+String(L" ",1)+t_includes+String(L"\" LDOPTS=\"",10)+t_ldopts+String(L" ",1)+t_libsearchList+String(L"\" LIBOPTS=\"",11)+t_libopts+String(L"\" CERBERUSDIR=\"",15)+m_tcc->m_cerberusdir+String(L"\" HOSTOS=\"",10)+HostOS()+String(L"\" ARCH=\"",8)+t_msize+String(L"\" OUT=\"",7)+t_tconfig+String(L"/",1)+t_appName+String(L"\" ",2),true);
 		if(m_tcc->m_opt_run){
 			ChangeDir(t_tconfig);
 			if(HostOS()==String(L"winnt",5)){
@@ -8531,19 +8542,23 @@ void c_GlfwBuilder::p_MakeGcc(){
 	}
 }
 void c_GlfwBuilder::p_MakeMsvc(String t_version){
+	bb_config_SetConfigVar2(String(L"GLFW_VSTUDIO_VERSION",20),t_version);
+	bool t_searchChk=((bb_config_GetConfigVar(String(L"SHOW_SEARCH_PATH_CHECK",22))).Length()!=0);
+	Array<String > t_empty=Array<String >();
 	bbPrint(String());
 	if(m_tcc->m_MSBUILD_PATH==String()){
 		bb_transcc_Die(String(L"Cannot find MSBuild.exe. Is Visual Studio installed and the MSBUILD_PATH set correctly?",87));
 	}
 	String t_msize=bb_config_GetConfigVar(String(L"GLFW_VS_MSIZE_",14)+HostOS().ToUpper());
 	String t_toolchain=String();
-	String t_cerbRoot=String();
 	if(m_tcc->m_opt_msize!=String()){
-		bbPrint(String(L"Over-ride of GCC_MSIZE via command option -msize. msize is now set to ",70)+m_tcc->m_opt_msize);
+		bbPrint(String(L"Over-ride of GLFW_VS_MSIZE via command option -msize. msize is now set to ",74)+m_tcc->m_opt_msize);
 		if(m_tcc->m_opt_msize==String(L"32",2) || m_tcc->m_opt_msize==String(L"64",2)){
 			t_msize=m_tcc->m_opt_msize;
 		}
+		bb_config_SetConfigVar2(String(L"GLFW_VS_MSIZE_",14)+HostOS().ToUpper(),t_msize);
 	}
+	bb_helpers_CreateDefaultDirs(m_tcc->m_cerberusdir,t_msize,t_empty,t_version);
 	String t_tconfig=m_casedConfig+t_msize;
 	String t_dylibCopy=bb_config_GetConfigVar(String(L"GLFW_COPY_SHAREDLIBS",20));
 	String t_ccopts=String();
@@ -8557,10 +8572,7 @@ void c_GlfwBuilder::p_MakeMsvc(String t_version){
 	String t_includesList=String();
 	String t_headerList=String();
 	String t_libsearchList=String();
-	t_libsearchList=t_libsearchList+bb_config_GetConfigVar(String(L"GLFW_VS_LIB_PATHS",17));
 	t_libopts=t_libopts+bb_config_GetConfigVar(String(L"GLFW_VS_LIB_OPTS",16));
-	t_includesList=t_includesList+bb_config_GetConfigVar(String(L"GLFW_VS_INCLUDES",16));
-	t_headerList=t_headerList+bb_config_GetConfigVar(String(L"GLFW_VS_HEADER_PATHS",20));
 	CreateDir(String(L"msvc",4)+t_version+String(L"/",1)+t_tconfig);
 	CreateDir(String(L"msvc",4)+t_version+String(L"/",1)+t_tconfig+String(L"/internal",9));
 	CreateDir(String(L"msvc",4)+t_version+String(L"/",1)+t_tconfig+String(L"/external",9));
@@ -8575,23 +8587,29 @@ void c_GlfwBuilder::p_MakeMsvc(String t_version){
 			bb_transcc_Die(String(L"Faild To copy the application icon over.",40));
 		}
 		ChangeDir(String(L"msvc",4)+t_version);
-		t_cerbRoot=m_tcc->m_cerberusdir+String(L"/libs/shared/win",16)+t_msize;
+		t_libsearchList=t_libsearchList+(bb_config_GetConfigVar(String(L"GLFW_VS_LIB_PATHS",17))+String(L";libs/shared/Win#{GLFW_VS_MSIZE_WINNT};libs/static/VisualStudio/#{GLFW_VSTUDIO_VERSION}/#{GLFW_VS_MSIZE_WINNT}",110));
 		if(t_libsearchList!=String() || t_dylibCopy!=String()){
-			t_libsearchList=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../../../",13)),RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../",7)),t_cerbRoot.Split(String(L";",1)),false);
-			bb_helpers_ReadOut(t_libsearchList.Split(String(L";",1)),String(L"GenerateSearchPaths Returned for : GLFW_VS_LIB_PATHS",52));
+			t_libsearchList=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../../../",13)),RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../",7)),m_tcc->m_cerberusdir,String(L"GLFW_VS_LIB_PATHS",17),t_searchChk,false);
 		}
-		t_cerbRoot=m_tcc->m_cerberusdir+String(L"/includes",9);
+		t_headerList=t_headerList+(bb_config_GetConfigVar(String(L"GLFW_VS_HEADER_PATHS",20))+String(L";includes",9));
 		if(t_headerList!=String()){
-			t_headerList=bb_helpers_GenerateSearchPaths(t_headerList,RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../../../",13)),RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../",7)),t_cerbRoot.Split(String(L";",1)),false);
-			bb_helpers_ReadOut(t_headerList.Split(String(L";",1)),String(L"GenerateSearchPaths Returned for : GLFW_VS_HEADER_PATHS",55));
+			t_headerList=bb_helpers_GenerateSearchPaths(t_headerList,RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../../../",13)),RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../",7)),m_tcc->m_cerberusdir,String(L"GLFW_VS_HEADER_PATHS",20),t_searchChk,false);
 		}
-		String t_parms=String(L"/p:projectname=",15)+bb_helpers_QuoteMe(t_appName)+String(L" /p:CerberusPath=",17)+bb_helpers_QuoteMe(m_tcc->m_cerberusdir)+String(L" /p:CerberusLibraryPaths=",25)+bb_helpers_QuoteMe(t_libsearchList);
-		t_parms=t_parms+(String(L" /p:CerberusIncludePaths=",25)+bb_helpers_QuoteMe(t_headerList)+String(L" /p:CerberusLinker=",19)+bb_helpers_QuoteMe(t_libopts)+String(L" /p:CerberusIncludes=",21)+bb_helpers_QuoteMe(t_includesList));
-		t_parms=t_parms+(String(L" /p:CerberusDefines=",20)+bb_helpers_QuoteMe(bb_config_GetConfigVar(String(L"GLFW_VS_DEFINES",15)))+String(L" /p:CerberusCompilerOpts=",25)+bb_helpers_QuoteMe(bb_config_GetConfigVar(String(L"GLFW_VS_CC_OPTS",15))));
+		t_includesList=t_includesList+(bb_config_GetConfigVar(String(L"GLFW_VS_INCLUDES",16))+String(L";includes",9));
+		if(t_includesList!=String()){
+			t_includesList=bb_helpers_GenerateSearchPaths(t_includesList,RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../../../",13)),RealPath(CurrentDir()+String(L"/",1)+t_tconfig+String(L"/../../",7)),m_tcc->m_cerberusdir,String(L"GLFW_VS_INCLUDES",16),t_searchChk,false);
+		}
+		String t_glfwLib=m_tcc->m_THIRDPARTY_PATH+String(L"/desktop/makefiles/glfwgame_msvc",32)+t_version+String(L"/libglfwgame.sln /p:Defines=\"_GLFW_USE_CONFIG_H\"",48);
+		String t_appParms=String(L" CerberusGame.sln /p:projectname=",33)+bb_helpers_QuoteMe(t_appName)+String(L" /p:CerberusLibraryPaths=",25)+bb_helpers_QuoteMe(t_libsearchList);
+		t_appParms=t_appParms+(String(L" /p:CerberusIncludePaths=",25)+bb_helpers_QuoteMe(t_headerList)+String(L" /p:CerberusLinker=",19)+bb_helpers_QuoteMe(t_libopts)+String(L" /p:CerberusIncludes=",21)+bb_helpers_QuoteMe(t_includesList));
+		t_appParms=t_appParms+(String(L" /p:CerberusDefines=",20)+bb_helpers_QuoteMe(bb_config_GetConfigVar(String(L"GLFW_VS_DEFINES",15)))+String(L" /p:CerberusCompilerOpts=",25)+bb_helpers_QuoteMe(bb_config_GetConfigVar(String(L"GLFW_VS_CC_OPTS",15))));
+		String t_commonParams=String(L" /p:Configuration=",18)+t_tconfig+String(L" /p:CerberusPath=",17)+bb_helpers_QuoteMe(m_tcc->m_cerberusdir)+String(L" /p:VS_VER=",11)+t_version+String(L" /p:ARCH=",9)+t_msize+String(L" /p:ThirdpartyPath=",19)+bb_helpers_QuoteMe(m_tcc->m_THIRDPARTY_PATH);
 		p_Execute(m_tcc->m_cerberusdir+String(L"/bin/sharedtrans_",17)+HostOS()+String(L" -arch=\"",8)+t_msize+String(L"\" -srcdirs=\"",12)+t_libsearchList+String(L"\" -libs=\"",9)+t_dylibCopy+String(L"\" -dst=\"",8)+CurrentDir()+String(L"/",1)+t_tconfig+String(L"\" -toolchain=\"visualstudio\"",27),true);
 		bb_helpers_CopyLicences(m_casedConfig,String(L"winnt",5),m_tcc->m_cerberusdir+String(L"/libs",5),t_msize);
-		bbPrint(String(L"Executing ",10)+m_tcc->m_MSBUILD_PATH+String(L" /p:Configuration=",18)+t_tconfig+String(L" ",1)+t_parms);
-		p_Execute(String(L"\"",1)+m_tcc->m_MSBUILD_PATH+String(L"\" /p:Configuration=",19)+t_tconfig+String(L" ",1)+t_parms,true);
+		bbPrint(String(L"Building libglfwgame static library",35));
+		p_Execute(String(L"\"",1)+m_tcc->m_MSBUILD_PATH+String(L"\" ",2)+t_glfwLib+String(L" ",1)+t_commonParams,true);
+		bbPrint(String(L"Executing ",10)+m_tcc->m_MSBUILD_PATH+String(L" /p:Configuration=",18)+t_tconfig);
+		p_Execute(String(L"\"",1)+m_tcc->m_MSBUILD_PATH+String(L"\" ",2)+t_appParms+String(L" ",1)+t_commonParams,true);
 		if(m_tcc->m_opt_run){
 			ChangeDir(t_tconfig);
 			p_Execute(bb_helpers_QuoteMe(t_appName),true);
@@ -8601,9 +8619,12 @@ void c_GlfwBuilder::p_MakeMsvc(String t_version){
 void c_GlfwBuilder::p_MakeXcode(){
 	p_CreateDataDir(String(L"xcode/data",10));
 	String t_main=LoadString(String(L"main.cpp",8));
+	bool t_searchChk=((bb_config_GetConfigVar(String(L"SHOW_SEARCH_PATH_CHECK",22))).Length()!=0);
+	Array<String > t_empty=Array<String >();
 	t_main=bb_transcc_ReplaceBlock(t_main,String(L"TRANSCODE",9),m_transCode,String(L"\n//",3));
 	t_main=bb_transcc_ReplaceBlock(t_main,String(L"CONFIG",6),p_Config(),String(L"\n//",3));
 	SaveString(t_main,String(L"main.cpp",8));
+	bb_helpers_CreateDefaultDirs(m_tcc->m_cerberusdir,String(),t_empty,String());
 	if(m_tcc->m_opt_build){
 		String t_ccopts=String();
 		String t_ldopts=String();
@@ -8612,7 +8633,7 @@ void c_GlfwBuilder::p_MakeXcode(){
 		String t_cerbRoot=String();
 		String t_libsearchList=String();
 		String t_frameworks=String();
-		String t_sharedsearch=String();
+		String t_sharedtranssearch=String();
 		String t_frameworSearchkList=String();
 		c_StringStack* t_frameworkStack=(new c_StringStack)->m_new2();
 		String t_dylibCopy=bb_config_GetConfigVar(String(L"GLFW_COPY_SHAREDLIBS",20));
@@ -8630,27 +8651,21 @@ void c_GlfwBuilder::p_MakeXcode(){
 		}
 		t_ccopts=t_ccopts+bb_config_GetConfigVar(String(L"GLFW_XCODE_CC_OPTS",18)).Replace(String(L";",1),String(L" ",1));
 		t_ldopts=t_ldopts+bb_config_GetConfigVar(String(L"GLFW_XCODE_LD_OPTS",18)).Replace(String(L";",1),String(L" ",1));
-		t_libsopts=t_libsopts+bb_config_GetConfigVar(String(L"GLFW_XCODE_LIBS_OPTS",20)).Replace(String(L";",1),String(L" ",1));
-		t_cerbRoot=m_tcc->m_cerberusdir+String(L"/libs/shared/MacOS",18);
-		t_libsearchList=bb_config_GetConfigVar(String(L"GLFW_XCODE_LIB_PATHS",20));
+		t_libsopts=t_libsopts+bb_config_GetConfigVar(String(L"GLFW_XCODE_LIB_OPTS",19)).Replace(String(L";",1),String(L" ",1));
+		t_libsearchList=bb_config_GetConfigVar(String(L"GLFW_XCODE_LIB_PATHS",20))+String(L";lib/shared/MacOS;libs/static/MacOS",35);
 		if(t_libsearchList!=String() || t_dylibCopy!=String()){
-			t_sharedsearch=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),t_cerbRoot.Split(String(L";",1)),false);
-			t_libsearchList=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),t_cerbRoot.Split(String(L";",1)),true).Replace(String(L";",1),String(L" ",1));
-			bb_helpers_ReadOut(t_libsearchList.Split(String(L" ",1)),String(L"GenerateSearchPaths Returned for : GLFW_XCODE_LIB_PATHS",55));
+			t_sharedtranssearch=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),m_tcc->m_cerberusdir,String(L"GLFW_XCODE_LIB_PATHS",20),t_searchChk,false);
+			t_libsearchList=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),m_tcc->m_cerberusdir,String(L"GLFW_XCODE_LIB_PATHS",20),t_searchChk,true).Replace(String(L";",1),String(L" ",1));
 		}
-		t_cerbRoot=m_tcc->m_cerberusdir+String(L"/includes",9);
-		t_headerList=bb_config_GetConfigVar(String(L"GLFW_XCODE_INCLUDE_PATHS",24));
+		t_headerList=bb_config_GetConfigVar(String(L"GLFW_XCODE_INCLUDE_PATHS",24))+String(L";includes",9);
 		if(t_headerList!=String()){
-			t_headerList=bb_helpers_GenerateSearchPaths(t_headerList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),t_cerbRoot.Split(String(L";",1)),false);
-			t_headerList=bb_helpers_DefineGCCPaths(t_headerList,String(L"I",1),true);
-			bb_helpers_ReadOut(t_headerList.Split(String(L"\n",1)),String(L"GenerateSearchPaths Returned for : GLFW_XCODE_INCLUDE_PATHS",59));
+			t_headerList=bb_helpers_GenerateSearchPaths(t_headerList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),m_tcc->m_cerberusdir,String(L"GLFW_XCODE_INCLUDE_PATHS",24),t_searchChk,false);
+			t_headerList=bb_helpers_DefineGCCPaths(t_headerList,String(L"I",1),true,String(),false);
 		}
-		t_cerbRoot=m_tcc->m_cerberusdir+String(L"/libs/shared/MacOS/Frameworks;/Library/Frameworks;",50)+GetEnv(String(L"HOME",4))+String(L"/Library/Frameworks",19);
-		t_frameworSearchkList=bb_config_GetConfigVar(String(L"GLFW_XCODE_FRAMEWORK_PATHS",26));
+		t_frameworSearchkList=bb_config_GetConfigVar(String(L"GLFW_XCODE_FRAMEWORK_PATHS",26))+String(L";libs/shared/MacOS/Frameworks;/Library/Frameworks;",50)+GetEnv(String(L"HOME",4))+String(L"/Library/Frameworks",19);
 		t_frameworkList->p_RemoveEach(String());
 		if(t_frameworSearchkList!=String() || t_frameworkList->p_Length2()>0){
-			t_frameworSearchkList=bb_helpers_GenerateSearchPaths(t_frameworSearchkList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),t_cerbRoot.Split(String(L";",1)),true).Replace(String(L";",1),String(L" ",1));
-			bb_helpers_ReadOut(t_frameworSearchkList.Split(String(L" ",1)),String(L"GenerateSearchPaths Returned for : GLFW_XCODE_FRAMEWORK_PATHS",61));
+			t_frameworSearchkList=bb_helpers_GenerateSearchPaths(t_frameworSearchkList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),m_tcc->m_cerberusdir,String(L"GLFW_XCODE_FRAMEWORK_PATHS",26),t_searchChk,true).Replace(String(L";",1),String(L" ",1));
 		}
 		c_Enumerator5* t_=t_frameworkList->p_ObjectEnumerator();
 		while(t_->p_HasNext()){
@@ -8662,9 +8677,9 @@ void c_GlfwBuilder::p_MakeXcode(){
 		t_ccopts=t_ccopts+(String(L" ",1)+t_headerList);
 		ChangeDir(String(L"xcode",5));
 		String t_params=String(L"OTHER_CFLAGS='",14)+t_ccopts+String(L"' LIBRARY_SEARCH_PATHS='",24)+t_libsearchList+String(L"' OTHER_LDFLAGS='",17)+t_ldopts+String(L" ",1)+t_libsopts+String(L" ",1)+t_frameworks+String(L"' PRODUCT_NAME='",16)+bb_transcc_StripQuotes(t_appName);
-		t_params=t_params+(String(L"' PRODUCT_BUNDLE_IDENTIFIER='",29)+t_bundleID+String(L"' FRAMEWORK_SEARCH_PATHS='",26)+t_frameworSearchkList+String(L"' CERBERUS_PATH='",17)+m_tcc->m_cerberusdir+String(L"' CERBERUS_ICONSET_PATH='",25)+t_iconPath+String(L"'",1));
+		t_params=t_params+(String(L"' PRODUCT_BUNDLE_IDENTIFIER='",29)+t_bundleID+String(L"' FRAMEWORK_SEARCH_PATHS='",26)+t_frameworSearchkList+String(L"' CERBERUS_PATH='",17)+m_tcc->m_cerberusdir+String(L"' CERBERUS_ICONSET_PATH='",25)+t_iconPath+String(L"' THIRDPARTY_PATH='",19)+m_tcc->m_THIRDPARTY_PATH+String(L"'",1));
 		p_Execute(String(L"xcodebuild -configuration ",26)+m_casedConfig+String(L" ",1)+t_params,true);
-		p_Execute(m_tcc->m_cerberusdir+String(L"/bin/sharedtrans_",17)+HostOS()+String(L" -arch=\"64\" -srcdirs=\"",22)+t_sharedsearch+String(L"\" -libs=\"",9)+t_dylibCopy+String(L"\" -dst=\"",8)+CurrentDir()+String(L"/build/",7)+m_casedConfig+String(L"/",1)+bb_transcc_StripQuotes(t_appName)+String(L".app\" -toolchain=\"macos\"",24),true);
+		p_Execute(m_tcc->m_cerberusdir+String(L"/bin/sharedtrans_",17)+HostOS()+String(L" -arch=\"64\" -srcdirs=\"",22)+t_sharedtranssearch+String(L"\" -libs=\"",9)+t_dylibCopy+String(L"\" -dst=\"",8)+CurrentDir()+String(L"/build/",7)+m_casedConfig+String(L"/",1)+bb_transcc_StripQuotes(t_appName)+String(L".app\" -toolchain=\"macos\"",24),true);
 		if(t_frameworkList->p_Length2()>0){
 			if(!((CreateDir(String(L"build/",6)+m_casedConfig+String(L"/",1)+bb_transcc_StripQuotes(t_appName)+String(L".app/Contents/Frameworks",24)))!=0)){
 				bb_transcc_Die(String(L"Failed to create Frameworks directory in build/",47)+m_casedConfig+String(L"/",1)+bb_transcc_StripQuotes(t_appName)+String(L".app/Contents/Frameworks",24));
@@ -9362,6 +9377,7 @@ String c_StdcppBuilder::p_LibsOptions(String t_msize,String t_ldopts){
 }
 void c_StdcppBuilder::p_MakeTarget(){
 	String t_tconfig=bb_config_ENV_CONFIG;
+	bool t_searchChk=((bb_config_GetConfigVar(String(L"SHOW_SEARCH_PATH_CHECK",22))).Length()!=0);
 	String t_3=t_tconfig;
 	if(t_3==String(L"debug",5)){
 		bb_config_SetConfigVar2(String(L"DEBUG",5),String(L"1",1));
@@ -9387,36 +9403,27 @@ void c_StdcppBuilder::p_MakeTarget(){
 		String t_buildStatic=bb_config_GetConfigVar(String(L"MINGW_USE_STATIC",16));
 		String t_useMinGW=bb_config_GetConfigVar(String(L"CC_USE_MINGW",12));
 		String t_useIcon=bb_config_GetConfigVar(String(L"CC_USE_ICON",11));
-		String t_gccVersion=bb_helpers_GCCVer().Trim();
+		Array<String > t_gccVersion=bb_helpers_GCCVer();
 		if(m_tcc->m_opt_msize!=String()){
-			bbPrint(String(L"Over-ride of CC_MSIZE via command option. msize is now set to ",62)+m_tcc->m_opt_msize);
-			String t_4=HostOS();
-			if(t_4==String(L"winnt",5)){
+			if(HostOS()==String(L"winnt",5) || HostOS()==String(L"linux",5)){
+				bbPrint(String(L"Over-ride of CC_MSIZE via command option. msize is now set to ",62)+m_tcc->m_opt_msize);
 				if(m_tcc->m_opt_msize==String(L"32",2) || m_tcc->m_opt_msize==String(L"64",2)){
 					t_msize=m_tcc->m_opt_msize;
 				}else{
 					bb_transcc_Die(String(L"Unknown MSIZE options passed via command line.",46));
 				}
-			}else{
-				if(t_4==String(L"linux",5)){
-					if(m_tcc->m_opt_msize==String(L"32",2) || m_tcc->m_opt_msize==String(L"64",2)){
-						t_msize=m_tcc->m_opt_msize;
-					}else{
-						bb_transcc_Die(String(L"Unknown MSIZE options passed via command line.",46));
-					}
-				}
 			}
 		}else{
 			if(t_msize==String()){
-				String t_5=HostOS();
-				if(t_5==String(L"winnt",5)){
+				String t_4=HostOS();
+				if(t_4==String(L"winnt",5)){
 					if(t_useMinGW==String(L"1",1)){
 						t_msize=String(L"64",2);
 					}else{
 						t_msize=String(L"32",2);
 					}
 				}else{
-					if(t_5==String(L"linux",5)){
+					if(t_4==String(L"linux",5)){
 						t_msize=String(L"64",2);
 					}
 				}
@@ -9436,8 +9443,8 @@ void c_StdcppBuilder::p_MakeTarget(){
 		String t_ldOPTS2=String();
 		String t_libOPTS2=String();
 		String t_iconPath=bb_config_GetConfigVar(String(L"CC_ICON",7));
-		String t_6=bb_config_ENV_HOST;
-		if(t_6==String(L"winnt",5)){
+		String t_5=bb_config_ENV_HOST;
+		if(t_5==String(L"winnt",5)){
 			if(t_useMinGW==String(L"1",1) && m_tcc->m_opt_msbuild==false){
 				t_ccOPTS2=t_ccOPTS2+String(L" -Wno-free-nonheap-object",25);
 				t_libOPTS2=t_libOPTS2+String(L" -lwinmm -lws2_32",17);
@@ -9464,13 +9471,11 @@ void c_StdcppBuilder::p_MakeTarget(){
 				t_includesList=bb_config_GetConfigVar(String(L"CC_VS_INCLUDES",14));
 				t_headerList=bb_config_GetConfigVar(String(L"CC_VS_HEADER_PATHS",18));
 				if(t_libsearchList!=String()){
-					t_libsearchList=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),t_cerbRoot.Split(String(L";",1)),false);
-					bb_helpers_ReadOut(t_libsearchList.Split(String(L";",1)),String(L"GenerateSearchPaths Returned for : GLFW_VS_LIB_PATHS",52));
+					t_libsearchList=bb_helpers_GenerateSearchPaths(t_libsearchList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),t_cerbRoot,String(L"GLFW_VS_LIB_PATHS",17),t_searchChk,false);
 				}
 				t_cerbRoot=m_tcc->m_cerberusdir+String(L"/includes",9);
 				if(t_headerList!=String()){
-					t_headerList=bb_helpers_GenerateSearchPaths(t_headerList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),t_cerbRoot.Split(String(L";",1)),false);
-					bb_helpers_ReadOut(t_headerList.Split(String(L";",1)),String(L"GenerateSearchPaths Returned for : GLFW_VS_HEADER_PATHS",55));
+					t_headerList=bb_helpers_GenerateSearchPaths(t_headerList,RealPath(CurrentDir()+String(L"/../../",7)),RealPath(CurrentDir()),t_cerbRoot,String(L"GLFW_VS_HEADER_PATHS",20),t_searchChk,false);
 				}
 				t_ccOPTS2=String(L"/p:projectname=",15)+bb_helpers_QuoteMe(t_out)+String(L" /p:CerberusPath=",17)+bb_helpers_QuoteMe(RealPath(m_tcc->m_cerberusdir))+String(L" /p:CerberusLibraryPaths=",25)+bb_helpers_QuoteMe(t_libsearchList);
 				t_ccOPTS2=t_ccOPTS2+(String(L" /p:CerberusIncludePaths=",25)+bb_helpers_QuoteMe(t_headerList)+String(L" /p:CerberusLinker=",19)+bb_helpers_QuoteMe(t_libOPTS2)+String(L" /p:CerberusIncludes=",21)+bb_helpers_QuoteMe(t_includesList));
@@ -9480,32 +9485,36 @@ void c_StdcppBuilder::p_MakeTarget(){
 				}
 			}
 		}else{
-			if(t_6==String(L"macos",5)){
+			if(t_5==String(L"macos",5)){
 				t_ccOPTS2=String(L" -Wno-parentheses -Wno-dangling-else",36);
 				t_ccopts=String(L" -mmacosx-version-min=10.9 -std=gnu++0x -stdlib=libc++",54)+p_CCOptions(t_ccOPTS2,String());
 				t_libopts=t_libopts+p_LibsOptions(String(),String());
 			}else{
-				if(t_6==String(L"linux",5)){
+				if(t_5==String(L"linux",5)){
+					if(t_gccVersion.Length()>0){
+						bbPrint(String(L"USING GCC VERSION: ",19)+t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
+					}
 					t_ccopts=t_ccopts+(String(L" -Wno-unused-result",19)+p_CCOptions(t_msize,String()));
-					if((t_gccVersion).ToInt()>5){
+					if((t_gccVersion[0]).ToInt()>5){
 						if(bb_config_GetConfigVar(String(L"GCC_LINUX_NOPIE",15))==String(L"1",1)){
-							t_libopts=t_libopts+String(L" -no-pie",8);
+							t_ldopts=t_ldopts+String(L" -no-pie",8);
+							bbPrint(String(L"Building binary using -no-pie linker option.",44));
 						}
 					}
 					t_libopts=t_libopts+(String(L" -lpthread",10)+p_LibsOptions(t_msize,String()));
 				}
 			}
 		}
-		String t_7=HostOS();
-		if(t_7==String(L"macos",5)){
+		String t_6=HostOS();
+		if(t_6==String(L"macos",5)){
 			bbPrint(String(L"Executing:\nclang++ ",19)+t_ccopts+String(L" -o ",4)+t_out+String(L" main.cpp",9)+String(L" ",1)+t_ldopts+String(L" ",1)+t_libopts);
 			p_Execute(String(L"clang++ ",8)+t_ccopts+String(L" -o ",4)+t_out+String(L" main.cpp",9)+String(L" ",1)+t_ldopts+String(L" ",1)+t_libopts,true);
 		}else{
-			if(t_7==String(L"linux",5)){
+			if(t_6==String(L"linux",5)){
 				bbPrint(String(L"Executing:\ng++",14)+t_ccopts+String(L" -o ",4)+t_out+String(L" main.cpp",9)+String(L" ",1)+t_ldopts+String(L" ",1)+t_libopts);
 				p_Execute(String(L"g++ ",4)+t_ccopts+String(L" -o ",4)+t_out+String(L" main.cpp",9)+String(L" ",1)+t_ldopts+String(L" ",1)+t_libopts,true);
 			}else{
-				if(t_7==String(L"winnt",5)){
+				if(t_6==String(L"winnt",5)){
 					if(t_useMinGW==String(L"1",1) && m_tcc->m_opt_msbuild==false){
 						String t_windres=String();
 						if(t_useIcon==String(L"1",1)){
@@ -9971,8 +9980,6 @@ bool c_AGKBuilder_ios::p_IsValid(){
 		if(FileType(m_tcc->m_AGK_PATH+String(L"/AppGameKit.app",15))==2){
 			return true;
 		}
-	}else{
-		return true;
 	}
 	return false;
 }
@@ -21159,6 +21166,65 @@ void c_CppTranslator::mark(){
 	c_CTranslator::mark();
 	gc_mark_q(m_dbgLocals);
 }
+Array<String > bb_helpers_GCCVer(){
+	Array<String > t_ret=Array<String >();
+	String t_2=HostOS();
+	if(t_2==String(L"linux",5)){
+		String t_str=String();
+		int t_err=ExecutePipe(String(L"expr `gcc -dumpfullversion | sed -e 's/^[ \\t]*//'`",50),t_str);
+		if(t_err!=0){
+			t_str=String();
+			ExecutePipe(String(L"expr `gcc -dumpversion | sed -e 's/^[ \\t]*//'`",46),t_str);
+		}
+		t_ret=t_str.Split(String(L".",1));
+		return t_ret;
+	}else{
+		if(t_2==String(L"winnt",5)){
+			String t_str2=String();
+			int t_err2=ExecutePipe(String(L"gcc -dumpfullversion",20),t_str2);
+			if(t_err2!=0){
+				t_err2=ExecutePipe(String(L"gcc -dumpversion",16),t_str2);
+				if(t_err2!=0){
+					t_str2=String(L"UNKNOWN",7);
+				}
+			}
+			t_ret=t_str2.Split(String(L".",1));
+			return t_ret;
+		}
+	}
+	return t_ret;
+}
+void bb_helpers_CreateDefaultDirs(String t_cerberusdir,String t_msize,Array<String > t_gccVersion,String t_vs_version){
+	String t_3=HostOS();
+	if(t_3==String(L"winnt",5)){
+		if(t_gccVersion.Length()>0){
+			bbPrint(String(L"Using MinGW Version ",20)+t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
+			bb_config_SetConfigVar2(String(L"GLFW_GCC_VERSION_WINNT",22),t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
+		}
+		CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/Win",16)+t_msize));
+		CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/MinGW/",19)+t_msize));
+		CreateDir(RealPath(t_cerberusdir+String(L"/includes",9)));
+		CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/Win",16)+t_msize));
+		CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/VisualStudio/",26)+t_vs_version+String(L"/",1)+t_msize));
+	}else{
+		if(t_3==String(L"linux",5)){
+			if(t_gccVersion.Length()>0){
+				bbPrint(String(L"Using GCC Version ",18)+t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
+				bb_config_SetConfigVar2(String(L"GLFW_GCC_VERSION_LINUX",22),t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
+			}
+			CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/Linux",18)+t_msize));
+			CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/Linux/",19)+t_msize));
+			CreateDir(RealPath(t_cerberusdir+String(L"/includes",9)));
+		}else{
+			if(t_3==String(L"macos",5)){
+				CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/MacOS",18)));
+				CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/MacOS/Frameworks",29)));
+				CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/MacOS",18)));
+				CreateDir(RealPath(t_cerberusdir+String(L"/includes",9)));
+			}
+		}
+	}
+}
 int bb_helpers_CopyICON(String t_userPath,String t_extension,String t_prjPath,String t_target,String t_cerbPath,String t_resourceFile){
 	String t_userFile=t_userPath+String(L".",1)+t_extension;
 	String t_targetFile=t_target+String(L"/icon.",6)+t_extension;
@@ -21180,17 +21246,54 @@ int bb_helpers_CopyICON(String t_userPath,String t_extension,String t_prjPath,St
 		}
 	}
 }
-String bb_helpers_GCCVer(){
-	String t_2=HostOS();
-	if(t_2==String(L"linux",5)){
-		String t_str=String();
-		int t_err=ExecutePipe(String(L"expr `gcc -dumpversion | cut -f1 -d.`",37),t_str);
-		if(t_err!=0){
-			bb_transcc_Die(String(L"Failed to determine GCC version with command expr `gcc -dumpversion | cut -f1 -d.`",82));
+Array<String > bb_helpers_MacroExpansion(Array<String > t_search,bool t_showOutput){
+	c_StringMap2* t_configVars=bb_config_GetConfigVars();
+	int t_f=0;
+	int t_l=0;
+	int t_i=0;
+	int t_idx=0;
+	int t_b=0;
+	for(t_idx=0;t_idx<t_search.Length();t_idx=t_idx+1){
+		t_i=0;
+		while(t_i<t_search[t_idx].Length()){
+			t_f=t_search[t_idx].Find(String(L"#{",2),t_i);
+			if(t_f>-1){
+				t_l=t_search[t_idx].Find(String(L"}",1),t_f);
+				if(t_showOutput){
+					bbPrint(String(L"\nMarco search of line: ",23)+t_search[t_idx]);
+				}
+				if(t_l>-1){
+					t_b=t_search[t_idx].Find(String(L"#{",2),t_f+1);
+					if(t_b>-1){
+						if(t_b<t_l){
+							bb_transcc_Die(String(L"Macro Syntax Error: Start brace before end brace for ",53)+t_search[t_idx].Slice(t_f+2,t_l));
+						}
+					}
+					String t_val=t_configVars->p_Get(t_search[t_idx].Slice(t_f+2,t_l));
+					if(t_showOutput){
+						bbPrint(String(L"Macro Found: >",14)+t_search[t_idx].Slice(t_f+2,t_l)+String(L"<",1));
+					}
+					if(t_val!=String()){
+						t_search[t_idx]=t_search[t_idx].Replace(t_search[t_idx].Slice(t_f,t_l+1),t_val);
+						if(t_showOutput){
+							bbPrint(String(L"Evaluated: ",11)+t_search[t_idx]);
+						}
+						t_i+=t_val.Length();
+					}else{
+						bb_transcc_Die(String(L"Macro >",7)+t_search[t_idx].Slice(t_f+2,t_l)+String(L"< Not Recognised",16));
+						t_i=t_f+t_l+1;
+					}
+				}else{
+					if(t_b>-1){
+						bb_transcc_Die(String(L"Macro Syntax Error: No ending brace for ",40)+t_search[t_idx].Slice(t_f+2,t_l));
+					}
+				}
+			}else{
+				t_i+=1;
+			}
 		}
-		return t_str;
 	}
-	return String();
+	return t_search;
 }
 c_Enumerator5::c_Enumerator5(){
 	m_stack=0;
@@ -21217,27 +21320,44 @@ void c_Enumerator5::mark(){
 String bb_helpers_QuoteMe(String t_str){
 	return String(L"\"",1)+t_str+String(L"\"",1);
 }
-String bb_helpers_GenerateSearchPaths(String t_paths,String t_prjRoot,String t_prjTemplate,Array<String > t_cerbRoot,bool t_quote){
+String bb_helpers_GenerateSearchPaths(String t_paths,String t_prjRoot,String t_prjTemplate,String t_cerbRoot,String t_configStr,bool t_showOutPut,bool t_quote){
 	c_StringStack* t_store=(new c_StringStack)->m_new2();
-	Array<String > t_searchP=t_paths.Split(String(L";",1));
+	Array<String > t_searchP=bb_helpers_MacroExpansion(t_paths.Split(String(L";",1)),t_showOutPut);
 	int t_i=0;
 	int t_j=0;
 	String t_out=String();
+	bool t_sepa=false;
+	if(t_showOutPut){
+		bbPrint(String(L"\nGenerating search paths for: ",30)+t_configStr);
+	}
 	for(t_i=0;t_i<t_searchP.Length();t_i=t_i+1){
+		t_sepa=false;
 		if(FileType(RealPath(t_prjRoot+String(L"/",1)+t_searchP[t_i]))==2){
 			if(!t_store->p_Contains(RealPath(t_prjRoot+String(L"/",1)+t_searchP[t_i]))){
 				t_store->p_Push(RealPath(t_prjRoot+String(L"/",1)+t_searchP[t_i]));
+			}
+			if(t_showOutPut){
+				bbPrint(String(L"Project Root Stored: ",21)+RealPath(t_prjRoot+String(L"/",1)+t_searchP[t_i]));
+				t_sepa=true;
 			}
 		}
 		if(FileType(RealPath(t_prjTemplate+String(L"/",1)+t_searchP[t_i]))==2){
 			if(!t_store->p_Contains(RealPath(t_prjTemplate+String(L"/",1)+t_searchP[t_i]))){
 				t_store->p_Push(RealPath(t_prjTemplate+String(L"/",1)+t_searchP[t_i]));
 			}
+			if(t_showOutPut){
+				bbPrint(String(L"Project Template Stored: ",25)+RealPath(t_prjTemplate+String(L"/",1)+t_searchP[t_i]));
+				t_sepa=true;
+			}
 		}
 		for(t_j=0;t_j<t_cerbRoot.Length();t_j=t_j+1){
-			if(FileType(RealPath(t_cerbRoot[t_j]+String(L"/",1)+t_searchP[t_i]))==2){
-				if(!t_store->p_Contains(RealPath(t_cerbRoot[t_j]+String(L"/",1)+t_searchP[t_i]))){
-					t_store->p_Push(RealPath(t_cerbRoot[t_j]+String(L"/",1)+t_searchP[t_i]));
+			if(FileType(RealPath(t_cerbRoot+String(L"/",1)+t_searchP[t_i]))==2){
+				if(!t_store->p_Contains(RealPath(t_cerbRoot+String(L"/",1)+t_searchP[t_i]))){
+					t_store->p_Push(RealPath(t_cerbRoot+String(L"/",1)+t_searchP[t_i]));
+					if(t_showOutPut){
+						bbPrint(String(L"Cerberus Root Stored: ",22)+RealPath(t_cerbRoot+String(L"/",1)+t_searchP[t_i]));
+						t_sepa=true;
+					}
 				}
 			}
 		}
@@ -21245,12 +21365,14 @@ String bb_helpers_GenerateSearchPaths(String t_paths,String t_prjRoot,String t_p
 			if(!t_store->p_Contains(RealPath(t_searchP[t_i]))){
 				t_store->p_Push(RealPath(t_searchP[t_i]));
 			}
+			if(t_showOutPut){
+				bbPrint(String(L"Full Path Stored: ",18)+RealPath(t_searchP[t_i]));
+				t_sepa=true;
+			}
 		}
-	}
-	for(t_i=0;t_i<t_cerbRoot.Length();t_i=t_i+1){
-		if(FileType(RealPath(t_cerbRoot[t_i]))==2){
-			if(!t_store->p_Contains(RealPath(t_cerbRoot[t_i]))){
-				t_store->p_Push(RealPath(t_cerbRoot[t_i]));
+		if(t_showOutPut){
+			if(t_sepa){
+				bbPrint(String(L"------------------------------------",36));
 			}
 		}
 	}
@@ -21266,25 +21388,22 @@ String bb_helpers_GenerateSearchPaths(String t_paths,String t_prjRoot,String t_p
 	t_out=t_out.Slice(0,t_out.Length()-1);
 	return t_out;
 }
-void bb_helpers_ReadOut(Array<String > t_str,String t_msg){
-	bbPrint(String(L"\n",1)+t_msg);
-	for(int t_i=0;t_i<t_str.Length();t_i=t_i+1){
-		bbPrint(t_str[t_i]);
-	}
-	bbPrint(String());
-}
-String bb_helpers_DefineGCCPaths(String t_paths,String t_option,bool t_quote){
+String bb_helpers_DefineGCCPaths(String t_paths,String t_option,bool t_quote,String t_configStr,bool t_showOutput){
 	Array<String > t_splits=t_paths.Split(String(L";",1));
 	String t_str=String();
 	String t_truePath=String();
+	if(t_showOutput){
+		bbPrint(String(L"Evaluating: ",12)+t_configStr);
+	}
 	for(int t_i=0;t_i<t_splits.Length();t_i=t_i+1){
 		t_truePath=RealPath(t_splits[t_i]);
-		if(FileType(t_truePath)==2){
-			if(t_quote){
-				t_str=t_str+(String(L" -",2)+t_option+String(L"\"",1)+t_truePath+String(L"\" ",2));
-			}else{
-				t_str=t_str+(String(L" -",2)+t_option+t_truePath+String(L" ",1));
-			}
+		if(t_quote){
+			t_str=t_str+(String(L" -",2)+t_option+String(L"\"",1)+t_truePath+String(L"\" ",2));
+		}else{
+			t_str=t_str+(String(L" -",2)+t_option+t_truePath+String(L" ",1));
+		}
+		if(t_showOutput){
+			bbPrint(String(L"-",1)+t_option+String(L"\"",1)+t_truePath+String(L"\"",1));
 		}
 	}
 	return t_str.Slice(0,t_str.Length()-1);

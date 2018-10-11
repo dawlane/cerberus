@@ -1,6 +1,8 @@
 #Rem
 Change log
 -------------------------------------------------------------------------------------------------
+2018-10-09 - Dawlane
+					Minor tweak to MSIZE OS dectection
 2018-07-23 - Dawlane
 					Added support to build either with MinGw or Visual Studio via MSBuild.
 					Added new convenience precompiler options for use with Visual Studio and other compilers.
@@ -69,6 +71,7 @@ Class StdcppBuilder Extends Builder
 	
 	Method MakeTarget:Void()
 		Local tconfig:=ENV_CONFIG
+		Local searchChk:= Bool(GetConfigVar( "SHOW_SEARCH_PATH_CHECK" ))
 		
 		Select tconfig
 			Case "debug"
@@ -96,17 +99,14 @@ Class StdcppBuilder Extends Builder
 			Local buildStatic:=GetConfigVar( "MINGW_USE_STATIC" )
 			Local useMinGW:=GetConfigVar( "CC_USE_MINGW" )
 			Local useIcon:=GetConfigVar( "CC_USE_ICON" )
-			Local gccVersion:=GCCVer().Trim()
+			Local gccVersion:=GCCVer()
 			
 			' Work out how msize has to be passed based on the operating system and compiler chosen
 			If tcc.opt_msize<>""
-				Print "Over-ride of CC_MSIZE via command option. msize is now set to "+tcc.opt_msize
-				Select HostOS()
-					Case "winnt"
-						If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize Else Die "Unknown MSIZE options passed via command line."
-					Case "linux"
-						If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize Else Die "Unknown MSIZE options passed via command line."
-				End Select
+				If HostOS() = "winnt" Or HostOS() = "linux"
+					Print "Over-ride of CC_MSIZE via command option. msize is now set to "+tcc.opt_msize
+					If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize Else Die "Unknown MSIZE options passed via command line."
+				Endif
 			Else
 				If msize=""
 					Select HostOS()
@@ -152,7 +152,7 @@ Class StdcppBuilder Extends Builder
 						ldopts=ldOPTS+" "+ldopts
 						libopts= LibsOptions( msize, libOPTS )
 					Else
-						' If CC_USE_MINGE isn't set. Then process the Visual studio options
+						' If CC_USE_MINGW isn't set. Then process the Visual studio options
 						' Search paths for known locations etc,
 						Local cerbRoot:=tcc.cerberusdir+"/libs/shared/win"+msize
 						Local includesList:="", headerList:="", libsearchList:=""
@@ -164,14 +164,12 @@ Class StdcppBuilder Extends Builder
 						headerList=GetConfigVar( "CC_VS_HEADER_PATHS" )	
 			
 						If libsearchList<>"" 'Or dylibCopy<>""
-							libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ) )
-							ReadOut(libsearchList.Split(";"), "GenerateSearchPaths Returned for : GLFW_VS_LIB_PATHS")
+							libsearchList=GenerateSearchPaths( libsearchList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot, "GLFW_VS_LIB_PATHS", searchChk )
 						Endif
 			
 						cerbRoot=tcc.cerberusdir+"/includes"
 						If headerList<>""
-							headerList=GenerateSearchPaths( headerList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot.Split( ";" ) )
-							ReadOut(headerList.Split(";"), "GenerateSearchPaths Returned for : GLFW_VS_HEADER_PATHS" )
+							headerList=GenerateSearchPaths( headerList, RealPath( CurrentDir()+"/../../" ), RealPath( CurrentDir() ), cerbRoot, "GLFW_VS_HEADER_PATHS", searchChk )
 						Endif
 						ccOPTS = "/p:projectname="+QuoteMe( out )+" /p:CerberusPath="+QuoteMe( RealPath( tcc.cerberusdir ) ) + " /p:CerberusLibraryPaths="+QuoteMe( libsearchList )
 						ccOPTS+=" /p:CerberusIncludePaths="+QuoteMe( headerList )+" /p:CerberusLinker="+QuoteMe( libOPTS )+" /p:CerberusIncludes="+QuoteMe( includesList )
@@ -183,11 +181,15 @@ Class StdcppBuilder Extends Builder
 					ccopts=" -mmacosx-version-min=10.9 -std=gnu++0x -stdlib=libc++" + CCOptions( ccOPTS )
 					libopts+= LibsOptions()
 				Case "linux"
+					If gccVersion.Length>0 Print "USING GCC VERSION: "+gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
 					' Do not warn if a caller of a function marked with attribute warn_unused_result does not use its return value. The default is -Wunused-result. 
 					ccopts+=" -Wno-unused-result" + CCOptions( msize )
 					' GCC verions greater than 5 will require -no-pie options to work correctly.
-					If Int(gccVersion)>5
-						If GetConfigVar( "GCC_LINUX_NOPIE" )="1" libopts+=" -no-pie"
+					If Int(gccVersion[0])>5
+						If GetConfigVar( "GCC_LINUX_NOPIE" )="1"
+							ldopts+=" -no-pie"
+							Print "Building binary using -no-pie linker option."
+						Endif
 					Endif
 					' Link to pthreading library
 					libopts+=" -lpthread" + LibsOptions( msize )

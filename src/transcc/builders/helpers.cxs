@@ -2,6 +2,13 @@
 This file is for additional functions to assist in the manipulation of building projects.
 Change Log
 ----------------------------------------------------------------------------------------------
+2018-10-04 - Dawlane
+					Reintroduced path checks for directory searching and updated the method to display the output.
+					Use #SHOW_SEARCH_PATH_CHECK in a source file to show search directories and evaluations.
+2018-09-23 - Dawlane
+					Added a function to try to get the version of GCC. Linux only for now.
+2018-08-26 - Dawlane
+					Removed path checks for directory searching.
 2018-08-02 - Dawlane
 					Added a function to execute external applications and return information from stdout and stderr.
 					Makes use of cpp code in the native folder.
@@ -21,63 +28,104 @@ Function QuoteMe:String( str:String )
 	Return "~q"+str+"~q"
 End
 
-' Print output for path search
-Function ReadOut:Void( str:String[], msg:String )
-	Print "~n"+msg
-	For Local i:=0 Until str.Length()
-		Print str[i]
-	Next
-	Print ""
-End
-
-' Function to create -LSearchPaths
-Function DefineGCCPaths:String( paths:String, option:String, quote:Bool=False )
+' Function to create -L/ISearchPaths
+Function DefineGCCPaths:String( paths:String, option:String, quote:Bool=False, configStr:String="", showOutput:Bool=False )
 	Local splits:String[]=paths.Split( ";" )
 	Local str:="", truePath:=""
 	
+	If showOutput Print "Evaluating: "+configStr
 	For Local i:=0 Until splits.Length()
 		truePath=RealPath( splits[i] )
-		If FileType( truePath )=FILETYPE_DIR
-			If quote str+=" -"+option+"~q"+truePath+"~q " Else str+=" -"+option+truePath+" "
-		Endif
+		If quote str+=" -"+option+"~q"+truePath+"~q " Else str+=" -"+option+truePath+" "
+		If showOutput Print "-"+option+"~q"+truePath+"~q"
 	Next
 	Return str[ .. ( str.Length()-1 ) ]
 End
 
-' Function generate search paths based on the strings passed
-Function GenerateSearchPaths:String( paths:String, prjRoot:String, prjTemplate:String, cerbRoot:String[], quote:Bool=False )
-	Local store:= New StringStack()
-	Local searchP:String[]=paths.Split( ";" )
-	Local i:Int, j:Int, out:=""
+' Parse a string to look for any preprocessor directives to expand.
+Function MacroExpansion:String[]( search:String[], showOutput:Bool=False )	
+	Local configVars:= GetConfigVars()
 	
-	For i = 0 Until searchP.Length()	
+	Local f:Int, l:Int, i:Int, idx:Int, b:Int
+	For idx = 0 Until search.Length()
+		' Search the string
+		i=0
+		While i < search[idx].Length()
+			f = search[idx].Find( "#{", i )
+			' Found the start of a macro if the value is greater than -1
+			If f>-1
+				l = search[idx].Find( "}", f ) ' End brace
+				If showOutput Print "~nMarco search of line: "+search[idx]
+				' Found a last bracket for the macro
+				If l>-1
+					' Check that there are no other starting braces
+					b = search[idx].Find( "#{", f+1 )
+					If b>-1
+						if b<l Die "Macro Syntax Error: Start brace before end brace for "+search[idx][ f+2 .. l  ]
+					endif
+					Local val:= configVars.Get( search[idx][ f+2 .. l  ] )
+					If showOutput Print "Macro Found: >"+search[idx][ f+2 .. l ]+"<"
+					If val<>""
+						search[idx] = search[idx].Replace( search[idx][ f .. l+1 ], val )
+						If showOutput Print "Evaluated: "+search[idx]
+						i+=val.Length()
+					Else
+						' Not a macro, so add the length to skip it
+						Die "Macro >"+search[idx][ f+2 .. l ]+"< Not Recognised"
+						i = f+l+1
+					Endif
+				Else
+					' No end brace, so stop execution.
+					If b>-1 Die "Macro Syntax Error: No ending brace for "+search[idx][ f+2 .. l  ]
+				Endif	
+			Else
+				' No starting brace, so just move a long one character
+				i+=1
+			Endif
+		Wend
+	Next
+	Return search
+End Function
+
+' Function generate search paths based on the strings passed
+Function GenerateSearchPaths:String( paths:String, prjRoot:String, prjTemplate:String, cerbRoot:String, configStr:String="", showOutPut:Bool=False, quote:Bool=False )
+	Local store:= New StringStack()
+	Local searchP:String[]=MacroExpansion( paths.Split( ";" ), showOutPut )
+	Local i:Int, j:Int, out:="", sepa:Bool=False
+	
+	If showOutPut Print "~nGenerating search paths for: "+configStr
+	
+	For i = 0 Until searchP.Length()
+		sepa=False
 		' First check against prjRoot
-		If FileType( RealPath( prjRoot+"/"+searchP[i] ) )=FILETYPE_DIR
+		If FileType( RealPath( prjRoot+"/"+searchP[i] ) ) = FILETYPE_DIR
 			If Not store.Contains( RealPath( prjRoot+"/"+searchP[i] ) ) store.Push( RealPath( prjRoot+"/"+searchP[i] ) )
+			If showOutPut Print "Project Root Stored: "+RealPath( prjRoot+"/"+searchP[i] ); sepa=True
 		Endif
-		
+
 		' Second check against prjTemplate
-		If FileType( RealPath( prjTemplate+"/"+searchP[i] ) )=FILETYPE_DIR
+		If FileType( RealPath( prjTemplate+"/"+searchP[i] ) ) = FILETYPE_DIR
 			If Not store.Contains( RealPath( prjTemplate+"/"+searchP[i] ) ) store.Push( RealPath( prjTemplate+"/"+searchP[i] ) )
+			If showOutPut Print "Project Template Stored: "+RealPath( prjTemplate+"/"+searchP[i] ); sepa=True
 		Endif
 		
-		' Third check against cerbRoot. Should in theory allow you to have named sub directories within the cerberus libs directory
+		' Third check against cerbRoot. Should in theory allow you to have named sub directories within the cerberus libs directory without using the full path name.
 		For j = 0 Until cerbRoot.Length()
-			If FileType( RealPath( cerbRoot[j]+"/"+searchP[i] ) )=FILETYPE_DIR
-				If Not store.Contains( RealPath(  cerbRoot[j]+"/"+searchP[i] ) ) store.Push( RealPath(  cerbRoot[j]+"/"+searchP[i] ) )
+			If FileType( RealPath(  cerbRoot+"/"+searchP[i] ) ) = FILETYPE_DIR
+				If Not store.Contains( RealPath(  cerbRoot+"/"+searchP[i] ) )
+					store.Push( RealPath(  cerbRoot+"/"+searchP[i] ) )
+					If showOutPut Print "Cerberus Root Stored: "+RealPath( cerbRoot+"/"+searchP[i] ); sepa=True
+				Endif
 			Endif
 		Next
 		
 		' Fourth check that the path doesn't already exist
-		If FileType( RealPath( searchP[i] ) )=FILETYPE_DIR
+		If FileType( RealPath( searchP[i] ) ) = FILETYPE_DIR
 			If Not store.Contains( RealPath( searchP[i] ) ) store.Push( RealPath( searchP[i] ) )
+			If showOutPut Print "Full Path Stored: "+RealPath( searchP[i] ); sepa=True
 		Endif
-	Next
-	
-	' Now add the actual Cerberus librariy paths
-	For i = 0 Until cerbRoot.Length()
-		If FileType( RealPath( cerbRoot[i] ) )=FILETYPE_DIR
-			If Not store.Contains( RealPath( cerbRoot[i] ) ) store.Push( RealPath( cerbRoot[i] ) )
+		If showOutPut
+			If sepa Print "------------------------------------"
 		Endif
 	Next
 	
@@ -154,16 +202,60 @@ Function CopyICON:Int( userPath:String = "icon", extension:String, prjPath:Strin
 	Endif
 End Function
 
-' Detect GCC versions
-Function GCCVer:String()
+' Detect GCC versions. May move a version of this into all GCC makefiles.
+Function GCCVer:String[]()
+	Local ret:String[]
 	Select HostOS()
 		Case "linux"
 			Local str:=""
-			Local err:=ExecutePipe( "expr `gcc -dumpversion | cut -f1 -d.`", str )
-			If err<>0 Die "Failed to determine GCC version with command expr `gcc -dumpversion | cut -f1 -d.`"
-			Return str
+			Local err:=ExecutePipe( "expr `gcc -dumpfullversion | sed -e 's/^[ \t]*//'`", str )	' GCC 6+ should support this.
+			If err<>0 str=""; ExecutePipe( "expr `gcc -dumpversion | sed -e 's/^[ \t]*//'`", str )
+			ret=str.Split(".")
+			Return ret
+		Case "winnt"
+			Local str:=""
+			Local err:=ExecutePipe( "gcc -dumpfullversion", str )	' GCC 6+ should support this.
+			If err<>0
+				err=ExecutePipe( "gcc -dumpversion", str )
+				If err<>0 str="UNKNOWN"
+			Endif
+			ret=str.Split(".")
+			Return ret
 	End Select
-	Return ""
+	Return ret
+End Function
+
+
+Function CreateDefaultDirs:Void( cerberusdir:String, msize:String, gccVersion:String[], vs_version:String = "" )
+	' Not get the version of the GCC compiler being used and store it as a config variable for later use if required later.
+		' E.G. If it's decided that the locations of GCC libraries need to be separated, just like Visual Studio.
+		' Also make sure that the default directories exist or there could be trouble passing those paths to search.
+		
+		Select HostOS()
+			Case "winnt"
+				If gccVersion.Length>0
+					Print "Using MinGW Version "+gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
+					SetConfigVar "GLFW_GCC_VERSION_WINNT",gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
+				Endif
+				CreateDir( RealPath( cerberusdir+"/libs/shared/Win"+msize ) )
+				CreateDir( RealPath( cerberusdir+"/libs/static/MinGW/"+msize ) )
+				CreateDir( RealPath( cerberusdir+"/includes" ) )
+				CreateDir( RealPath( cerberusdir+"/libs/shared/Win"+msize ) )
+				CreateDir( RealPath( cerberusdir+"/libs/static/VisualStudio/"+vs_version+"/"+msize ) )
+			Case "linux"
+				If gccVersion.Length>0
+					Print "Using GCC Version "+gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
+					SetConfigVar "GLFW_GCC_VERSION_LINUX",gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
+				Endif
+				CreateDir( RealPath( cerberusdir+"/libs/shared/Linux"+msize ) )
+				CreateDir( RealPath( cerberusdir+"/libs/static/Linux/"+msize ) )
+				CreateDir( RealPath( cerberusdir+"/includes" ) )
+			Case "macos"
+				CreateDir( RealPath( cerberusdir+"/libs/shared/MacOS" ) )
+				CreateDir( RealPath( cerberusdir+"/libs/shared/MacOS/Frameworks" ) )
+				CreateDir( RealPath( cerberusdir+"/libs/static/MacOS" ) )
+				CreateDir( RealPath( cerberusdir+"/includes" ) )
+		End
 End Function
 ' DAWLANE ADDED FUNCTIONS END 
 

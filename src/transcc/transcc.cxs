@@ -9,6 +9,8 @@ Import builders
 #Rem
 Change Log
 -----------------------------------------------------------------------------------------------------------
+2018-08-13 - Dawlane
+					Added a variable config variable for the path to third-party sources.
 2018-07-23 - Dawlane
 					Updated transcc for GLFW and C++Tool for new preprocessor directives.
 					Updated C++Tool to build with MSBuild.
@@ -25,7 +27,7 @@ Change Log
 #CC_USE_ICON=True	' Use an icon.
 '#CC_APP_NAME="transcc" ' Set the final executable name.
 
-Const VERSION:="2018-08-07 preview"
+Const VERSION:="2018-10-10 preview"
 
 Function Main()
 	Local tcc:=New TransCC
@@ -182,7 +184,8 @@ Class TransCC
 	Field AGK_PATH:String
 	Field HTML_PLAYER:String
 	Field FLASH_PLAYER:String
-	Field VSDEFAULT:String	' DAWLANE ADDED 
+	Field VSDEFAULT:String	' DAWLANE ADDED
+	Field THIRDPARTY_PATH:String ' DAWLANE ADDED 
 	
 	Field args:String[]
 	Field cerberusdir:String
@@ -425,6 +428,10 @@ Class TransCC
 				FLASH_PLAYER=rhs
 			Case "VS_VERSION"	' DAWLANE ADDED
 				VSDEFAULT=rhs
+			Case "THIRDPARTY_PATH"	' DAWLANE ADDED
+				If Not THIRDPARTY_PATH And FileType( path )=FILETYPE_DIR
+					THIRDPARTY_PATH=path
+				Endif
 			Default 
 				Print "Trans: ignoring unrecognized config var: "+lhs
 			End
