@@ -12,53 +12,57 @@
 	The search first looks for a directory in the projects root, then the target .build template, the Cerberus libs directories and then
 	any full directory path name. Note that you cannot pass file paths with any white space characters.
 	
-	Here is an example of how you can pass paths to transcc
-	#GLFW_GCC_LIB_PATHS+="libmsvc/win32;openal;C:\Mingw;../../../libmsvc/win32"
+	Here is an example of how you can pass paths to transcc. A number of pre-compiler options can be passed as macro to help build a path. Macros start with #{ and end with }.
+	#GLFW_GCC_LIB_PATHS+="libmsvc/win#{GLFW_GCC_MSIZE_WINNT};#{THIRDPARTY_PATH}/desktop/openal/libs/Win#{GLFW_GCC_MSIZE_WINNT};C:\Mingw;../../../libmsvc/win#{GLFW_GCC_MSIZE_WINNT}"
 #end
 
 Strict
 Import mojo
 Import glue	' Import the function bindings
 
+#SHOW_SEARCH_PATH_CHECK=True	' This will show you the paths that are to be passed to the back-end compiler.
 ' Filter by Host
 #If HOST="macos"
 	' OSX shared files and Frameworks become part of the application bundle.
 	'#GLFW_XCODE_FRAMEWORKS+="libhello"
 	#GLFW_XCODE_LIB_PATHS+="libmacos"
-	#GLFW_XCODE_LIBS_OPTS+="-lhello"
+	#GLFW_XCODE_LIB_OPTS+="-lhello"
 	#GLFW_COPY_SHAREDLIBS+="libhello"
 #Else
 	#If HOST="winnt"
 	
-		' WINDOWS MINGW
-		' Uncomment the next line to use Visual Studio and comment out any GLFW_GCC preprocessor directives in any "winnt' sections. Then uncomment any GLFW_VS preprocessor directives.
+		' ############ WINDOWS MINGW ############
+		' Uncomment the next line to use Visual Studio.
 		'#GLFW_USE_MINGW=False
 		
 		#rem
 		Depending on the version of MinGw you are using. The binaries built could be either statically linked to the runtime or dynamically linked.
 		As the program sharedtrans (the program that copies over shared librarie) cannot tell if a version of MinGW will produce a statically compiled application.
-		You could end up with MinGW libraries that you do not require. The TDM-GCC produces such statically linked applications where as MinGW-w64 doe not unless
-		instructed to. It should be noted that creating a static appliaction that use shared libraries will require a static export library produced by MinGW.
+		There are some hard coded tests to detect the compiler, but you could end up with MinGW libraries that you do not require.
+		The TDM-GCC produces such statically linked applications where as MinGW-w64 doe not unless instructed to.
+		It should be noted that creating a static appliaction that use shared libraries will require a static export library produced by MinGW.
 		#end
-		'#GLFW_MINGW_STATIC=True	' Uncomment if you are wanting to test MinGW-w64 as a static buidl.
+		'#GLFW_MINGW_STATIC=True	' Uncomment if you are wanting to test MinGW-w64 as a static build.
 		
 		#GLFW_GCC_MSIZE_WINNT="64"	' Set the default binary architecture
 		#GLFW_CC_OPTS+="-D_WIN32"	' As the native binding code must handle both Windows and Unix type operating systems, then a pre-processor directive must be passed to the back-end compilers. 
 		' See the libhello.cpp file in the libhello\codeblocks directory.
 		
-		#GLFW_GCC_LIB_PATHS+="libmingw/win32;libmingw/win64;libmingw/static/win32;libmingw/static/win64;openal;C:\Mingw"
+		' Set the library search paths for MinGW. The searh should display these are full path if #SHOW_SEARCH_PATH_CHECK is set to true.
+		#GLFW_GCC_LIB_PATHS+="libmingw/win#{GLFW_GCC_MSIZE_WINNT};libmingw/static/win#{GLFW_GCC_MSIZE_WINNT};C:\Mingw"
 		
-		' WINDOWS VISUAL STUDIO
+		' ############ WINDOWS VISUAL STUDIO ############
 		' Select a Visual Studio version project. Note that you still need the correct MSBUILD path in config.winnt.txt located in the Cerberus bin directory.
 		'#GLFW_VSTUDIO_VERSION="2015" ' Only uncomment this if you do have Visual Studio 2015 installed. If it cannot find a valid VS istall, then it defaults to MinGW.
+		
 		#rem
 		Visual Studio requires the use of .LIB export files for shared libraries. Therefore the path will need to be passed to it's location.
-		Please remember that you can only link against a library that is of the same architecture type. Not doing so will cause a compile error. Unlike MinGW, VS doesn't skip
-		incompatible libraries.
+		Please remember that you can only link against a library that is of the same architecture type and in some cases the same threading mode. Not doing so will cause a compile error.
+		Unlike MinGW, VS doesn't skip incompatible libraries.
 		#end
-		'#GLFW_VS_LIB_PATHS+="libmsvc/win32"
-		'#GLFW_VS_MSIZE_WINNT="32"	' Set the default binary architecture. The default for Visual Studio is 32 bit
-		'#GLFW_VS_LIB_OPTS+="hello.lib" ' The static export library to link against.
+		#GLFW_VS_MSIZE_WINNT="32"	' Set the default binary architecture. The default for Visual Studio is 32 bit
+		#GLFW_VS_LIB_PATHS+="libmsvc/win#{GLFW_VS_MSIZE_WINNT}"
+		#GLFW_VS_LIB_OPTS+="hello.lib" ' The static export library to link against.
 	#Else	
 		' Linux GCC. The default already is 64 bit, but you can change this to 32 bit for a 32 bit build.
 		#GLFW_GCC_MSIZE_LINUX="64"
@@ -67,17 +71,16 @@ Import glue	' Import the function bindings
 	#rem
 		Linux GCC and MinGW are a like in most cases and can use the same pre-processor directives.
 		But there are special circumstances when you need to link to a shared library. Then you
-		should have or make a static export library that has the shared libraries exported functions.
+		should have or need to make a static export library that has the shared libraries exported functions.
 		See the next host check below.
 	#end
-	'#GLFW_GCC_LIB_OPTS+="-lhello" ' uncomment this out and comment the-lhellodll ones below.
 	
 	' No matter if it's Windows or Linux a shared library is needed.
 	#If HOST="winnt"
 		#GLFW_COPY_SHAREDLIBS+="hello"
 		#GLFW_GCC_LIB_OPTS+="-lhellodll"
 	#Elseif HOST="linux"
-		#GLFW_GCC_LIB_PATHS+="liblinux/linux32;liblinux/linux64"
+		#GLFW_GCC_LIB_PATHS+="liblinux/linux#{GLFW_GCC_MSIZE_LINUX}"
 		#GLFW_COPY_SHAREDLIBS+="libhello"
 		#GLFW_GCC_LIB_OPTS+="-lhello"
 	#Endif
