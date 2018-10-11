@@ -10,7 +10,7 @@ Function Target:StringMap<ToolChain>( sharetrans:ShareTransfer )
 	Local target:=New StringMap<ToolChain>
 
 	#If HOST="winnt"
-	target.Set "mingw",New MinGW( sharetrans, False )
+	target.Set "mingw",New MinGW( sharetrans )
 	target.Set "mingw-static",New MinGW( sharetrans, True )
 	target.Set "visualstudio",New WinNT( sharetrans )
 	#Endif

@@ -90,7 +90,6 @@ Class ToolChain
 	' Combine the source directories with the libraries passed
 	Method ProcessSources:Int()
 		Local result:= ERROR_UNKNOWN
-		
 		If shareTrans.opt_libs<>"" libList.Push( shareTrans.opt_libs.Split( ";" ) )
 		If shareTrans.opt_srcdir<>"" dirList.Push( shareTrans.opt_srcdir.Split( ";" ) )
 		

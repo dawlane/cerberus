@@ -3,34 +3,51 @@ Strict
 
 Import windows
 
+' DAWLANE ADDED FUNCTIONS START
+Extern
+	Function ExecutePipe:Int( cmd$, ref$ )
+Public
+
 Class MinGW Extends WinNT
 									
 	' Current known libraries and the locations of the MinGW runtimes.
-	Field FILES:String[] = [ 	"libgcc_s_sjlj-1",
-         						"libgcc_s_dw2-1",
-         						"libgcc_s_seh-1",
-         						"libwinpthread-1",
+	Field FILES:String[] = [	"libgcc_s_EXCEPTION-1",
+								"libwinpthread-1",
          						"libstdc++-6" ]
-         						
-    Field DIR:String[] = [ 		"bin",
-         						"i686-w64-mingw32/lib",        						
-         						"x86_64-w64-mingw32/lib",       						
-         						"x86_64-w64-mingw32/lib32" ]
-         						
-	Method New( shareTrans:ShareTransfer, static:Bool )
-	
+    Global stdstream:=""
+	Method New( shareTrans:ShareTransfer, static:Bool = False )
+
 		Super.New( shareTrans )
 		ext = ".dll"
-		
+		'DebugStop()
 		If shareTrans.opt_toolPath="" shareTrans.opt_toolPath = "C:/mingw"
+		Local exception:= "", target:= ""
+		Local errcode:Int
+		
+		If stdstream="" errcode = ExecutePipe( "gcc -v", stdstream )
+		
+		' Common build setting used to compile MinGW compilers
+		If stdstream.Contains( "-DWINPTHREAD_STATIC" ) static = True	' If winpthreads is staticall linked, then the rest should be as well
+		If stdstream.Contains( "sjlj" ) exception = "sjlj"
+		If stdstream.Contains( "seh" ) And stdstream.Contains( "--disable-sjlj-exceptions" ) exception = "seh"
+		If stdstream.Contains( "--with-dwarf2" ) And stdstream.Contains( "--disable-sjlj-exceptions" ) exception = "dw2"
+		If stdstream.Contains( "--target=x86_64-w64-mingw32" ) target = "x86_64-w64-mingw32"
+		If stdstream.Contains( "--target=i686-w64-mingw32" ) target = "i686-w64-mingw32"
+		If stdstream.Contains( "--target=mingw32" ) target = "mingw32"
 		
 		' If not using the static version of MinGW, then a number of MinWG
 		' runtimes need to be added to the final package.
-		If Not static
+		If Not static			
+			Select exception
+				Case "sjlj"
+					If FileType( shareTrans.opt_toolPath+"/"+target+"/lib" ) = FILETYPE_DIR dirList.Push( shareTrans.opt_toolPath+"/"+target+"/lib" )
+					If FileType( shareTrans.opt_toolPath+"/"+target+"/lib32" ) = FILETYPE_DIR dirList.Push( shareTrans.opt_toolPath+"/"+target+"/lib32" )
+					If FileType( shareTrans.opt_toolPath+"/"+target+"/lib64" ) = FILETYPE_DIR dirList.Push( shareTrans.opt_toolPath+"/"+target+"/lib64" )
+				Default
+					If target = "mingw32" dirList.Push( shareTrans.opt_toolPath+"/bin" ) Else dirList.Push( shareTrans.opt_toolPath+"/lib" )
+			End
+			FILES[0]=FILES[0].Replace( "EXCEPTION", exception )
 			libList.Push( FILES )
-			For Local i:=0 Until DIR.Length()
-				dirList.Push( shareTrans.opt_toolPath+"/"+DIR[i] )
-			Next
 		Endif
 	End
 	

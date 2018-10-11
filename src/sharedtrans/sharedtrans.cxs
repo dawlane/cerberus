@@ -14,6 +14,8 @@
 	 				Increased size of file buffer.
 	 				Restructuring of error and warning system.
 	 				Implemeted a CPU id system to word size. Needs more work to when other CPU types are encountered.
+	 2018-10-14		Add a function to read streams from the command line.
+	 				Checks to see if the MinGW compiler has Winpthread statically compiled.
 	 				
 #end
 
@@ -28,8 +30,14 @@ Import brl.filestream
 Import os
 
 Import toolchains
+Import "toolchains/native/exec.cpp"
 
-Const VERSION:="2018-06-16"
+' ExecutePipe is use to retrieve information from the command line.
+Extern
+	Function ExecutePipe:Int( cmd$, ref$ )
+Public
+
+Const VERSION:="2018-10-14"
 
 Const HEADER_SIZE:Int = $f48e500 ' Work with around 256 meg to hold file data.
 
@@ -172,18 +180,18 @@ Function Main:Int()
 								"-libs=~q~q",
 								"-toolchain=~qmingw~q",
 								"-toolpath=~qC:/Mingw~q",
-								"-dst=~qZ:\cerberus\cerberus\src\sharedtrans\dll-test~q",
+								"-dst=~q__APP-PATH__src/sharedtrans/dll-test~q",
 								"-arch=~q64~q" ]
 		#Endif
 	
 		#If HOST="macos"
 		' Change this to point to whatever you like for testing in debug mode
 		Local args:String[] = [ "sharedtrans_macos",
-								"-srcdirs=~q/Volumes/NAS/developer/cerberus/kraupt/wip/cerberus-preview/libs/shared/MacOS~q",
+								"-srcdirs=~q__APP-PATH__/libs/shared/MacOS~q",
 								"-libs=~qlibcurl~q",
 								"-toolchain=~qmacos~q",
 								"-toolpath=~qC:/Mingw-w64~q",
-								"-dst=~q/Volumes/NAS/developer/cerberus/kraupt/wip/cerberus-preview/src/sharedtrans/dll-test~q",
+								"-dst=~q__APP-PATH__/src/sharedtrans/dll-test~q",
 								"-arch=~q64~q" ]
 		
 		#Endif
@@ -191,14 +199,19 @@ Function Main:Int()
 		#If HOST="linux"
 			' Change this to point to whatever you like for testing in debug mode
 		Local args:String[] = [ "sharedtrans_linux",
-								"-srcdirs=~q/home/jason/developer/cerberus/kraupt/wip/cerberus-preview/libs/shared/Linux64;/home/jason/developer/cerberus/kraupt/wip/cerberus-preview/libs/shared/Linux32~q",
+								"-srcdirs=~q__APP-PATH__/libs/shared/Linux64;__APP-PATH__/libs/shared/Linux32~q",
 								"-libs=~qlibhello~q",
 								"-toolchain=~qlinux~q",
 								"-toolpath=~q~q",
-								"-dst=~q/home/jason/developer/cerberus/kraupt/wip/cerberus-preview/src/sharedtrans/dll-test~q",
+								"-dst=~q__APP-PATH__/src/sharedtrans/dll-test~q",
 								"-arch=~q64~q" ]
 		#Endif
-		Local result:= sot.Run( args )
+		Local arguments:String[7]
+		For Local i:=0 To 6
+			arguments[i]=args[i].Replace("__APP-PATH__", RealPath( CurrentDir()+"/../../../../" ) )
+		Next
+		
+		Local result:= sot.Run( arguments )
 	#Else
 		Local result:= sot.Run( AppArgs() )
 	#Endif
