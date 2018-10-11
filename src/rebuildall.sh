@@ -67,7 +67,7 @@ function ExecuteCMD(){
     if [ $TARGET = "macos" ]; then echo -e "\033[96mExecuting : $execute\033[49;39m"; else echo -e "\e[96mExecuting : $execute\e[49;39m" ; fi
     eval $execute
     ERROR=$?
-    if [ $ERROR -ne 0 ]; then ErrorMSG "Failed to exeucte $1; else OkMSG "Executed $execute; fi
+    if [ $ERROR -ne 0 ]; then ErrorMSG "Failed to exeucte $1"; else OkMSG "Executed $execute"; fi
 }
 
 function ExitOK(){  
@@ -178,6 +178,7 @@ function ShowHelp(){
     echo "        -u | --unsetmods ................ Unset execute permissions for certain files. Mostly added for working with git."
     echo "        --build32 ....................... Build only 32 bit versions of tools."
     echo "        -s | --sharedtrans .............. Build shartrans from source."
+    echo "        -f | --checkconfig .............. Check for the existance of a config.os.txt file. Creates a new one doesn't exist."
     echo "        --dbg ........................... Pass either debug or release as a parameter."
     echo "                                          The default is to build a release binary."
     echo "        --qtsdk \"path_to_tool_chain\" .. This is optional on Linux as you would"
@@ -556,7 +557,7 @@ function BuildTed(){
         do
             rm -rf "$str_srcRoot/bin/Ted.app/Contents/PlugIns/$i"
         done
-        chmod 0775 -r "$str_srcRoot/bin/Ted.app"
+        if [ -f "$str_srcRoot/bin/Ted.app" ]; then chmod 0775 -R "$str_srcRoot/bin/Ted.app"; fi
     else
     # LINUX
         HighlightMSG "Running QMake...."
@@ -627,6 +628,10 @@ function PkgCopy(){
     # docs
     HighlightMSG "Copying over documentation files."
     rsync -$SWITCH ${EXCLUDE_COMMON[*]} --exclude=*/html "$str_source"/docs "$str_destination"
+
+    # includes
+    HighlightMSG "Copying over includes directory."
+    rsync -$SWITCH ${EXCLUDE_COMMON[*]} ${EXCLUDE_PRJ[*]} ${EXCLUDE_BUILDS[*]} "$str_source"/includes "$str_destination"
 
     # modules
     HighlightMSG "Copying over modules_ext files."
@@ -840,6 +845,9 @@ function ParseCMDLine(){
     do
         key="$1"
         case $key in
+            "-f" | "--checkconfig" )
+                if [[ ! "${EXEC_CMDS[@]}" =~ '0checkconfig' ]]; then EXEC_CMDS+=('0checkconfig'); fi
+                shift;;
             "-t" | "--transcc")
                 if [[ ! "${EXEC_CMDS[@]}" =~ '2transcc' ]]; then EXEC_CMDS+=('2transcc'); fi
                 shift;;
@@ -905,7 +913,6 @@ function ParseCMDLine(){
     CheckQtSDK
     GeneralInfo "$SOURCE_ROOT" "$SCRIPT_ROOT" "$str_config"
     HighlightMSG "Command line ./rebuildall.sh $cmd"
-    CheckConfig "$SOURCE_ROOT" "$SCRIPT_ROOT"
 
     # sort the build order.
     IFS=$'\n' EXEC_CMDS=($(sort <<<"${EXEC_CMDS[*]}"))
@@ -915,6 +922,9 @@ function ParseCMDLine(){
         while [ $index -lt ${#EXEC_CMDS[@]} ] 
         do
             case ${EXEC_CMDS[$index]} in
+                "0checkconfig")
+                    CheckConfig "$SOURCE_ROOT" "$SCRIPT_ROOT"
+                    index=$[$index+1];;
                 "2transcc")
                     TransccCheck "$SOURCE_ROOT" "$SCRIPT_ROOT" "$str_config"
                     index=$[$index+1];;
@@ -937,7 +947,7 @@ function ParseCMDLine(){
                     Archives "$SOURCE_ROOT" "$SCRIPT_ROOT"
                     index=$[$index+1];;
                 "8package")
-                    local cmdline=('--archives' '--transcc' '--sharedtrans' '--makedocs'  '--cserver' '--launcher' '--ted' '--qtsdk' "$QTSDK" '--qtversion' "$QTVER"  )
+                    local cmdline=('--checkconfig' '--archives' '--transcc' '--sharedtrans' '--makedocs'  '--cserver' '--launcher' '--ted' '--qtsdk' "$QTSDK" '--qtversion' "$QTVER"  )
                     if [ $BUILD32 -eq 1 ]; then cmdline+=("--build32"); fi
                     if [ $QTDEPLOY -eq 1 ]; then cmdline+=("--qtdeploy"); fi
                     if [ $TARGET = "macos" ]; then cmdline+=('--companyid' "$COMPANYID"); fi
@@ -950,6 +960,7 @@ function ParseCMDLine(){
             esac
         done
     else
+        CheckConfig "$SOURCE_ROOT" "$SCRIPT_ROOT"
         Archives "$SOURCE_ROOT" "$SCRIPT_ROOT"
         TransccCheck "$SOURCE_ROOT" "$SCRIPT_ROOT" "$str_config"
         BuildSharedtrans "$SOURCE_ROOT" "$SCRIPT_ROOT" "$str_config"

@@ -52,6 +52,7 @@ Options:
 -e | --ted .................... Build the Ted IDE.
 -a | --archives ............... Extract archives.
 -u | --unsetmods .............. Unset execute permissions for certain files. Mostly added for working with git.
+-f | --checkconfig ............ Check for the existance of a config.os.txt file. Creates a new one doesn't exist.
 -build32 ...................... Build only 32 bit versions of tools. Linux ONLY.
                                 Note that this requires a complicated set up to work correctly, so it's best avoided unless you know exactly what you are doing.
 -s | --sharedtrans ............ Build shartrans library helper from source.
@@ -143,6 +144,7 @@ Options:
 -m | --mingw "path" ........... Path to MinGW installation. The default is C:\MinGW
 -v | --visualstudio "path" .... Path to Visual Studio. The default is C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC
 -s | --sharedtrans ............ Build shartrans from source.
+-f | --checkconfig ............ Check for the existance of a config.os.txt file. Creates a new one doesn't exist.
 -build32 ...................... Build only 32 bit versions of the tools.
 -mingw-static ................. Mainly for users of MinGW-w64 to create stand-a-lone binaries. See the MinGW-w64 documentation and licence files for any restrictions.
                                 NOTE: That using static builds will require static export libraries of dynamic link libraries.

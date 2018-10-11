@@ -165,6 +165,7 @@ Function ShowHelp([Int]$exit = 0) {
     Write-Host "        -g | --git ...................... Use with the -p option to build a package to deploy."
     Write-Host "        -r | -runtime ................... Use this if building with MinGW-w64 non static."
     Write-Host "                                     .... Requires sharedtrans to be build first."
+    Write-Host "        -f | --checkconfig .............. Check for the existance of a config.os.txt file. Creates a new one doesn't exist."
     Write-Host "        --confpath `"path_variable`" `"path`""
     Write-Host "                                     .... Set a path variable in config.winnt.txt."
     Write-Host "        -confauto ....................... Set all path variable in config.winnt.txt to the default in this script."
@@ -666,6 +667,8 @@ Function CopyPackage([string]$_str_deployRoot, [string]$_str_srcRoot, [string]$_
     RoboCopy    "$_str_srcRoot" "$_str_cerbRoot" "*.dll" /njh /njs /ndl /nfl | Out-Null
     HighlightMSG "Copying over documentation files."
     RoboCopy    "$_str_srcRoot\docs" "$_str_cerbRoot\docs" "*.*" /njh /njs /ndl /nfl /E /XF ".*" /XD "*html" | Out-Null
+    HighlightMSG "Copying over includes directory."
+    RoboCopy    "$_str_srcRoot\includes" "$_str_cerbRoot\includes" "*.*" /njh /njs /ndl /nfl /E /XF ".*" | Out-Null
     HighlightMSG "Copying over module_ext files."
     RoboCopy    "$_str_srcRoot\modules_ext" "$_str_cerbRoot\modules_ext" "*.*" /njh /njs /ndl /nfl /E /XF ".*" | Out-Null
     HighlightMSG "Copying over modules files."
@@ -798,6 +801,10 @@ Function ProcessCMDS($_args) {
     while ($int_index -lt $array_args.Count) {
         switch ($array_args[$int_index]) {
             # Build commands. Put them into a string to process later
+            { "-f", "--checkconfig" -contains $_ } {
+                if (-not($list_exec_cmd -contains '0checkconfig' )) { $list_exec_cmd.Add('0checkconfig') }
+                $int_index++
+            }
             { "-t", "--transcc" -contains $_ } {
                 if (-not($list_exec_cmd -contains '2transcc' )) { $list_exec_cmd.Add('2transcc') }
                 $int_index++
@@ -920,7 +927,7 @@ Function ProcessCMDS($_args) {
     InfoGeneral $bool_w64static $local:bool_msbuild $bool_build32                                                              # Output general information
     $str_arch = Architecture $bool_build32                                                                                     # Detect and set the build architecture
     $bool_msbuild = (EnviromentSetup $global:str_mingwPath $global:str_qtsdkPath $global:str_visualstudioPath $bool_msbuild)   # Initialise the build environment
-    ConfigCheck                                                                                                                # Check that there is a config.winnt.txt file present
+
 
     # Stop if there are any arguments that are not recognised
     if (-not([string]::IsNullOrEmpty($str_unknown))) {
@@ -951,6 +958,7 @@ Function ProcessCMDS($_args) {
 
     if ($list_exec_cmd.Count -eq 0) {
         # No commands passed, build the standard stuff
+        ConfigCheck
         ArchiveCheck
         TransCheck $str_arch $str_static_w64 $str_transcc_w64 $bool_msbuild $str_msbuild_switch $str_vsversion_switch $str_config
         BuildShareTranscc $str_arch $str_transcc_w64 $str_msbuild_switch $str_vsversion_switch $str_config
@@ -967,6 +975,10 @@ Function ProcessCMDS($_args) {
         if($list_exec_cmd.Count -gt 1){ $list_exec_cmd = $list_exec_cmd | Sort-Object}
         while ($int_index -lt $list_exec_cmd.Count) {
             switch ($list_exec_cmd[$int_index]) {
+                "0checkconfig" {
+                    ConfigCheck
+                    $int_index++
+                }
                 "2transcc" {
                     TransCheck $str_arch $str_static_w64 $str_transcc_w64 $bool_msbuild $str_msbuild_switch $str_vsversion_switch $str_config
                     $int_index++
@@ -1013,7 +1025,7 @@ Function ProcessCMDS($_args) {
                 "9package" {
                     [string[]]$local:array_cmdline = @()
                     # Always start with a boot build and sharedtrans
-                    $array_cmdline += ("--archives", "--boot", "--sharedtrans", "--makedocs", "--launcher", "--cserver", "--ted" )
+                    $array_cmdline += ("--checkconfig", "--archives", "--boot", "--sharedtrans", "--makedocs", "--launcher", "--cserver", "--ted" )
                     if ($global:bool_runtime -eq $true) { $array_cmdline += ("--runtime") }
 
                     # Compiler control flags
@@ -1049,7 +1061,6 @@ Function ProcessCMDS($_args) {
 [bool]$global:bool_usegit = $false              # If set, use git to clone, build and package.
 [bool]$global:bool_runtime = $false             # If set will add MinGW runtime libraries. Only for use with MinGW-w64 non static builds.
 $a = $args                                     # Fixes an odd quirk when passing arguments to a script that's been call from within a function.
-Write-Host $a
 ProcessCMDS $a
 
 ExitScriptOK
