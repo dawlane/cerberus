@@ -48,7 +48,7 @@ FLEX_PATH="${HOME}/flex_sdk_4.6"
 ANDROID_PATH="${HOME}/Library/Android/sdk"
 
 'Old sdk..
-ANDROID_PATH="${HOME}/android-sdk-macosx"
+'ANDROID_PATH="${HOME}/android-sdk-macosx"
 '--------------------
 
 '--------------------
@@ -60,5 +60,8 @@ ANDROID_NDK_PATH="${HOME}/Library/Android/ndk-bundle"
 
 'Old ndk..
 ANDROID_NDK_PATH="${HOME}/android-ndk-r9"
-'--------------------
 
+'--------------------
+'Third-party Sources
+'This is the path where any external third-party library source code should be placed
+THIRDPARTY_PATH="${CERBERUSDIR}/src/thirdparty"

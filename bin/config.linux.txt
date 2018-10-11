@@ -25,10 +25,9 @@ HTML_PLAYER="${CERBERUSDIR}/bin/cserver_linux"
 '
 JDK_PATH="${HOME}/jdk1.8.0_172" 
 'JDK_PATH="${HOME}/jdk1.8.0_171" 
-'JDK_PATH="${HOME}/jdk1.8.0_151"
+'JDK_PATH="${HOME}/jdk1.8.0_151" 
 'JDK_PATH="${HOME}/jdk1.8.0_31"
 'JDK_PATH="${HOME}/jdk1.7.0_09"
-
 '--------------------
 
 '--------------------
@@ -57,3 +56,7 @@ ANDROID_PATH="${HOME}/android-sdk-linux"
 '
 ANDROID_NDK_PATH="${HOME}/android-ndk-r9"
 '--------------------
+'
+'Third-party Sources
+'This is the path where any external third-party library source code should be placed
+THIRDPARTY_PATH="${CERBERUSDIR}/src/thirdparty"
