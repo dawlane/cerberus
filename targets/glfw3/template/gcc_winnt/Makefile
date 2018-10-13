@@ -14,9 +14,6 @@ CPPFLAGS=$(CCOPTS) \
 
 LD=g++
 
-# Display the system root directory path
-$(info SYSTEM ROOT $(SystemRoot))
-
 # Detect the system architecture
 ifeq ($(ARCH),)
 # If no ARCH value passed, then make a guess
@@ -26,32 +23,41 @@ $(info AUTO DETECT ARCHITECTURE)
 			ifeq (AMD64,$(PROCESSOR_ARCHITECTURE))
 				override ARCH = 64
         		OPTS += -m64
+				OPENAL_DLL=$(SystemRoot)/System32/openal32.dll
     		endif
 			ifeq (x86,$(PROCESSOR_ARCHITECTURE))
         		override ARCH = 32
-        	    OPTS += -m32	
+        	    OPTS += -m32
+				OPENAL_DLL=$(SystemRoot)/System32/openal32.dll	
         	endif
 		else
 		# If, PROCESSOR_ARCHITEW6432 is set. Then it's a 32 bit process on a 64 bit OS. e.g. 32 bit app on a 64 bit OS.
 			ifeq (x86,$(PROCESSOR_ARCHITEW6432))
         		override ARCH = 32
         	    OPTS += -m32
+				OPENAL_DLL=$(SystemRoot)/SysWOW64/openal32.dll
 			else
 				override ARCH = 64
         	    OPTS += -m64
+				OPENAL_DLL=$(SystemRoot)/System32/openal32.dll
         	endif
 		endif
 else
-# ARCH have a value
+# ARCH has a value
 	ifeq ($(ARCH),64)
 $(info 64 BIT SYSTEM ARCHITECTURE)
-		override ARCH=64
+		OPTS += -m64
 		OPENAL_DLL=$(SystemRoot)/System32/openal32.dll
 	else
 		ifeq ($(ARCH),32)
 $(info 32 BIT SYSTEM ARCHITECTURE)
-			override ARCH=32
-			OPENAL_DLL=$(SystemRoot)/SysWOW64/openal32.dll
+			OPTS += -m32
+			ifeq (x86,$(PROCESSOR_ARCHITECTURE))
+				OPENAL_DLL=$(SystemRoot)/System32/openal32.dll
+			else
+			# If the PROCESSOR_ARCHITECTURE comes back as AMD64, then set the path to SysWOW64
+				OPENAL_DLL=$(SystemRoot)/SysWOW64/openal32.dll
+			endif
 		else
 $(error UNABLE TO DETERMINE SYSTEM ARCHITECTURE)
 		endif
@@ -62,29 +68,24 @@ ifeq (,$(ARCH))
 $(error UNRECOGNISED ARCHITECTURE $(ARCH))
 endif
 
+# Check OpenAL path
+ifeq (,$(wildcard $(OPENAL_DLL)))
+$(error OpenAL32 not found at $(OPENAL_DLL))
+endif
+
 # Set the default library paths
 SHARE_PATH=$(CERBERUSDIR)/libs/shared/Win$(ARCH)
 STATIC_PATH=$(CERBERUSDIR)/libs/static/Mingw/$(ARCH)
 
 # Depending on the STATIC and POSIX, set the additional liner options for MinGW-w64
 ifeq ($(STATIC),1)
-	ifeq ($(POSIX),0)
-		POSIX_MSG="POSIX DISABLED"
-		POSIX_ON=
-	else
-		POSIX_MSG="POSIX ENABLED"
-		# This is a hack to get rount the winpthread problem.
-		POSIX_ON=-Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive
-	endif
 $(info STATIC BUILDING $(POSIX_MSG))
 	LDFLAGS=$(LDOPTS) -L$(SHARE_PATH) -L$(STATIC_PATH) -Wl,--subsystem,windows
-#	LDLIBS=-Wl,-Bstatic -static-libgcc -static-libstdc++ $(POSIX_ON) -Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 -lopenal32 $(LIBOPTS) -lws2_32
 # STATIC BUILDING WITH DIRECT LINKING TO OPENAL DLL
-	LDLIBS=-Wl,-Bstatic -static-libgcc -static-libstdc++ $(POSIX_ON) -lglfwgame -Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 $(OPENAL_DLL) $(LIBOPTS) -lws2_32
+	LDLIBS=-Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -lglfwgame -Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 $(OPENAL_DLL) $(LIBOPTS) -lws2_32
 else
 $(info NON STATIC)
 	LDFLAGS=$(LDOPTS) -L$(SHARE_PATH) -L$(STATIC_PATH) -Wl,--subsystem,windows
-#	LDLIBS=-Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 -lopenal32 $(LIBOPTS) -lws2_32
 # NON STATIC BUILDING WITH DIRECT LINKING TO OPENAL DLL
 	LDLIBS=-lglfwgame -Wl,-Bdynamic -lcomdlg32 -lgdi32 -lopengl32 $(OPENAL_DLL) $(LIBOPTS) -lws2_32
 endif
