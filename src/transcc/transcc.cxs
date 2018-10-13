@@ -27,7 +27,7 @@ Change Log
 #CC_USE_ICON=True	' Use an icon.
 '#CC_APP_NAME="transcc" ' Set the final executable name.
 
-Const VERSION:="2018-10-10 preview"
+Const VERSION:="2018-10-13 preview a"
 
 Function Main()
 	Local tcc:=New TransCC
@@ -190,6 +190,7 @@ Class TransCC
 	Field args:String[]
 	Field cerberusdir:String
 	Field target:Target
+	Field compilerName:String ' Use this as a method of the compiler type being used.
 	
 	Field _builders:=New StringMap<Builder>
 	Field _targets:=New StringMap<Target>

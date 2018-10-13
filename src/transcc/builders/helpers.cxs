@@ -2,6 +2,8 @@
 This file is for additional functions to assist in the manipulation of building projects.
 Change Log
 ----------------------------------------------------------------------------------------------
+2018-10-13 - Dawlane
+					Changed method of how default directoris are created
 2018-10-04 - Dawlane
 					Reintroduced path checks for directory searching and updated the method to display the output.
 					Use #SHOW_SEARCH_PATH_CHECK in a source file to show search directories and evaluations.
@@ -225,37 +227,25 @@ Function GCCVer:String[]()
 	Return ret
 End Function
 
+' Create base directories depending on the compiler name passed
+Function CreateDefaultDirs:Void( cerberusdir:String, msize:String = "", compilerName:String, version:String = "" )
 
-Function CreateDefaultDirs:Void( cerberusdir:String, msize:String, gccVersion:String[], vs_version:String = "" )
-	' Not get the version of the GCC compiler being used and store it as a config variable for later use if required later.
-		' E.G. If it's decided that the locations of GCC libraries need to be separated, just like Visual Studio.
-		' Also make sure that the default directories exist or there could be trouble passing those paths to search.
-		
-		Select HostOS()
-			Case "winnt"
-				If gccVersion.Length>0
-					Print "Using MinGW Version "+gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
-					SetConfigVar "GLFW_GCC_VERSION_WINNT",gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
-				Endif
-				CreateDir( RealPath( cerberusdir+"/libs/shared/Win"+msize ) )
-				CreateDir( RealPath( cerberusdir+"/libs/static/MinGW/"+msize ) )
-				CreateDir( RealPath( cerberusdir+"/includes" ) )
-				CreateDir( RealPath( cerberusdir+"/libs/shared/Win"+msize ) )
-				CreateDir( RealPath( cerberusdir+"/libs/static/VisualStudio/"+vs_version+"/"+msize ) )
-			Case "linux"
-				If gccVersion.Length>0
-					Print "Using GCC Version "+gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
-					SetConfigVar "GLFW_GCC_VERSION_LINUX",gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
-				Endif
-				CreateDir( RealPath( cerberusdir+"/libs/shared/Linux"+msize ) )
-				CreateDir( RealPath( cerberusdir+"/libs/static/Linux/"+msize ) )
-				CreateDir( RealPath( cerberusdir+"/includes" ) )
-			Case "macos"
-				CreateDir( RealPath( cerberusdir+"/libs/shared/MacOS" ) )
-				CreateDir( RealPath( cerberusdir+"/libs/shared/MacOS/Frameworks" ) )
-				CreateDir( RealPath( cerberusdir+"/libs/static/MacOS" ) )
-				CreateDir( RealPath( cerberusdir+"/includes" ) )
-		End
+	CreateDir( RealPath( cerberusdir+"/includes" ) )	
+	Select compilerName.ToLower()
+		Case "visual studio"
+			CreateDir( RealPath( cerberusdir+"/libs/shared/Win"+msize ) )
+			CreateDir( RealPath( cerberusdir+"/libs/static/VisualStudio/"+version+"/"+msize ) )
+		Case "mingw"
+			CreateDir( RealPath( cerberusdir+"/libs/shared/Win"+msize ) )
+			CreateDir( RealPath( cerberusdir+"/libs/static/MinGW/"+msize ) )
+		Case "gcc"
+			CreateDir( RealPath( cerberusdir+"/libs/shared/Linux"+msize ) )
+			CreateDir( RealPath( cerberusdir+"/libs/static/Linux/"+msize ) )
+		Case "xcode"
+			CreateDir( RealPath( cerberusdir+"/libs/shared/MacOS" ) )
+			CreateDir( RealPath( cerberusdir+"/libs/shared/MacOS/Frameworks" ) )
+			CreateDir( RealPath( cerberusdir+"/libs/static/MacOS" ) )
+	End
 End Function
 ' DAWLANE ADDED FUNCTIONS END 
 

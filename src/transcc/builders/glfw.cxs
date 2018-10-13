@@ -1,6 +1,8 @@
 #Rem
 Change Log
 ----------------------------------------------------------------------------------------------
+2018-10-13 - Dawlane
+					Remove MINGW_USE_POSIX and changed method of how default directoris are created.
 2018-10-14 - Dawlane
 					Made changes on how the search paths are evaluated. Use a poor-man's macro expansion to get preprocessor variables for some paths. 
 2018-08-13 - Dawlane
@@ -35,15 +37,12 @@ Class GlfwBuilder Extends Builder
 	
 	' DAWLANE - Added support to use MinGW-w64 tool chains, search paths and passing options to the back-end compiler.
 	'***** GCC *****
-	Method MakeGcc:Void()
+	Method MakeGcc:Void( gccVersion:String[] )
+		SetConfigVar "GLFW_GCC_VERSION", gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
 		Local staticFlag:=0 ' DAWLANE - Need for MinGW-w64
 		
 		Local msize:=GetConfigVar( "GLFW_GCC_MSIZE_"+HostOS.ToUpper() )
 		Local searchChk:= Bool(GetConfigVar( "SHOW_SEARCH_PATH_CHECK" ))
-		Local gccVersion:=GCCVer()
-
-		' Make sure that the default directories exist or there could be trouble passing those paths to search.
-		CreateDefaultDirs( tcc.cerberusdir, msize, gccVersion, "" )
 		
 		' Over-ride from command line for architecture bilding.
 		If tcc.opt_msize<>""
@@ -52,6 +51,9 @@ Class GlfwBuilder Extends Builder
 			' Important: If you are going to change any thing via the command line that can affect macros. Make sure that you update it. 
 			SetConfigVar "GLFW_GCC_MSIZE_"+HostOS.ToUpper(),msize
 		End
+		
+		'CreateDefaultDirs(cerberusdir:String, msize:String, compilerName:String, version:String = "")
+		CreateDefaultDirs( tcc.cerberusdir, msize, tcc.compilerName, gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2] )
 		
 		Local tconfig:=casedConfig+msize
 	
@@ -89,7 +91,6 @@ Class GlfwBuilder Extends Builder
 			Local libsearchList:=GetConfigVar( "GLFW_GCC_LIB_PATHS" )	' Get any library paths to search
 			Local headerSearchList:=GetConfigVar( "GLFW_GCC_INCLUDE_PATHS" )	' Get any header paths to search
 			Local userIncludesList:String[]=GetConfigVar( "GLFW_GCC_USER_INCLUDES" ).Split( ";" )	' Get any headers needed
-			Local mingwUsePosix:=""
 
 			Local ccopts:="",ldopts:="", libopts:="", libcopy:="", appName:=GetConfigVar( "GLFW_APP_NAME" ), sysroot:="", toolchain:=""
 
@@ -120,7 +121,6 @@ Class GlfwBuilder Extends Builder
 				If tcc.opt_w64static Or GetConfigVar( "GLFW_MINGW_STATIC" )="1"
 					use_static=True
 					toolchain="mingw-static"
-					mingwUsePosix=GetConfigVar( "MINGW_USE_POSIX" )
 				Else
 					toolchain="mingw"
 				Endif
@@ -184,7 +184,7 @@ Class GlfwBuilder Extends Builder
 			CopyLicences( casedConfig, "gcc", tcc.cerberusdir+"/libs", msize )
 			
 			' DAWLANE - Pass a bunch of stuff to the Makefiles to sort out.
-			Execute cmd+" THIRD_PARTY_PATH=~q"+tcc.THIRDPARTY_PATH+"~q STATIC=~q"+staticFlag+"~q POSIX=~q"+mingwUsePosix+"~q CCOPTS=~q"+ccopts+" "+headerSearchList+" "+includes+"~q LDOPTS=~q"+ldopts+" "+libsearchList+"~q LIBOPTS=~q"+libopts+"~q CERBERUSDIR=~q"+tcc.cerberusdir+"~q HOSTOS=~q"+HostOS+"~q ARCH=~q"+msize+"~q OUT=~q"+tconfig+"/"+appName+"~q "
+			Execute cmd+" THIRD_PARTY_PATH=~q"+tcc.THIRDPARTY_PATH+"~q STATIC=~q"+staticFlag+"~q CCOPTS=~q"+ccopts+" "+headerSearchList+" "+includes+"~q LDOPTS=~q"+ldopts+" "+libsearchList+"~q LIBOPTS=~q"+libopts+"~q CERBERUSDIR=~q"+tcc.cerberusdir+"~q HOSTOS=~q"+HostOS+"~q ARCH=~q"+msize+"~q OUT=~q"+tconfig+"/"+appName+"~q "
 
 			If tcc.opt_run
 
@@ -205,7 +205,6 @@ Class GlfwBuilder Extends Builder
 	Method MakeMsvc:Void( version:String )
 		SetConfigVar "GLFW_VSTUDIO_VERSION", String( version )
 		Local searchChk:= Bool(GetConfigVar( "SHOW_SEARCH_PATH_CHECK" ))
-		Local empty:String[]
 
 		Print ""
 		If tcc.MSBUILD_PATH="" Die "Cannot find MSBuild.exe. Is Visual Studio installed and the MSBUILD_PATH set correctly?"
@@ -219,9 +218,8 @@ Class GlfwBuilder Extends Builder
 			' Important: If you are going to change any thing via the command line that can affect macros. Make sure that you update it. 
 			SetConfigVar "GLFW_VS_MSIZE_"+HostOS.ToUpper(),msize
 		End
-
-		' Make sure that the default directories exist or there could be trouble passing those paths to search.
-		CreateDefaultDirs( tcc.cerberusdir, msize, empty , version )
+		
+		CreateDefaultDirs( tcc.cerberusdir, msize, tcc.compilerName, version )
 		
 		Local tconfig:=casedConfig+msize, dylibCopy:=GetConfigVar( "GLFW_COPY_SHAREDLIBS" )
 		Local ccopts:="",ldopts:="", libopts:="", libcopy:="", appName:=GetConfigVar( "GLFW_APP_NAME" )
@@ -310,7 +308,6 @@ Class GlfwBuilder Extends Builder
 
 		Local main:=LoadString( "main.cpp" )
 		Local searchChk:= Bool(GetConfigVar( "SHOW_SEARCH_PATH_CHECK" ))
-		Local empty:String[]
 		
 		main=ReplaceBlock( main,"TRANSCODE",transCode )
 		main=ReplaceBlock( main,"CONFIG",Config() )
@@ -318,7 +315,7 @@ Class GlfwBuilder Extends Builder
 		SaveString main,"main.cpp"
 
 		' Make sure that the default directories exist or there could be trouble passing those paths to search.
-		CreateDefaultDirs( tcc.cerberusdir, "", empty, "" )
+		CreateDefaultDirs( tcc.cerberusdir, , tcc.compilerName )
 		
 		If tcc.opt_build
 			
@@ -430,6 +427,7 @@ Class GlfwBuilder Extends Builder
 	End
 	
 	Method MakeTarget:Void()
+		Local gccVersion:=GCCVer()
 		Select HostOS
 			Case "winnt"
 				' DAWLANE - Select the compiler to use on Windows. Either a version of Visual Studio, or MinGW
@@ -443,28 +441,40 @@ Class GlfwBuilder Extends Builder
 						vs=tcc.opt_vsversion
 						Print "Over-ride of GLFW_VSTUDIO_VERSION via command option -vsversion.~n"
 					Endif
-				Endif
+				Endif				
 	
 				' Check for both GLFW_USE_MINGW and the -msbuild switch state
 				If ( mingw="1" And tcc.opt_msbuild=False ) And tcc.MINGW_PATH ' No -mbsbuild swicth set, use MinGW
-					MakeGcc
+					tcc.compilerName="MinGW"
+					Print "Using "+tcc.compilerName+" "+gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
+					MakeGcc( gccVersion )
 				Else
+					tcc.compilerName="Visual Studio"
 					' If the build switch is set print a message saying that the GLFW_USE_MINGW is over-ridden.
 					If tcc.opt_msbuild=True Print "Over-ride of GLFW_USE_MINGW via command option -msbuild.~n"
 
 					' Check that there is a project solution for the version of Visual Studio that is selected.
 					If FileType( "msvc"+vs )=FILETYPE_DIR
-						Print "Using Visual Studio "+vs
+						Print "Using "+tcc.compilerName+" "+vs
 						MakeMsvc( vs )
 					Else
 						Print "Cannot find a project template containing msvc"+vs+".~nSwitching to MinGW.~n"
-						If tcc.MINGW_PATH MakeGcc
+						If tcc.MINGW_PATH
+							Print "Using "+tcc.compilerName+" "+gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
+							MakeGcc( gccVersion )
+						Else
+							Die "There's no MinGW installed!"
+						EndIf
 					Endif
 				Endif
 			Case "macos"
+				tcc.compilerName="XCode"
+				Print "Using "+tcc.compilerName
 				MakeXcode
 			Case "linux"
-				MakeGcc
+				tcc.compilerName="GCC"
+				Print "Using "+tcc.compilerName+" "+gccVersion[0]+"."+gccVersion[1]+"."+gccVersion[2]
+				MakeGcc( gccVersion )
 		End
 	End
 End

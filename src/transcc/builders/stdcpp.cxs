@@ -1,6 +1,8 @@
 #Rem
 Change log
 -------------------------------------------------------------------------------------------------
+2018-10-13 - Dawlane
+					Remove MINGW_USE_POSIX, added calling sharedtrans to add shared MinGW libraries for non static builds.
 2018-10-09 - Dawlane
 					Minor tweak to MSIZE OS dectection
 2018-07-23 - Dawlane
@@ -106,6 +108,7 @@ Class StdcppBuilder Extends Builder
 				If HostOS() = "winnt" Or HostOS() = "linux"
 					Print "Over-ride of CC_MSIZE via command option. msize is now set to "+tcc.opt_msize
 					If (tcc.opt_msize="32" Or tcc.opt_msize="64") msize=tcc.opt_msize Else Die "Unknown MSIZE options passed via command line."
+					SetConfigVar "CC_MSIZE",msize
 				Endif
 			Else
 				If msize=""
@@ -117,6 +120,7 @@ Class StdcppBuilder Extends Builder
 							msize="64"
 					End Select
 					Print "No value set for CC_MSIZE. Setting msize to "+msize
+					SetConfigVar "CC_MSIZE",msize
 				Endif
 			Endif
 
@@ -128,26 +132,23 @@ Class StdcppBuilder Extends Builder
 			
 			Local ccopts:="", ldopts:=GetConfigVar( "CC_LD_OPTS" ), libopts:="" ' These get passed to the compiler
 			Local ccOPTS:="", ldOPTS:="", libOPTS:=""	' These are for creating options for the compilers. Once finished, you should set ccopts, ldopts and libopts with the resutls.
-			Local iconPath:=GetConfigVar( "CC_ICON" )
+			Local iconPath:=GetConfigVar( "CC_ICON" ), toolchain:String
 			
 			Select ENV_HOST
 			'Select HostOS()
 				Case "winnt"
 					' The CC_USE_MINGW is set to true, so process the options for MinGW
 					If useMinGW="1" And tcc.opt_msbuild=False
+						toolchain="mingw"
 						ccOPTS+=" -Wno-free-nonheap-object"
 						libOPTS+=" -lwinmm -lws2_32"
 						
 						If tcc.opt_w64static Or buildStatic="1"
-							Local usePosix:=GetConfigVar( "MINGW_USE_POSIX" )
-							If usePosix="1"
-								Print "Static Building Posix Enabled"
-								ldOPTS=" -Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -Wl,-Bdynamic "
-							Else
-								Print "Static Building Non Posix"
-								ldOPTS=" -Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bdynamic "
-							Endif
+							Print "GCC Static Building Enabled"
+							toolchain="mingw-static"
+							ldOPTS=" -Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -Wl,-Bdynamic "
 						Endif
+						
 						ccopts= CCOptions( msize, ccOPTS )
 						ldopts=ldOPTS+" "+ldopts
 						libopts= LibsOptions( msize, libOPTS )
@@ -218,6 +219,8 @@ Class StdcppBuilder Extends Builder
 							ldopts+=" icon"+msize+".o"
 						Endif
 						
+						If FileType( tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+".exe" ) Execute tcc.cerberusdir+"/bin/sharedtrans_"+HostOS()+" -arch=~q"+msize+"~q -srcdirs=~q~q -libs=~q~q -dst=~q"+CurrentDir()+"~q -toolchain=~q"+toolchain+"~q -toolpath=~q"+tcc.MINGW_PATH+"~q"	
+
 						Print "Executing:~ng++ "+ccopts+" -o "+out+" main.cpp"+" "+ldopts+" "+libopts
 						Execute "g++ "+ccopts+" -o "+out+" main.cpp"+" "+ldopts+" "+libopts
 					Else

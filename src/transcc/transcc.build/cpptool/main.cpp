@@ -18,12 +18,12 @@
 #define CFG_GCC_LINUX_NOPIE 1
 #define CFG_HOST winnt
 #define CFG_LANG cpp
-#define CFG_MINGW_USE_POSIX 1
+#define CFG_MINGW_USE_STATIC 0
 #define CFG_MODPATH 
 #define CFG_RELEASE 1
 #define CFG_SAFEMODE 0
 #define CFG_TARGET stdcpp
-#define CFG_THIRDPARTY_PATH C:/Users/dawla/Desktop/krautapps/cerberus/src/thirdparty
+#define CFG_THIRDPARTY_PATH J:/projects/software/brl/cerberus/WIP/krautapps/cerberus/src/thirdparty
 //${CONFIG_END}
 
 //${TRANSCODE_BEGIN}
@@ -3201,6 +3201,7 @@ class c_TransCC : public Object{
 	c_StringMap3* m__builders;
 	c_StringMap6* m__targets;
 	c_Target* m_target;
+	String m_compilerName;
 	c_TransCC();
 	c_TransCC* m_new();
 	void p_ParseArgs();
@@ -3580,7 +3581,7 @@ class c_GlfwBuilder : public c_Builder{
 	bool p_IsValid();
 	void p_Begin();
 	String p_Config();
-	void p_MakeGcc();
+	void p_MakeGcc(Array<String >);
 	void p_MakeMsvc(String);
 	void p_MakeXcode();
 	void p_MakeTarget();
@@ -5353,7 +5354,7 @@ class c_CppTranslator : public c_CTranslator{
 	void mark();
 };
 Array<String > bb_helpers_GCCVer();
-void bb_helpers_CreateDefaultDirs(String,String,Array<String >,String);
+void bb_helpers_CreateDefaultDirs(String,String,String,String);
 int bb_helpers_CopyICON(String,String,String,String,String,String);
 Array<String > bb_helpers_MacroExpansion(Array<String >,bool);
 class c_Enumerator5 : public Object{
@@ -5786,6 +5787,7 @@ c_TransCC::c_TransCC(){
 	m__builders=(new c_StringMap3)->m_new();
 	m__targets=(new c_StringMap6)->m_new();
 	m_target=0;
+	m_compilerName=String();
 }
 c_TransCC* c_TransCC::m_new(){
 	return this;
@@ -6116,7 +6118,7 @@ String c_TransCC::p_GetReleaseVersion(){
 }
 void c_TransCC::p_Run(Array<String > t_args){
 	gc_assign(this->m_args,t_args);
-	bbPrint(String(L"TRANS cerberus compiler V2018-10-10 preview",43));
+	bbPrint(String(L"TRANS cerberus compiler V2018-10-13 preview a",45));
 	m_cerberusdir=RealPath(bb_os_ExtractDir(AppPath())+String(L"/..",3));
 	SetEnv(String(L"CERBERUSDIR",11),m_cerberusdir);
 	SetEnv(String(L"MONKEYDIR",9),m_cerberusdir);
@@ -8414,12 +8416,11 @@ String c_GlfwBuilder::p_Config(){
 	}
 	return t_config->p_Join(String(L"\n",1));
 }
-void c_GlfwBuilder::p_MakeGcc(){
+void c_GlfwBuilder::p_MakeGcc(Array<String > t_gccVersion){
+	bb_config_SetConfigVar2(String(L"GLFW_GCC_VERSION",16),t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
 	int t_staticFlag=0;
 	String t_msize=bb_config_GetConfigVar(String(L"GLFW_GCC_MSIZE_",15)+HostOS().ToUpper());
 	bool t_searchChk=((bb_config_GetConfigVar(String(L"SHOW_SEARCH_PATH_CHECK",22))).Length()!=0);
-	Array<String > t_gccVersion=bb_helpers_GCCVer();
-	bb_helpers_CreateDefaultDirs(m_tcc->m_cerberusdir,t_msize,t_gccVersion,String());
 	if(m_tcc->m_opt_msize!=String()){
 		bbPrint(String(L"Over-ride of GCC_MSIZE via command option -msize. msize is now set to ",70)+m_tcc->m_opt_msize);
 		if(m_tcc->m_opt_msize==String(L"32",2) || m_tcc->m_opt_msize==String(L"64",2)){
@@ -8427,6 +8428,7 @@ void c_GlfwBuilder::p_MakeGcc(){
 		}
 		bb_config_SetConfigVar2(String(L"GLFW_GCC_MSIZE_",15)+HostOS().ToUpper(),t_msize);
 	}
+	bb_helpers_CreateDefaultDirs(m_tcc->m_cerberusdir,t_msize,m_tcc->m_compilerName,t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
 	String t_tconfig=m_casedConfig+t_msize;
 	String t_dst=String(L"gcc_",4)+HostOS();
 	CreateDir(t_dst+String(L"/",1)+t_tconfig);
@@ -8451,7 +8453,6 @@ void c_GlfwBuilder::p_MakeGcc(){
 		String t_libsearchList=bb_config_GetConfigVar(String(L"GLFW_GCC_LIB_PATHS",18));
 		String t_headerSearchList=bb_config_GetConfigVar(String(L"GLFW_GCC_INCLUDE_PATHS",22));
 		Array<String > t_userIncludesList=bb_config_GetConfigVar(String(L"GLFW_GCC_USER_INCLUDES",22)).Split(String(L";",1));
-		String t_mingwUsePosix=String();
 		String t_ccopts=String();
 		String t_ldopts=String();
 		String t_libopts=String();
@@ -8485,7 +8486,6 @@ void c_GlfwBuilder::p_MakeGcc(){
 			if(m_tcc->m_opt_w64static || bb_config_GetConfigVar(String(L"GLFW_MINGW_STATIC",17))==String(L"1",1)){
 				t_use_static=true;
 				t_toolchain=String(L"mingw-static",12);
-				t_mingwUsePosix=bb_config_GetConfigVar(String(L"MINGW_USE_POSIX",15));
 			}else{
 				t_toolchain=String(L"mingw",5);
 			}
@@ -8530,7 +8530,7 @@ void c_GlfwBuilder::p_MakeGcc(){
 		}
 		p_Execute(m_tcc->m_cerberusdir+String(L"/bin/sharedtrans_",17)+HostOS()+String(L" -arch=\"",8)+t_msize+String(L"\" -srcdirs=\"",12)+t_sharedTransSearch+String(L"\" -libs=\"",9)+t_dylibCopy+String(L"\" -dst=\"",8)+CurrentDir()+String(L"/",1)+t_tconfig+String(L"\" -toolchain=\"",14)+t_toolchain+String(L"\" -toolpath=\"",13)+m_tcc->m_MINGW_PATH+String(L"\"",1),true);
 		bb_helpers_CopyLicences(m_casedConfig,String(L"gcc",3),m_tcc->m_cerberusdir+String(L"/libs",5),t_msize);
-		p_Execute(t_cmd+String(L" THIRD_PARTY_PATH=\"",19)+m_tcc->m_THIRDPARTY_PATH+String(L"\" STATIC=\"",10)+String(t_staticFlag)+String(L"\" POSIX=\"",9)+t_mingwUsePosix+String(L"\" CCOPTS=\"",10)+t_ccopts+String(L" ",1)+t_headerSearchList+String(L" ",1)+t_includes+String(L"\" LDOPTS=\"",10)+t_ldopts+String(L" ",1)+t_libsearchList+String(L"\" LIBOPTS=\"",11)+t_libopts+String(L"\" CERBERUSDIR=\"",15)+m_tcc->m_cerberusdir+String(L"\" HOSTOS=\"",10)+HostOS()+String(L"\" ARCH=\"",8)+t_msize+String(L"\" OUT=\"",7)+t_tconfig+String(L"/",1)+t_appName+String(L"\" ",2),true);
+		p_Execute(t_cmd+String(L" THIRD_PARTY_PATH=\"",19)+m_tcc->m_THIRDPARTY_PATH+String(L"\" STATIC=\"",10)+String(t_staticFlag)+String(L"\" CCOPTS=\"",10)+t_ccopts+String(L" ",1)+t_headerSearchList+String(L" ",1)+t_includes+String(L"\" LDOPTS=\"",10)+t_ldopts+String(L" ",1)+t_libsearchList+String(L"\" LIBOPTS=\"",11)+t_libopts+String(L"\" CERBERUSDIR=\"",15)+m_tcc->m_cerberusdir+String(L"\" HOSTOS=\"",10)+HostOS()+String(L"\" ARCH=\"",8)+t_msize+String(L"\" OUT=\"",7)+t_tconfig+String(L"/",1)+t_appName+String(L"\" ",2),true);
 		if(m_tcc->m_opt_run){
 			ChangeDir(t_tconfig);
 			if(HostOS()==String(L"winnt",5)){
@@ -8544,7 +8544,6 @@ void c_GlfwBuilder::p_MakeGcc(){
 void c_GlfwBuilder::p_MakeMsvc(String t_version){
 	bb_config_SetConfigVar2(String(L"GLFW_VSTUDIO_VERSION",20),t_version);
 	bool t_searchChk=((bb_config_GetConfigVar(String(L"SHOW_SEARCH_PATH_CHECK",22))).Length()!=0);
-	Array<String > t_empty=Array<String >();
 	bbPrint(String());
 	if(m_tcc->m_MSBUILD_PATH==String()){
 		bb_transcc_Die(String(L"Cannot find MSBuild.exe. Is Visual Studio installed and the MSBUILD_PATH set correctly?",87));
@@ -8558,7 +8557,7 @@ void c_GlfwBuilder::p_MakeMsvc(String t_version){
 		}
 		bb_config_SetConfigVar2(String(L"GLFW_VS_MSIZE_",14)+HostOS().ToUpper(),t_msize);
 	}
-	bb_helpers_CreateDefaultDirs(m_tcc->m_cerberusdir,t_msize,t_empty,t_version);
+	bb_helpers_CreateDefaultDirs(m_tcc->m_cerberusdir,t_msize,m_tcc->m_compilerName,t_version);
 	String t_tconfig=m_casedConfig+t_msize;
 	String t_dylibCopy=bb_config_GetConfigVar(String(L"GLFW_COPY_SHAREDLIBS",20));
 	String t_ccopts=String();
@@ -8620,11 +8619,10 @@ void c_GlfwBuilder::p_MakeXcode(){
 	p_CreateDataDir(String(L"xcode/data",10));
 	String t_main=LoadString(String(L"main.cpp",8));
 	bool t_searchChk=((bb_config_GetConfigVar(String(L"SHOW_SEARCH_PATH_CHECK",22))).Length()!=0);
-	Array<String > t_empty=Array<String >();
 	t_main=bb_transcc_ReplaceBlock(t_main,String(L"TRANSCODE",9),m_transCode,String(L"\n//",3));
 	t_main=bb_transcc_ReplaceBlock(t_main,String(L"CONFIG",6),p_Config(),String(L"\n//",3));
 	SaveString(t_main,String(L"main.cpp",8));
-	bb_helpers_CreateDefaultDirs(m_tcc->m_cerberusdir,String(),t_empty,String());
+	bb_helpers_CreateDefaultDirs(m_tcc->m_cerberusdir,String(),m_tcc->m_compilerName,String());
 	if(m_tcc->m_opt_build){
 		String t_ccopts=String();
 		String t_ldopts=String();
@@ -8711,6 +8709,7 @@ void c_GlfwBuilder::p_MakeXcode(){
 	}
 }
 void c_GlfwBuilder::p_MakeTarget(){
+	Array<String > t_gccVersion=bb_helpers_GCCVer();
 	String t_3=HostOS();
 	if(t_3==String(L"winnt",5)){
 		String t_vs=bb_config_GetConfigVar(String(L"GLFW_VSTUDIO_VERSION",20));
@@ -8724,27 +8723,37 @@ void c_GlfwBuilder::p_MakeTarget(){
 			}
 		}
 		if(t_mingw==String(L"1",1) && m_tcc->m_opt_msbuild==false && ((m_tcc->m_MINGW_PATH).Length()!=0)){
-			p_MakeGcc();
+			m_tcc->m_compilerName=String(L"MinGW",5);
+			bbPrint(String(L"Using ",6)+m_tcc->m_compilerName+String(L" ",1)+t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
+			p_MakeGcc(t_gccVersion);
 		}else{
+			m_tcc->m_compilerName=String(L"Visual Studio",13);
 			if(m_tcc->m_opt_msbuild==true){
 				bbPrint(String(L"Over-ride of GLFW_USE_MINGW via command option -msbuild.\n",57));
 			}
 			if(FileType(String(L"msvc",4)+t_vs)==2){
-				bbPrint(String(L"Using Visual Studio ",20)+t_vs);
+				bbPrint(String(L"Using ",6)+m_tcc->m_compilerName+String(L" ",1)+t_vs);
 				p_MakeMsvc(t_vs);
 			}else{
 				bbPrint(String(L"Cannot find a project template containing msvc",46)+t_vs+String(L".\nSwitching to MinGW.\n",22));
 				if((m_tcc->m_MINGW_PATH).Length()!=0){
-					p_MakeGcc();
+					bbPrint(String(L"Using ",6)+m_tcc->m_compilerName+String(L" ",1)+t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
+					p_MakeGcc(t_gccVersion);
+				}else{
+					bb_transcc_Die(String(L"There's no MinGW installed!",27));
 				}
 			}
 		}
 	}else{
 		if(t_3==String(L"macos",5)){
+			m_tcc->m_compilerName=String(L"XCode",5);
+			bbPrint(String(L"Using ",6)+m_tcc->m_compilerName);
 			p_MakeXcode();
 		}else{
 			if(t_3==String(L"linux",5)){
-				p_MakeGcc();
+				m_tcc->m_compilerName=String(L"GCC",3);
+				bbPrint(String(L"Using ",6)+m_tcc->m_compilerName+String(L" ",1)+t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
+				p_MakeGcc(t_gccVersion);
 			}
 		}
 	}
@@ -9412,6 +9421,7 @@ void c_StdcppBuilder::p_MakeTarget(){
 				}else{
 					bb_transcc_Die(String(L"Unknown MSIZE options passed via command line.",46));
 				}
+				bb_config_SetConfigVar2(String(L"CC_MSIZE",8),t_msize);
 			}
 		}else{
 			if(t_msize==String()){
@@ -9428,6 +9438,7 @@ void c_StdcppBuilder::p_MakeTarget(){
 					}
 				}
 				bbPrint(String(L"No value set for CC_MSIZE. Setting msize to ",44)+t_msize);
+				bb_config_SetConfigVar2(String(L"CC_MSIZE",8),t_msize);
 			}
 		}
 		if(t_out==String()){
@@ -9443,20 +9454,17 @@ void c_StdcppBuilder::p_MakeTarget(){
 		String t_ldOPTS2=String();
 		String t_libOPTS2=String();
 		String t_iconPath=bb_config_GetConfigVar(String(L"CC_ICON",7));
+		String t_toolchain=String();
 		String t_5=bb_config_ENV_HOST;
 		if(t_5==String(L"winnt",5)){
 			if(t_useMinGW==String(L"1",1) && m_tcc->m_opt_msbuild==false){
+				t_toolchain=String(L"mingw",5);
 				t_ccOPTS2=t_ccOPTS2+String(L" -Wno-free-nonheap-object",25);
 				t_libOPTS2=t_libOPTS2+String(L" -lwinmm -lws2_32",17);
 				if(m_tcc->m_opt_w64static || t_buildStatic==String(L"1",1)){
-					String t_usePosix=bb_config_GetConfigVar(String(L"MINGW_USE_POSIX",15));
-					if(t_usePosix==String(L"1",1)){
-						bbPrint(String(L"Static Building Posix Enabled",29));
-						t_ldOPTS2=String(L" -Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -Wl,-Bdynamic ",126);
-					}else{
-						bbPrint(String(L"Static Building Non Posix",25));
-						t_ldOPTS2=String(L" -Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bdynamic ",61);
-					}
+					bbPrint(String(L"GCC Static Building Enabled",27));
+					t_toolchain=String(L"mingw-static",12);
+					t_ldOPTS2=String(L" -Wl,-Bstatic -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -Wl,-Bdynamic ",126);
 				}
 				t_ccopts=p_CCOptions(t_msize,t_ccOPTS2);
 				t_ldopts=t_ldOPTS2+String(L" ",1)+t_ldopts;
@@ -9531,6 +9539,9 @@ void c_StdcppBuilder::p_MakeTarget(){
 								p_Execute(String(L"windres --target ",17)+t_windres+String(L" resource.rc -O coff -o icon",28)+t_msize+String(L".o",2),true);
 							}
 							t_ldopts=t_ldopts+(String(L" icon",5)+t_msize+String(L".o",2));
+						}
+						if((FileType(m_tcc->m_cerberusdir+String(L"/bin/sharedtrans_",17)+HostOS()+String(L".exe",4)))!=0){
+							p_Execute(m_tcc->m_cerberusdir+String(L"/bin/sharedtrans_",17)+HostOS()+String(L" -arch=\"",8)+t_msize+String(L"\" -srcdirs=\"\" -libs=\"\" -dst=\"",29)+CurrentDir()+String(L"\" -toolchain=\"",14)+t_toolchain+String(L"\" -toolpath=\"",13)+m_tcc->m_MINGW_PATH+String(L"\"",1),true);
 						}
 						bbPrint(String(L"Executing:\ng++ ",15)+t_ccopts+String(L" -o ",4)+t_out+String(L" main.cpp",9)+String(L" ",1)+t_ldopts+String(L" ",1)+t_libopts);
 						p_Execute(String(L"g++ ",4)+t_ccopts+String(L" -o ",4)+t_out+String(L" main.cpp",9)+String(L" ",1)+t_ldopts+String(L" ",1)+t_libopts,true);
@@ -21194,33 +21205,26 @@ Array<String > bb_helpers_GCCVer(){
 	}
 	return t_ret;
 }
-void bb_helpers_CreateDefaultDirs(String t_cerberusdir,String t_msize,Array<String > t_gccVersion,String t_vs_version){
-	String t_3=HostOS();
-	if(t_3==String(L"winnt",5)){
-		if(t_gccVersion.Length()>0){
-			bbPrint(String(L"Using MinGW Version ",20)+t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
-			bb_config_SetConfigVar2(String(L"GLFW_GCC_VERSION_WINNT",22),t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
-		}
+void bb_helpers_CreateDefaultDirs(String t_cerberusdir,String t_msize,String t_compilerName,String t_version){
+	CreateDir(RealPath(t_cerberusdir+String(L"/includes",9)));
+	String t_3=t_compilerName.ToLower();
+	if(t_3==String(L"visual studio",13)){
 		CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/Win",16)+t_msize));
-		CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/MinGW/",19)+t_msize));
-		CreateDir(RealPath(t_cerberusdir+String(L"/includes",9)));
-		CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/Win",16)+t_msize));
-		CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/VisualStudio/",26)+t_vs_version+String(L"/",1)+t_msize));
+		CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/VisualStudio/",26)+t_version+String(L"/",1)+t_msize));
 	}else{
-		if(t_3==String(L"linux",5)){
-			if(t_gccVersion.Length()>0){
-				bbPrint(String(L"Using GCC Version ",18)+t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
-				bb_config_SetConfigVar2(String(L"GLFW_GCC_VERSION_LINUX",22),t_gccVersion[0]+String(L".",1)+t_gccVersion[1]+String(L".",1)+t_gccVersion[2]);
-			}
-			CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/Linux",18)+t_msize));
-			CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/Linux/",19)+t_msize));
-			CreateDir(RealPath(t_cerberusdir+String(L"/includes",9)));
+		if(t_3==String(L"mingw",5)){
+			CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/Win",16)+t_msize));
+			CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/MinGW/",19)+t_msize));
 		}else{
-			if(t_3==String(L"macos",5)){
-				CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/MacOS",18)));
-				CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/MacOS/Frameworks",29)));
-				CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/MacOS",18)));
-				CreateDir(RealPath(t_cerberusdir+String(L"/includes",9)));
+			if(t_3==String(L"gcc",3)){
+				CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/Linux",18)+t_msize));
+				CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/Linux/",19)+t_msize));
+			}else{
+				if(t_3==String(L"xcode",5)){
+					CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/MacOS",18)));
+					CreateDir(RealPath(t_cerberusdir+String(L"/libs/shared/MacOS/Frameworks",29)));
+					CreateDir(RealPath(t_cerberusdir+String(L"/libs/static/MacOS",18)));
+				}
 			}
 		}
 	}
