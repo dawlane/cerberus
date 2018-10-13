@@ -33,3 +33,8 @@ MOD: Removed unneeded files in source directory. These are old build directories
 FIX: [TRANSCC] Added detection for GCC version to solve a problem with building on Linux using GCC 6+.
 MOD: [TEMPLATES/TRANSCC] Removed desktop support libraries to a new location. This now means that libraries can be built the once and linked many times cutting down build times.
 MOD: [GLFW] Updated GLFW sources to 3.2. This also includes an update to the GLFW ANGLE templates.
+MOD: [TRANSCC] Removed unneeded POSIX building preprocessor directive.
+MOD: [C++TOOL] Transcc will call sharedtrans for non static builds to copy over required shared libraries.
+FIX: [GLFW] Updated the MinGW GLFW/ANGLE target makefiles to better detect OpenAL32 location.
+FIX: [C++TOOL] C++Tool now checks that sharedtrans exist befor trying to call it.
+MOD: [TRANSC] Changed how default directories are created.
