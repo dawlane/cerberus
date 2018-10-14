@@ -16,14 +16,14 @@
 #define CFG_CPP_DOUBLE_PRECISION_FLOATS 1
 #define CFG_CPP_GC_MODE 1
 #define CFG_GCC_LINUX_NOPIE 1
-#define CFG_HOST winnt
+#define CFG_HOST linux
 #define CFG_LANG cpp
 #define CFG_MINGW_USE_STATIC 0
 #define CFG_MODPATH 
 #define CFG_RELEASE 1
 #define CFG_SAFEMODE 0
 #define CFG_TARGET stdcpp
-#define CFG_THIRDPARTY_PATH J:/projects/software/brl/cerberus/WIP/krautapps/cerberus/src/thirdparty
+#define CFG_THIRDPARTY_PATH /mnt/DATA/projects/software/brl/cerberus/WIP/krautapps/cerberus/src/thirdparty
 //${CONFIG_END}
 
 //${TRANSCODE_BEGIN}
@@ -6118,7 +6118,7 @@ String c_TransCC::p_GetReleaseVersion(){
 }
 void c_TransCC::p_Run(Array<String > t_args){
 	gc_assign(this->m_args,t_args);
-	bbPrint(String(L"TRANS cerberus compiler V2018-10-13 preview a",45));
+	bbPrint(String(L"TRANS cerberus compiler V2018-10-14 preview",43));
 	m_cerberusdir=RealPath(bb_os_ExtractDir(AppPath())+String(L"/..",3));
 	SetEnv(String(L"CERBERUSDIR",11),m_cerberusdir);
 	SetEnv(String(L"MONKEYDIR",9),m_cerberusdir);

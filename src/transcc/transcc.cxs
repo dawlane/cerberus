@@ -27,7 +27,7 @@ Change Log
 #CC_USE_ICON=True	' Use an icon.
 '#CC_APP_NAME="transcc" ' Set the final executable name.
 
-Const VERSION:="2018-10-13 preview a"
+Const VERSION:="2018-10-14 preview"
 
 Function Main()
 	Local tcc:=New TransCC
