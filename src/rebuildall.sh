@@ -12,7 +12,7 @@ ERROR=0
 DATE=`date +%F`
 TIME=`date +%T`
 
-COMPANYID="dawlane"
+COMPANYID="com.dawlane"
 QTVER="5.9.2"
 QTSDK="$HOME/Qt"
 
@@ -187,7 +187,7 @@ function ShowHelp(){
     echo "        --qtversion \"version\".......... Set the version number for the Qt SDK to use. Default is 5.9.2."
     echo "        -g | --git ...................... For use with option -p. Calls git to clone the package and build."
     echo "        -p | --package .................. Create a deployment package. Standard copy for testing."
-    echo "        -i | --companyid ................ For Mac OS flat packaging. (default is dawlane)"
+    echo "        -i | --companyid ................ For Mac OS flat packaging. (default is com.dawlane)"
     echo "        -h,--help ....................... Show this usage information."
     exit $2
 }
@@ -527,6 +527,7 @@ function BuildTed(){
     local str_scriptRoot=$2
     local str_config=$3
     local str_msize=${COMPILER_OPTS[3]}
+    local str_pkgID="$COMPANYID"
 
     HeaderMSG "Building TED as configuration of $str_config" "true"
     if [ qmake 2>/dev/null ];then
@@ -545,7 +546,7 @@ function BuildTed(){
     # MAC OS
         DeleteItem "$str_srcRoot/bin/Ted.app"
         HighlightMSG "Running QMake...."
-        ExecuteCMD "qmake" "CONFIG+=$str_config $str_scriptRoot/ted/ted.pro"
+        ExecuteCMD "qmake" "CONFIG+=$str_config $str_scriptRoot/ted/ted.pro QMAKE_TARGET_BUNDLE_PREFIX=$str_pkgID"
         HighlightMSG "Building....."
         ExecuteCMD "make"
 
@@ -722,7 +723,7 @@ function Package(){
         PkgCopy $str_srcRoot "$str_pkgApple/$pkgName"
         
         # Change the PKGID to suit you own needs
-        local str_pkgID="com.$COMPANYID.$pkgName"
+        local str_pkgID="$COMPANYID.$pkgName"
 
         # Copy and edit a post install script.
         mkdir -p "$str_deployRoot/scripts"
