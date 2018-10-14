@@ -4,6 +4,9 @@
 #
 #-------------------------------------------------
 # Change log
+# 2018-08-14 - Dawlane
+#                   Modified Info.plist to except companyid from the command line.
+#
 # 2018-08-06 - Dawlane
 #                   Removed 'dependencies without needing windeployqt and macdeployqt' as there are issues.
 #                   Added code the runs windeployqt and macdeployqt after a compiler. Currently not implemented yet.
@@ -148,6 +151,10 @@ linux{
 mac{
 #        WTF..enabling this appears to *break* 10.6 compatibility!!!!!
         QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+        isEmpty($(QMAKE_TARGET_BUNDLE_PREFIX)){
+            QMAKE_TARGET_BUNDLE_PREFIX = com.krautapps
+        }
+        QMAKE_BUNDLE = Ted
         QMAKE_INFO_PLIST = Info.plist
         ICON = ted.icns
         CONFIG += C++11
