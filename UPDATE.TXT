@@ -1,4 +1,4 @@
-***** v2018-10-10 *****
+***** v2018-10-14 *****
 Changes made by dawlane
 NEW: [C++Tool] Added support to build console applications with VisualStudio.
 NEW: [C++Tool] Added support to add an icon to the executable. Windows Only. See dawlane example console_icon.
@@ -38,3 +38,5 @@ MOD: [C++TOOL] Transcc will call sharedtrans for non static builds to copy over 
 FIX: [GLFW] Updated the MinGW GLFW/ANGLE target makefiles to better detect OpenAL32 location.
 FIX: [C++TOOL] C++Tool now checks that sharedtrans exist befor trying to call it.
 MOD: [TRANSC] Changed how default directories are created.
+FIX: [LAUNCHER] Fixed issue where wrong version of Cerberus/Ted would be called on MacOS in there was more than one version installed.
+MOD: [TED] Upadted rebuildall.sh and Ted project so that the MacOS version bundle id can be modified.
