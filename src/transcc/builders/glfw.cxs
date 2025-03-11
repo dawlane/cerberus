@@ -1,5 +1,7 @@
 ' Changes:
 ' NOTE: As the OS module now use brl.process, an application can be run to get information.
+'		2025-03-11: dawlane
+'					Added a limited method to dected and select a compiler.
 '		2025-02-26: dawlane
 '					Removed old Visual Studio 2010 target code.
 '					Added methods similar to those in stdcpp for builds,run and main file generation.
@@ -40,6 +42,8 @@ Class GlfwBuilder Extends Builder
 			If tcc.MSBUILD_PATH
 				If Execute( "~q"+tcc.MSBUILD_PATH+"~q  -version" ) toolchainFlag|=MSVC
 			Endif
+			
+			Print ""
 			
 			If toolchainFlag>0 Return True
 			
@@ -95,12 +99,21 @@ Class GlfwBuilder Extends Builder
 				Return "32"
 			Endif
 			
+			' Explicitly set a 64 bit version of MinGW if has been set. 
 			If msize="64" And ( toolchainFlag & MINGW64 )
 				tcc.UpdatePath( tcc.MINGW_PATH+"/bin" )
 				Return "64"
 			Endif
 			
-			' The value of msize has not bee defiend, so set it to the first compiler that is set in the toolchain flag.
+			' Explicitly set a 32 bit version of MinGW if has been set.
+			' NOTE: May not work with non TDM compilers
+			If msize="32" And ( toolchainFlag & MINGW64 )
+				Print "Using a 64 bit version of MinGW to build 32 bit binraries is not recommended on non TDM toolchains."
+				tcc.UpdatePath( tcc.MINGW_PATH+"/bin" )
+				Return "32"
+			Endif
+			
+			' The value of msize has not been defiend, so set it to the first compiler that is set in the toolchain flag.
 			If ( toolchainFlag & MINGW64 )
 				tcc.UpdatePath( tcc.MINGW_PATH+"/bin" )
 				Return "64"
