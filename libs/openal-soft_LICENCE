@@ -1,0 +1,10 @@
+This software uses the OpenAL Soft library with a renamed dynamic link library to that of OpenAL32 without any other modifications,
+and should not be confused with the version that is available from https://www.openal.org/.
+
+These were built using Visual Studio 2019/2022 and the vcpkg package manager from https://vcpkg.io/en/. And at the time of building
+were at version 1.24.2.
+
+The sources are avialable from https://github.com/kcat/openal-soft
+See http://kcat.strangesoft.net/openal.html for details.
+
+OpenAL Soft is used under the terms of the LGPL, version 2, June 1991. See the openal-soft_COPYING text file for terms and conditions.
