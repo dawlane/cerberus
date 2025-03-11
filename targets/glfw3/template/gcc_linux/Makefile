@@ -1,11 +1,30 @@
-CC=gcc
+# GLFW LINUX TARGET MAKE FILE
+
+# White space substitution for new line
+null :=
+space := ${null} ${null}
+${space} := ${space}# ${ }
+
+# For this to work a couple of empty lines must be used in the define.
+define \n
+
+
+endef
+
+# Set the compilers and basic flags
+CC=$(C_COMPILER)
 CFLAGS=-D_GLFW_X11
 
-CXX=g++
+CXX=$(CXX_COMPILER)
 CXXFLAGS=
 
-CPPFLAGS=$(CCOPTS) \
--Wno-int-to-pointer-cast \
+# The flags required for GLFW includes, defines and basic linking.
+CPPFLAGS=
+ifneq (${CCOPTS},)
+CPPFLAGS=$(CCOPTS)
+endif
+
+CPPFLAGS+=-Wno-int-to-pointer-cast \
 -Wno-free-nonheap-object \
 -Wno-unused-result \
 -I../curl/include \
@@ -18,16 +37,32 @@ CPPFLAGS=$(CCOPTS) \
 -D_GLFW_HAS_GLXGETPROCADDRESS \
 -pthread
 
+# Set the linker, imported and basic flags.
+# The linker is always g++
 LD=g++
-LDFLAGS=$(LDOPTS) -no-pie
-LDLIBS=-lGL -lX11 -lXxf86vm -lXi -lXrandr -lXinerama -lXcursor $(LIBOPTS) -lpthread -ldl 
+LDFLAGS=
+ifneq (${LDOPTS},)
+LDFLAGS=$(LDOPTS)
+endif
 
-VPATH= $(VPATHOPTS) \
-%.c ../glfw3/src \
+LDFLAGS+=-no-pie
+LDLIBS=-lGL -lX11 -lXxf86vm -lXi -lXrandr -lXinerama -lXcursor
+ifneq (${LIBOPTS},)
+LDLIBS+= $(LIBOPTS)
+endif
+LDLIBS+=-lpthread -ldl
+
+# Set any virtual paths
+VPATH=
+ifneq (${VPATHOPTS},)
+VPATH=$(VPATHOPTS)
+endif
+VPATH+=%.c ../glfw3/src \
 %.c ../stb \
 %.c ../tinyfiledialogs \
 %.cpp ..
 
+# The list of source/object files to build
 OBJS0= $(SRCOPTS) \
 context.o \
 init.o \
@@ -50,17 +85,76 @@ stb_image.o \
 tinyfiledialogs.o \
 main.o
 
-TMP=build/$(dir $(OUT))
+# Set build variables	
+TMP=$(BUILD_DIR)/$(dir $(OUT))
+
+OBJS_SPLIT=$()
 
 OBJS=$(patsubst %.o,$(TMP)%.o,$(OBJS0))
 
-all : $(OUT)
+# Main build
+all : $(OUT_PATH)/$(OUT)
 
-$(OUT) : $(OBJS)
+$(OUT_PATH)/$(OUT) : $(OBJS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
 $(TMP)%.o : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 $(TMP)%.o : %.cpp
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+# Show the current build information.
+$(info )
+$(info )
+$(info ------------------------------ MAKEFILE INFORMATION ------------------------------)
+$(info LINUX GLFW GCC TARGET)
+$(info  )
+
+$(info C COMPILER: $(CC))
+$(info C++ COMPILER: $(CXX))
+
+$(info )
+$(info PRE PROCESSOR FLAGS:)
+ifneq (${CPPFLAGS},)
+$(info $(subst ${ },${\n},${CPPFLAGS}))
+$(info )
+endif
+
+$(info LINKER: $(LD))
+ifneq (${LDFLAGS},)
+$(info LINKER FLAGS:)
+$(info $(subst ${ },${\n},${LDFLAGS}))
+$(info )
+endif
+
+ifneq (${LDLIBS},)
+$(info LINKER LIBRARY OPTS:)
+$(info $(subst ${ },${\n},${LDLIBS}))
+$(info )
+endif
+
+ifneq (${VPATH},)
+$(info SOURCE PATH SEARCH (VPATH):)
+$(info $(subst ${ },${\n},${VPATH}))
+$(info )
+endif
+
+ifneq (${SRCOPTS},)
+$(info ADDITIONAL SOURCES:)
+$(info $(subst ${ },${\n},${SRCOPTS}))
+$(info )
+endif
+
+$(info TEMP DIRECTORY: $(TMP))
+$(info )
+
+$(info OBJECT SUBSTITUTION:)
+$(info $(subst ${ },${\n},${OBJS}))
+$(info )
+
+$(info OUTPUT PATH: $(OUT_PATH))
+$(info OUTPUT: $(OUT))
+$(info )
+
+$(info )
