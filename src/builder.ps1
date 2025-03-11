@@ -31,7 +31,7 @@ Param(
 
 Clear-Host
 
-[string]$SCRIPT_VER = "2.0.0"
+[string]$SCRIPT_VER = "2.0.1"
 
 # Basic variable for common Cerberus directories.
 [string]$CERBERUS_SRC_DIR = "$PSScriptRoot"

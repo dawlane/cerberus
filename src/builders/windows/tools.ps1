@@ -87,8 +87,8 @@ function do_cserver() {
         # Check for the data directory and copy over additional files.
         if (-not(Test-Path("$CERBERUS_BIN_DIR\data"))) { do_move "$release_dir\data" "$CERBERUS_BIN_DIR\data" }
         if (-not(Test-Path("$CERBERUS_BIN_DIR\openal32.dll"))) { do_move "$release_dir\openal32.dll" "$CERBERUS_BIN_DIR\OpenAL32.dll" }
-        if (-not(Test-Path("$CERBERUS_BIN_DIR\openal32_COPYING"))) { do_move "$release_dir\openal32_COPYING" "$CERBERUS_BIN_DIR\openal32_COPYING" }
-        if (-not(Test-Path("$CERBERUS_BIN_DIR\openal32_LICENCE"))) { do_move "$release_dir\openal32_LICENCE" "$CERBERUS_BIN_DIR\openal32_LICENCE" }
+        if (-not(Test-Path("$CERBERUS_BIN_DIR\openal-soft_COPYING"))) { do_move "$release_dir\openal-soft_COPYING" "$CERBERUS_BIN_DIR\openal-soft_COPYING" }
+        if (-not(Test-Path("$CERBERUS_BIN_DIR\openal-soft_LICENCE"))) { do_move "$release_dir\openal-soft_LICENCE" "$CERBERUS_BIN_DIR\openal-soft_LICENCE" }
     }  
     
     if ($errCode -ne 0) {
