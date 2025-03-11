@@ -1,12 +1,11 @@
 
-'Deprecating!
-'
-'Use brl.filesystem and brl.filepath instead!
-'
 #If Not BRL_OS_IMPLEMENTED
 #If TARGET="stdcpp" Or TARGET="glfw"
 #BRL_OS_IMPLEMENTED=True
 Import "native/os.cpp"
+Import brl.process
+Import brl.filepath
+'Import brl.filesystem	' BAD FOR TRANSCC
 #Endif
 #Endif
 
@@ -16,35 +15,96 @@ Import "native/os.cpp"
 
 Extern
 
-Function HostOS$()
-Function AppPath$()
-Function AppArgs$[]()
-Function RealPath$( path$ )
-Function FileType( path$ )
-Function FileSize( path$ )
-Function FileTime( path$ )
-Function CopyFile( src$,dst$ )
-Function DeleteFile( path$ )
-Function LoadString$( path$ )
-Function SaveString( str$,path$ )
-Function LoadDir$[]( path$ )
-Function CreateDir( path$ )
-Function DeleteDir( path$ )
-Function ChangeDir( path$ )
-Function CurrentDir$()
-Function SetEnv( name$,value$ )
-Function GetEnv$( name$ )
-Function Execute( cmd$ )
-Function ExitApp( retcode )
+Class BBOSModule
+	Function HostOS:String()
+	Function RealPath:String( path:String )
+	Function FileType:Int( path:String )
+	Function FileSize:Int( path:String )
+	Function FileTime:Int( path:String )
+	Function CopyFile:Bool( src:String,dst:String )
+	Function DeleteFile:Bool( path:String )
+	Function LoadString:String( path:String )
+	Function SaveString:Bool( str:String,path:String )
+	Function LoadDir:String[]( path:String )
+	Function CreateFile:Bool( path:String )
+	Function CreateDir:Bool( path:String )
+	Function DeleteDir:Bool( path:String )
+End
 
 Public
+
+Function HostOS:String()
+	Return BBOSModule.HostOS
+End
+Function RealPath:String( path:String )
+	Return BBOSModule.RealPath( path )
+End
+
+Function FileType:Int( path:String )
+	Return BBOSModule.FileType( path )
+End
+
+Function FileSize:Int( path:String )
+	Return BBOSModule.FileSize( path )
+End
+
+Function FileTime:Int( path:String )
+	Return BBOSModule.FileTime( path )
+End
+
+Function CopyFile:Bool( src:String,dst:String )
+	Return BBOSModule.CopyFile( src,dst )
+End
+
+Function DeleteFile:Bool( path:String )
+	Return BBOSModule.DeleteFile( path )
+End
+
+Function LoadString:String( path:String )
+	Return BBOSModule.LoadString( path )
+End
+
+Function SaveString:Bool( str:String,path:String )
+	Return BBOSModule.SaveString( str,path )
+End
+
+Function LoadDir:String[]( path:String )
+	Return BBOSModule.LoadDir( path )
+End
+
+Function DeleteDir:Bool( path:String )
+	Return BBOSModule.DeleteDir( path )
+End
+
+Function CreateFile:Bool( path:String )
+	Return BBOSModule.CreateFile( path )
+End
 
 Const FILETYPE_NONE=0
 Const FILETYPE_FILE=1
 Const FILETYPE_DIR=2
 
-Function LoadDir$[]( path$,recursive?,hidden?=False )
+Function CreateDir:Bool( path:String )
+    Local ret:Bool = False
+    path=path.Replace("\","/")
 
+    Local dirs:=path.Split("/")
+    Local curDir:=""
+	If path.StartsWith("/") Then curDir="/"
+    For Local dir:=Eachin dirs
+        If dir.Length()= 0 Continue
+        curDir+=dir
+        If FileType(curDir)<>FILETYPE_DIR
+            ret=BBOSModule.CreateDir( curDir )
+        Endif
+        curDir+="/"
+    Next
+    Return ret
+End
+
+Function LoadDir:String[]( path:String,recursive:Bool,hidden:Bool=False )
+	path=path.Replace("\","/")
+	
 	Local dirs:=New StringList,files:=New StringList
 	
 	dirs.AddLast ""
@@ -74,8 +134,10 @@ Function LoadDir$[]( path$,recursive?,hidden?=False )
 	Return files.ToArray()
 End
 
-Function CopyDir( srcpath$,dstpath$,recursive?=True,hidden?=False )
-
+Function CopyDir( srcpath:String,dstpath:String,recursive:Bool=True,hidden:Bool=False )
+	srcpath=srcpath.Replace("\","/")
+	dstpath=dstpath.Replace("\","/")
+	
 	If FileType( srcpath )<>FILETYPE_DIR Return False
 
 	'do this before create of destdir to allow a dir to be copied into itself!
@@ -106,9 +168,10 @@ Function CopyDir( srcpath$,dstpath$,recursive?=True,hidden?=False )
 	Return True
 End
 
-Function DeleteDir( path$,recursive? )
-
-	If Not recursive Return DeleteDir( path )
+Function DeleteDir:Bool( path:String,recursive:Bool )
+	path=path.Replace("\","/")
+	
+	If Not recursive Return BBOSModule.DeleteDir( path )
 	
 	Select FileType( path )
 	Case FILETYPE_NONE Return True
@@ -128,33 +191,4 @@ Function DeleteDir( path$,recursive? )
 	Next
 
 	Return DeleteDir( path )
-End
-
-Function StripDir$( path$ )
-	Local i=path.FindLast( "/" )
-	If i=-1 i=path.FindLast( "\" )
-	If i<>-1 Return path[i+1..]
-	Return path
-End
-
-Function ExtractDir$( path$ )
-	Local i=path.FindLast( "/" )
-	If i=-1 i=path.FindLast( "\" )
-	If i<>-1 Return path[..i]
-End
-
-Function StripExt$( path$ )
-	Local i=path.FindLast( "." )
-	If i<>-1 And path.Find( "/",i+1 )=-1 And path.Find( "\",i+1 )=-1 Return path[..i]
-	Return path
-End
-
-Function ExtractExt$( path$ )
-	Local i=path.FindLast( "." )
-	If i<>-1 And path.Find( "/",i+1 )=-1 And path.Find( "\",i+1 )=-1 Return path[i+1..]
-	Return ""
-End
-
-Function StripAll$( path$ )
-	Return StripDir( StripExt( path ) )
 End

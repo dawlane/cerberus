@@ -64,9 +64,11 @@ Parameters:
 path - a file system path.
 
 
-# Function CopyFile:Int(src:String,dst:String)
+# Function CopyFile:Bool(src:String,dst:String)
 
 Copies a file from srcpath to dstpath.
+
+Returns true is successful, else returns false.
 
 Parameters: 
 
@@ -75,9 +77,11 @@ srcpath - file system path of source file.
 dstpath - file system path of destination file.
 
 
-# Function DeleteFile:Int(path:String)
+# Function DeleteFile:Bool(path:String)
 
 Deletes the specified file.
+
+Returns true is successful, else returns false.
 
 Parameters: 
 
@@ -88,16 +92,20 @@ path - a file system path.
 
 Loads a string from the file at path.
 
+Will return an empty string upon failure.
+
 Parameters: 
 
 path - a file system path.
 
 
-# Function SaveString:Int(str:String,path:String)
+# Function SaveString:Bool(str:String,path:String)
 
 Saves str to a file specified by path.
 
 If a file already exists at path, it will be overwritten.
+
+Returns false upon failure.
 
 Parameters: 
 
@@ -106,37 +114,31 @@ str - a string value.
 path - a file system path.
 
 
-# Function LoadDir:String[](path:String)
+# Function LoadDir:String[](path:String)[[path:String,recursive:Bool,hidden:Bool=False]]
 
 Loads the file names in the directory specified by path into a string array.
 
-If recursive is True, LoadDir will also load file names in subdirectories, but will not add subdirectories to the output string array.
-
-If hidden is True, then hidden files - files starting with a dot - are also loaded.
-
 Parameters: 
 
 path - a file system path.
 
-recursive - a flag indicating whether subdirectories should also be loaded.
 
-hidden - a flag indicating whether hidden files should also be loaded.
-
-
-# Function CreateDir:Int(path:String)
+# Function CreateDir:Bool(path:String)
 
 Create a new directory at path.
 
+Returns true is successful, else returns false.
+
 Parameters: 
 
 path - a file system path.
 
 
-# Function DeleteDir:Int(path:String)
+# Function DeleteDir:Bool(path:String)[[path:String,recursive:Bool]]
 
 Deletes the directory at path.
 
-If recursive is True, then subdirectories are also deleted - use with care!
+Returns true is successful, else returns false.
 
 Parameters: 
 
@@ -145,7 +147,7 @@ path - file system path of directory to delete.
 recursive - a flag indicating whether subdirectories should also be deleted.
 
 
-# Function ChangeDir:Int(path:String)
+# Function ChangeDir:Bool(path:String)
 
 Changes the current directory of the running application.
 
@@ -207,8 +209,7 @@ retcode - application return code.
 
 # Const FILETYPE_DIR:Int
 
-
-# Function LoadDir:String[](path:String,recursive:Bool,hidden:Bool=False)
+# Function LoadDir:String[](path:String,recursive:Bool,hidden:Bool=False)[[path:String]]
 
 Loads the file names in the directory specified by path into a string array.
 
@@ -225,13 +226,15 @@ recursive - a flag indicating whether subdirectories should also be loaded.
 hidden - a flag indicating whether hidden files should also be loaded.
 
 
-# Function CopyDir:Int(srcpath:String,dstpath:String,recursive:Bool,hidden:Bool)
+# Function CopyDir:Bool(srcpath:String,dstpath:String,recursive:Bool,hidden:Bool)
 
 Copies the directory at srcpath to dstpath, creating dstpath if necessary.
 
 If recursive is True, then subdirectories are also copied.
 
 If hidden is True, then hidden files - files starting with a dot - are also copied.
+
+Returns true is successful, else returns false.
 
 Parameters: 
 
@@ -244,11 +247,13 @@ recursive - flag indicating whether subdirectories should also be copied.
 hidden - flag indicating whther hidden files should also be copied.
 
 
-# Function DeleteDir:Int(path:String,recursive:Bool)
+# Function DeleteDir:Bool(path:String,recursive:Bool)
 
 Deletes the directory at path.
 
 If recursive is True, then subdirectories are also deleted - use with care!
+
+Returns true is successful, else returns false.
 
 Parameters: 
 
