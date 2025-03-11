@@ -54,3 +54,12 @@ Thumbs.db
 .vscode
 *.code-workspace
 *.desktop
+.vs
+**/msvc.vcxproj.user
+**/msvc.vcxproj.filters
+
+**/src/ted/build
+
+**/xcuserdata/
+**/xcuserdatad/
+**/transcc.build/**/*.o
