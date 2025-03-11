@@ -9,6 +9,17 @@ Import brl.asyncevent
 #BRL_SOCKET_IMPLEMENTED=True
 Import "native/socket.cpp"
 
+#Print "~n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+#Print "THE C++ SOURCES FOR SOCKET.CXS NEED UPDATING BECAUSE OF DEPRECIATED FUNCTIONS"
+#Print "ON MSVC ADDEDD /D_WINSOCK_DEPRECATED_NO_WARNINGS TO SURPRESS ERRORS"
+#Print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+
+#GLFW_MSVC_CC_OPTS+="/D_WINSOCK_DEPRECATED_NO_WARNINGS"
+#GLFW_MSVC_CC_OPTS_32+="/D_WINSOCK_DEPRECATED_NO_WARNINGS"
+
+#CC_MSVC_CC_OPTS+="/D_WINSOCK_DEPRECATED_NO_WARNINGS"
+#CC_MSVC_CC_OPTS_32+="/D_WINSOCK_DEPRECATED_NO_WARNINGS"
+
 #Else If TARGET="android"
 
 #BRL_SOCKET_IMPLEMENTED=True
