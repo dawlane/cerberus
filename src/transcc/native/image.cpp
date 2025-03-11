@@ -27,7 +27,7 @@ std::ifstream::pos_type getFileSize(const char* filename)
 void _CreateIcon(String srcFilename, String dstFilename, int w, int h,int round) {
 	int width,height,n;
 	
-	stbi_uc *input_pixels = stbi_load(C_STR(srcFilename), &width, &height, &n, 4);
+	stbi_uc *input_pixels = stbi_load(BBOSModule::C_STR(srcFilename), &width, &height, &n, 4);
 
 // Under MSVC. Use a pointer to stop error C2131: expression did not evaluate to a constant
 #ifdef _MSC_VER
@@ -51,7 +51,7 @@ void _CreateIcon(String srcFilename, String dstFilename, int w, int h,int round)
 		}
 	}
 	
-	stbi_write_png(C_STR(dstFilename), w, h, 4, &output_pixels, 0);
+	stbi_write_png(BBOSModule::C_STR(dstFilename), w, h, 4, &output_pixels, 0);
 #ifdef _MSC_VER
 	delete output_pixels;
 #endif
@@ -81,7 +81,7 @@ void _ConvertToIco(String srcFilename,String destFilename) {
 		String tmpname = srcFilename+".tmp."+width;
 		_CreateIcon(srcFilename, tmpname, width,width,0);
 
-		size_of_files[i] = getFileSize(C_STR(tmpname));
+		size_of_files[i] = getFileSize(BBOSModule::C_STR(tmpname));
 		size_of_data=size_of_data+size_of_files[i];
 
 		i++;
@@ -140,7 +140,7 @@ void _ConvertToIco(String srcFilename,String destFilename) {
 		width = widths[i];
 
 		String tmpname = srcFilename+".tmp."+width;
-		std::ifstream infile (C_STR(tmpname),std::ifstream::binary);
+		std::ifstream infile (BBOSModule::C_STR(tmpname),std::ifstream::binary);
 		char* buffer = new char[size_of_files[i]];
 		infile.read (buffer,size_of_files[i]);
 		infile.close();
@@ -154,10 +154,10 @@ void _ConvertToIco(String srcFilename,String destFilename) {
 		// this bit of code from stb_image as i struggled to convert string to *wchar
 #if _WIN32
 		wchar_t wFilename[1024];
-		if (0 != MultiByteToWideChar(65001 /* UTF8 */, 0, C_STR(tmpname), -1, wFilename, sizeof(wFilename)))
+		if (0 != MultiByteToWideChar(65001 /* UTF8 */, 0, BBOSModule::C_STR(tmpname), -1, wFilename, sizeof(wFilename)))
 			remove(wFilename);
 #else
-		remove(OS_STR(tmpname));
+		remove(BBOSModule::OS_STR(tmpname));
 #endif
 		data_pointer = data_pointer + size_of_files[i];
 		i++;
@@ -168,7 +168,7 @@ void _ConvertToIco(String srcFilename,String destFilename) {
 #endif
 
 	// write file
-	std::ofstream outfile (C_STR(destFilename),std::ofstream::binary);
+	std::ofstream outfile (BBOSModule::C_STR(destFilename),std::ofstream::binary);
 	outfile.write (new_data,size_of_file);
 	outfile.close();
 }

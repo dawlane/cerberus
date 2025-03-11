@@ -9,7 +9,7 @@ Import builders
 #If CONFIG="debug"
 	'	DEBUG_TEST_CFG: Release,Debug
 	'	DEBUG_TARGET: Desktop,Android,iOS,iOS Metal,HTML
-	'	DEBUG_TEST: TransCC,Reflection,Mojo,Mojo2,Audio
+	'	DEBUG_TEST: TransCC,Reflection,Mojo,Mojo2,Audio,FileIoTest
 		
 	' Change the preprocessor directives to select the example to run for debugging transcc
 	#DEBUG_TEST_CFG="Release"
@@ -17,9 +17,9 @@ Import builders
 	#DEBUG_TARGET="HTML"
 	Import debugconf
 	
-	Const VERSION:="2023-10-14 (DEBUG)"
+	Const VERSION:="2025-03-10 (DEBUG)"
 #Else
-    Const VERSION:="2023-10-14"
+    Const VERSION:="2025-03-10"
 #Endif
 
 Function Main()
@@ -53,7 +53,6 @@ Function StripQuotes:String( str:String )
     If str.Length>=2 And str.StartsWith( "~q" ) And str.EndsWith( "~q" ) Return str[1..-1]
     Return str
 End
-
 
 ' Checks, if source filename is valid (without space characters).
 Function IsValidSourceFilename:Bool( sourcePath:String )
@@ -160,69 +159,6 @@ Function MatchPath:Bool( text:String,pattern:String )
     Return match
 End
 
-Function ExpandEnv:String( text:String )
-	
-	Local resolved:="", char:="", idx1:=0, terminator:=0, idx2:=0
-	While idx1<text.Length
-		char=String.FromChar( text[idx1] )
-		
-		Select char
-		' MS Windows style environment expansion
-		Case "%"
-			terminator=text.Find( "%",idx1+1 )
-			resolved+=GetEnv(text[idx1+1..terminator])
-			If terminator<0 terminator=text.Length
-			idx1+=(terminator+1)-idx1
-		
-		' Unix style environment expansion
-		Case "$"
-			terminator=-1
-			idx2=idx1
-			
-			' Look ahead for one of the known termination characters.
-			While idx2<text.Length And terminator<0
-				If text[idx2]="/"[0] Or text[idx2]=":"[0] Or text[idx2]=";"[0] terminator=idx2
-				idx2+=1
-			Wend
-			If terminator<0 terminator=text.Length
-			resolved+=GetEnv(text[idx1+1..terminator])
-			idx1+=(terminator)-idx1
-			
-		Default
-			resolved+=char
-			idx1+=1
-			
-		End
-	Wend
-	
-	Return resolved
-End
-
-Function CreateDirs( path:String,delim:String="/" )
-	
-	Print "Creating output directory structure:~n"+path
-	Local dirs:=path.Split( delim ), currentDir:=CurrentDir
-	
-	' Special case for Linux and macOS to ensure that the root directory is set.
-	If HostOS<>"winnt"
-		If dirs[0]="" Then dirs[0]="/"
-	Endif
-		
-	For Local i:=Eachin dirs
-
-		Select FileType( i )
-		Case FILETYPE_DIR
-			Print "Directory already exists:~n"+RealPath( i )
-		Case FILETYPE_FILE
-			Die "Directory creation error: Path is a regular file. Cannot continue.~n"+RealPath( i )
-		Default
-			If CreateDir( i.Trim ) Print "Created directory:~n"+RealPath( i )
-		End
-		ChangeDir i.Trim
-	Next
-	ChangeDir currentDir
-End
-
 Class Target
     Field dir:String
     Field name:String
@@ -270,20 +206,23 @@ Class TransCC
     Field JDK_PATH:String
     Field FLEX_PATH:String
     Field MINGW_PATH:String
+    Field MINGW32_PATH:String
     Field MSBUILD_PATH:String
     Field PSS_PATH:String
     Field PSM_PATH:String
     Field AGK_PATH:String
     Field HTML_PLAYER:String
     Field FLASH_PLAYER:String
+    Field MSVC_WINSDK:String
+    Field MSVC_TOOLSET:String
   
     Field args:String[]
     Field cerberusdir:String
+    Field cerberuslibdir:String
     Field target:Target
   
     Field _builders:=New StringMap<Builder>
     Field _targets:=New StringMap<Target>
-    Field _libs:String
   
     Method Run:Void( args:String[] )
 
@@ -292,7 +231,7 @@ Class TransCC
         Print "TRANS cerberus compiler V"+VERSION
       
         cerberusdir=GetEnv( "CERBERUS_DIR" )
-        _libs=cerberusdir+"/libs/"
+        cerberuslibdir=cerberusdir+"/libs/"
 
         SetEnv "CERBERUSDIR",cerberusdir
         SetEnv "MONKEYDIR",cerberusdir 'this is for Jungle compatibility
@@ -515,6 +454,10 @@ Class TransCC
                 If Not MINGW_PATH And FileType( path )=FILETYPE_DIR
                     MINGW_PATH=path
                 Endif
+            Case "MINGW32_PATH"
+                If Not MINGW32_PATH And FileType( path )=FILETYPE_DIR
+                    MINGW32_PATH=path
+                Endif
             Case "PSM_PATH"
                 If Not PSM_PATH And FileType( path )=FILETYPE_DIR
                     PSM_PATH=path
@@ -522,7 +465,11 @@ Class TransCC
             Case "MSBUILD_PATH"
                 If Not MSBUILD_PATH And FileType( path )=FILETYPE_FILE
                     MSBUILD_PATH=path
-                Endif         
+                Endif
+            Case "MSVC_WINSDK"
+            	MSVC_WINSDK=rhs
+            Case "MSVC_TOOLSET"
+            	MSVC_TOOLSET=rhs      
             Case "AGK_PATH"
                 If Not AGK_PATH And FileType( path )=FILETYPE_DIR
                     AGK_PATH=path
@@ -546,8 +493,9 @@ Class TransCC
             If JDK_PATH path+=";"+JDK_PATH+"/bin"
             If ANT_PATH path+=";"+ANT_PATH+"/bin"
             If FLEX_PATH path+=";"+FLEX_PATH+"/bin"
-          
-            If MINGW_PATH path=MINGW_PATH+"/bin;"+path    'override existing mingw path if any...
+            
+            ' Path is now set when the compiler is to be used.
+            'If MINGW_PATH path=MINGW_PATH+"/bin;"+path    'override existing mingw path if any...
   
             SetEnv "PATH",path
           
@@ -595,6 +543,15 @@ Class TransCC
         If Not r Return True
         If failHard Die "Error executing '"+cmd+"', return code="+r
         Return False
+    End
+    
+    Method UpdatePath:Void( value:String )
+    	Local path:=GetEnv( "PATH" )
+    	If HostOS="winnt"
+    		SetEnv "PATH",value+";"+path
+    	Else
+    		SetEnv "PATH",value+":"+path
+    	Endif
     End
 
 End

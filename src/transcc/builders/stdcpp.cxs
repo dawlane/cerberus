@@ -1,5 +1,14 @@
 
 ' Changes:
+' NOTE: As the OS module now use brl.process, an application can be run to get information.
+'		2025-02-24: dawlane
+'					Removed ExpandEnv and CreateDirs as the are no longer needed.
+'					Added a way to pass the MSVC Toolset and Windows SDK version.
+'					Reworked how the config variable are handled.
+'						This means that configuration options have an architecture counterpart. i.e a _32 appended to stop passing of the 64bit option to a 32bit compiler,
+'						and thus avoid incorrect libraries trying to be linked against. Xcode doesn't need these, as it build universal binarise.
+'					Updated gcc_linux and gcc_winnt target template make files to show more information.
+'					Xcode target's DerivedDataPath is now relocated to the projects folder. Keep the Xcode default DerivedDataPath from getting cluttered.
 '		2023-03-23:	dawlane
 '					Rewrote how the C++ Tool builds for different OS hosts and toolchains.
 '					The C++ Tool will now build using an Xcode project file on macOS to allow
@@ -7,9 +16,14 @@
 '					MSVC as the compiler.
 '					Common tasks, such as updating the main.cpp and running of the built program now
 '					use common methods.
+
+' NOTE: TODO - As the changes to the OS module bring in brl.process. A new function can be created to ripped information from the compiler to detemine any features that may be useful.
 Import builder
 
 Class StdcppBuilder Extends Builder
+
+	Enumerate MINGW32=1,MINGW64=2,MSVC=4,GCC32=8,GCC64=16,XCODE=32
+	Field toolchainFlag:=0
 
 	Method New( tcc:TransCC )
 		Super.New( tcc )
@@ -26,7 +40,21 @@ Class StdcppBuilder Extends Builder
 	Method IsValid:Bool()
 		Select HostOS
 		Case "winnt"
-			If tcc.MINGW_PATH Return True
+			Print "Compiler Check:"
+			If tcc.MINGW_PATH
+				If Execute( tcc.MINGW_PATH+"/bin/g++.exe --version" ) toolchainFlag|=MINGW64
+			Endif
+			
+			If tcc.MINGW32_PATH
+				If Execute( tcc.MINGW32_PATH+"/bin/g++.exe --version" ) toolchainFlag|=MINGW32
+			Endif
+			
+			If tcc.MSBUILD_PATH
+				If Execute( "~q"+tcc.MSBUILD_PATH+"~q  -version" ) toolchainFlag|=MSVC
+			Endif
+			
+			If toolchainFlag>0 Return True
+			
 		Default
 			Return True
 		End
@@ -36,6 +64,35 @@ Class StdcppBuilder Extends Builder
 	Method Begin:Void()
 		ENV_LANG="cpp"
 		_trans=New CppTranslator
+	End
+	
+	Method SelectGCCCompiler:String( msize:String )
+		If HostOS="winnt"
+			' Explicitly set a 32 bit version of MinGW if has been set.
+			If msize="32" And ( toolchainFlag & MINGW32 )
+				tcc.UpdatePath( tcc.MINGW32_PATH+"/bin" )
+				Return "32"
+			Endif
+			
+			If msize="64" And ( toolchainFlag & MINGW64 )
+				tcc.UpdatePath( tcc.MINGW_PATH+"/bin" )
+				Return "64"
+			Endif
+			
+			' The value of msize has not bee defiend, so set it to the first compiler that is set in the toolchain flag.
+			If ( toolchainFlag & MINGW64 )
+				tcc.UpdatePath( tcc.MINGW_PATH+"/bin" )
+				Return "64"
+			ElseIf ( toolchainFlag & MINGW32 )
+				tcc.UpdatePath( tcc.MINGW32_PATH+"/bin" )
+				Return "32"
+			Endif
+			
+			Die "No valid MinGw compiler can be found."
+			
+		Endif
+		
+		Return ""
 	End
 
 	Method MakeTarget:Void()
@@ -49,14 +106,22 @@ Class StdcppBuilder Extends Builder
 		
 		' Get the compiler and linker options if set.
 		' NOTE: These will be overriden if host and compiler version are used.
-		Local cc_opts:=GetConfigVar( "CC_OPTS" )
-		If cc_opts cc_opts.Replace( ";"," " )
+		Local cc_opts:="",cc_libs:="",cc_ldopts:=""
 		
-		Local cc_libs:=GetConfigVar( "CC_LIBS" )
-		If cc_libs cc_libs.Replace( ";"," " )
+		If GetConfigVar( "CC_OPTS" )<>""
+			UnifyConfigVarSeparator( "CC_OPTS", " ", ["|",";"] )
+			cc_opts=GetConfigVar( "CC_OPTS" )
+		Endif
 		
-		Local cc_ldopts:=GetConfigVar( "CC_LDOPTS" )
-		If cc_ldopts cc_ldopts.Replace( ";"," " )
+		If GetConfigVar( "CC_LIBS" )<>""
+			UnifyConfigVarSeparator( "CC_LIBS", " ", ["|",";"] )
+			cc_libs=GetConfigVar( "CC_LIBS" )
+		Endif
+		
+		If GetConfigVar( "CC_LDOPTS" )<>""
+			UnifyConfigVarSeparator( "CC_LIBS", " ", ["|",";"] )
+			cc_ldopts=GetConfigVar( "CC_LDOPTS" )
+		Endif
 
 		' Select the build tool to use depending on the host os and the MINGW switch.
 		Select HostOS
@@ -81,14 +146,15 @@ Class StdcppBuilder Extends Builder
 		UpdateMainSourceFile()	' Call common main.cpp update method
 		
 		' Set up build variables.
-		Local opts:="", libs:="", ldopts:="", maketool:="make", msize:=GetConfigVar( "CC_MSIZE" ), cxx:="g++", cc:="gcc"
-		Local dst:="gcc_"+HostOS, out:=GetConfigVar( "CC_OUTPUT_NAME" ), exec:="", outpath:=GetConfigVar( "CC_OUTPUT_PATH" ), build_dir:="build/"+casedConfig
+		Local opts:="", libs:="", ldopts:="", maketool:="make", msize:=GetConfigVar( "CC_MSIZE" ), cxx:="g++", cc:="gcc", strip:="", vpathopts:="", srcopts:="", appenedArch:=""
+		Local dst:="gcc_"+HostOS, outfile:=GetConfigVar( "CC_OUTPUT_NAME" ), exec:="", outpath:=GetConfigVar( "CC_OUTPUT_PATH_"+HostOS().ToUpper() ), build_dir:="build/"+casedConfig
 
 		' Set the output file name and path.
 		' If there isn't an output path, then use the current directory.
 		' Else check the path passed and expand any environment variables.
-		If outpath="" outpath=CurrentDir() Else outpath=RealPath( ExpandEnv( outpath ) )
-		If out="" out="main_"+HostOS
+		If outpath="" outpath=CurrentDir() Else outpath=RealPath( outpath )
+		If outfile="" outfile="main_"+HostOS
+		If outfile.Contains( " " ) outfile=outfile.Replace( " ","_" )	' Remove any space characters
 		
 		' Set options for build configuration.
 		If GetConfigVar( "DEBUG" )="1"
@@ -101,46 +167,97 @@ Class StdcppBuilder Extends Builder
 			opts+=" -pg"
 		Endif
 		
-		' Set defaults
-		Select HostOS
-			Case "winnt"
-				' If used, override the CC_OPTS, CC_LIBS, CC_LDOPTS.
-				If GetConfigVar( "CC_MINGW_OPTS" ) cc_opts=GetConfigVar( "CC_MINGW_OPTS" )
-				If GetConfigVar( "CC_MINGW_LIBS" ) cc_libs=GetConfigVar( "CC_MINGW_LIBS" )
-				If GetConfigVar( "CC_MINGW_LDOPTS" ) cc_ldopts=GetConfigVar( "CC_MINGW_LDOPTS" )
-				If GetConfigVar( "CC_MINGW_MSIZE" ) msize=GetConfigVar( "CC_MINGW_MSIZE" )
-				
-				opts+=" -Wno-free-nonheap-object "+cc_opts
-				libs+=" "+cc_libs
-				ldopts+=" "+cc_ldopts
-				maketool="mingw32-make"
-			Case "linux"
-				' If used, override the CC_OPTS, CC_LIBS, CC_LDOPTS.
-				If GetConfigVar( "CC_GCC_OPTS" ) cc_opts=GetConfigVar( "CC_GCC_OPTS" )
-				If GetConfigVar( "CC_GCC_LIBS" ) cc_libs=GetConfigVar( "CC_GCC_LIBS" )
-				If GetConfigVar( "CC_GCC_LDOPTS" ) cc_ldopts=GetConfigVar( "CC_GCC_LDOPTS" )
-				If GetConfigVar( "CC_GCC_MSIZE" ) msize=GetConfigVar( "CC_GCC_MSIZE" )
-				If GetConfigVar( "CC_GCC_MSIZE" ) msize=GetConfigVar( "CC_GCC_MSIZE" )
-				If GetConfigVar( "CC_LINUX_CC" ) cc=GetConfigVar( "CC_LINUX_CC" )
-				If GetConfigVar( "CC_LINUX_CXX" ) cxx=GetConfigVar( "CC_LINUX_CXX" )
-				
-				
-				opts+=" -Wno-unused-result "+cc_opts
-				libs+=" "+cc_libs+" -lpthread -ldl"
-				ldopts+=" "+cc_ldopts+" -no-pie"
-				exec="./"+out
-		End Select
+		' Override the MSIZE passed by CC_MSIZE if these are used.
+		If GetConfigVar( "CC_GCC_MSIZE" ) msize=GetConfigVar( "CC_GCC_MSIZE" )
+		If GetConfigVar( "CC_MINGW_MSIZE" ) msize=GetConfigVar( "CC_MINGW_MSIZE" )
 		
-		' If the msize has been set; then set the correct switch to use. 
+		' If the msize has been set; then set the correct switch to use.
 		If msize<>""
 			If msize="32"
 				msize="-m32"
+				appenedArch="_32"
 			Elseif msize="64"
 				msize="-m64"
 			Else
 				Print "WARNING: Value assigned to CC_MSIZE is "+msize+"~nOnly 32 and 64 are permitted."
 			Endif
 		Endif
+		
+		outpath+=SelectGCCCompiler( msize )
+		
+		' Set defaults
+		Select HostOS
+			Case "winnt"
+				
+				' If used, override the CC_OPTS, CC_LIBS, CC_LDOPTS.
+
+				If GetConfigVar( "CC_MINGW_CC_OPTS"+appenedArch )<>""
+					UnifyConfigVarSeparator( "CC_MINGW_CC_OPTS"+appenedArch, " ", ["|",";"] )
+					cc_opts=GetConfigVar( "CC_MINGW_CC_OPTS"+appenedArch )
+				Endif
+				
+				If GetConfigVar( "CC_MINGW_LIB_OPTS"+appenedArch )
+					UnifyConfigVarSeparator( "CC_MINGW_LIB_OPTS"+appenedArch, " ", ["|",";"] )
+					cc_libs=GetConfigVar( "CC_MINGW_LIB_OPTS"+appenedArch )
+				Endif
+				
+				If GetConfigVar( "CC_MINGW_LD_OPTS"+appenedArch )
+					UnifyConfigVarSeparator( "CC_MINGW_LD_OPTS"+appenedArch, " ", ["|",";"] )
+					cc_ldopts=GetConfigVar( "CC_MINGW_LD_OPTS"+appenedArch )
+				Endif
+				
+				If GetConfigVar( "CC_MINGW_VPATH_OPTS"+appenedArch )
+					UnifyConfigVarSeparator( "CC_MINGW_VPATH_OPTS"+appenedArch, " ", ["|",";"] )
+					vpathopts=GetConfigVar( "CC_MINGW_VPATH_OPTS"+appenedArch )
+				Endif
+				
+				If GetConfigVar( "CC_MINGW_SRC_OPTS" )
+					UnifyConfigVarSeparator( "CC_MINGW_SRC_OPTS", " ", ["|",";"] )
+					srcopts=GetConfigVar( "CC_MINGW_SRC_OPTS" )
+				Endif
+				
+				' Do checks to avoid unnecessary white space being passed 
+				If cc_opts<>"" opts+=" -Wno-free-nonheap-object "+cc_opts Else opts+=" -Wno-free-nonheap-object"
+				If cc_libs<>"" libs+=" "+cc_libs+" "+strip Else libs=strip
+				If cc_ldopts<>"" ldopts+=" "+cc_ldopts
+				
+				maketool="mingw32-make"
+			Case "linux"
+				' If used, override the CC_OPTS, CC_LIBS, CC_LDOPTS.
+				If GetConfigVar( "CC_GCC_CC_OPTS"+appenedArch )
+					UnifyConfigVarSeparator( "CC_GCC_CC_OPTS"+appenedArch, " ", ["|",";"] )
+					cc_opts=GetConfigVar( "CC_GCC_CC_OPTS"+appenedArch )
+				Endif
+				
+				If GetConfigVar( "CC_GCC_LIBS"+appenedArch )
+					UnifyConfigVarSeparator( "CC_GCC_LIB_OPTS"+appenedArch, " ", ["|",";"] )
+					cc_libs=GetConfigVar( "CC_GCC_LIB_OPTS"+appenedArch )
+				Endif
+				
+				If GetConfigVar( "CC_GCC_LD_OPTS"+appenedArch )
+					UnifyConfigVarSeparator( "CC_GCC_LD_OPTS"+appenedArch, " ", ["|",";"] )
+					cc_ldopts=GetConfigVar( "CC_GCC_LD_OPTS"+appenedArch )
+				Endif
+				
+				If GetConfigVar( "CC_LINUX_CC" ) cc=GetConfigVar( "CC_LINUX_CC" )
+				If GetConfigVar( "CC_LINUX_CXX" ) cxx=GetConfigVar( "CC_LINUX_CXX" )
+				
+				If GetConfigVar( "CC_GCC_VPATH_OPTS"+appenedArch )
+					UnifyConfigVarSeparator( "CC_GCC_VPATH_OPTS"+appenedArch, " ", ["|",";"] )
+					vpathopts=GetConfigVar( "CC_GCC_VPATH_OPTS"+appenedArch )
+				Endif
+				
+				If GetConfigVar( "CC_GCC_SRC_OPTS" )
+					UnifyConfigVarSeparator( "CC_GCC_SRC_OPTS", " ", ["|",";"] )
+					srcopts=GetConfigVar( "CC_GCC_SRC_OPTS" )
+				Endif
+				
+				' Do checks to avoid unnecessary white space being passed
+				If cc_opts<>"" opts+=" -Wno-unused-result "+cc_opts Else opts+=" -Wno-unused-result"
+				If cc_libs<>"" libs+=" "+cc_libs+" -lpthread -ldl"+strip Else libs+=" -lpthread -ldl"+strip
+				If cc_ldopts<>"" ldopts+=" "+cc_ldopts+" -no-pie" Else ldopts+="-no-pie"
+				
+		End Select
 
 		' Start the build
 		If tcc.opt_build
@@ -156,7 +273,9 @@ Class StdcppBuilder Extends Builder
 						"~q LDOPTS=~q"+ldopts+
 						"~q BUILD_DIR=~q"+RealPath( build_dir )+
 						"~q OUT_PATH=~q"+outpath+
-						"~q OUT=~q"+out+"~q", out )
+						"~q VPATHOPTS=~q"+vpathopts+
+						"~q SRCOPTS=~q"+srcopts+
+						"~q OUT=~q"+outfile+"~q", outfile )
 
 		Endif
 	End
@@ -164,47 +283,85 @@ Class StdcppBuilder Extends Builder
 	Method MakeMsvc:Void( cc_opts:String,cc_libs:String,cc_ldopts:String )
 		
 		UpdateMainSourceFile()	' Call common main.cpp update method.
-		Local out:=GetConfigVar( "CC_OUTPUT_NAME" ), outpath:=GetConfigVar( "CC_OUTPUT_PATH" ), msize:=GetConfigVar( "CC_MSIZE" ), platform:=""
+
+		Local outfile:=GetConfigVar( "CC_OUTPUT_NAME" ), outpath:=GetConfigVar( "CC_OUTPUT_PATH_"+HostOS().ToUpper() ), msize:=GetConfigVar( "CC_MSIZE" ), platform:="", appenedArch:=""
+		Local platformtools:=tcc.MSVC_TOOLSET, winsdk:=tcc.MSVC_WINSDK', cc_libopts:="" ; Not Implemented yet.
 		
 		' Set the output file name and path.
 		' If there isn't an output path, then use the current directory.
 		' Else check the path passed and expand any environment variables.
-		If outpath="" outpath=CurrentDir() Else outpath=RealPath( ExpandEnv( outpath ) )
-		If out="" out="main_"+HostOS
+
+		If outpath="" outpath=CurrentDir() Else outpath=RealPath( outpath )
+		If outfile="" outfile="main_"+HostOS
+		If outfile.Contains( " " ) outfile=outfile.Replace( " ","_" )	' Remove any space characters
 		
-		' If used, override the CC_OPTS, CC_LIBS, CC_LDOPTS.
-		If GetConfigVar( "CC_MSVC_OPTS" ) cc_opts=GetConfigVar( "CC_MSVC_OPTS" )
-		If GetConfigVar( "CC_MSVC_LIBS" ) cc_libs=GetConfigVar( "CC_MSVC_LIBS" )
-		If GetConfigVar( "CC_MSVC_LDOPTS" ) cc_ldopts=GetConfigVar( "CC_MSVC_LDOPTS" )
+		' Get the configuration variables that change the architecture, and build environment.
 		If GetConfigVar( "CC_MSVC_MSIZE" ) msize=GetConfigVar( "CC_MSVC_MSIZE" )
+		If GetConfigVar( "CC_MSVC_TOOLSET" ) platformtools=GetConfigVar( "CC_MSVC_TOOLSET" )
+		If platformtools="" platformtools="v142"
 		
+		If GetConfigVar( "CC_MSVC_WINSDK" ) winsdk=GetConfigVar( "CC_MSVC_WINSDK" )
+		If winsdk="" winsdk="10.0"
+		
+		' Workout the platform architecture to use based off the value of msize.
+		' If no value is set, then use the default.
 		If msize<>""
 			If msize="32"
 				platform="x86"
+				appenedArch="_32"
 			ElseIf msize="64"
 				platform="x64"
 			Else
 				If Not( msize="32" Or msize="64") Print "WARNING: Value assigned to CC_MSIZE is "+msize+"~nOnly 32 and 64 are permitted.~nDefaulting to Win32."
 				msize="32"
 				platform="x86"
+				appenedArch="_32"
 			Endif
 		Else
 			msize="32"
 			platform="x86"
 		Endif
 		
+		' If used, override the CC_OPTS, CC_LIBS, CC_LDOPTS.
+		' NOTE: MSVC should not replace semicolons under any circumstances. These are use for property shorthand and file path separation.
+		If GetConfigVar( "CC_MSVC_CC_OPTS"+appenedArch )
+			UnifyConfigVarSeparator( "CC_MSVC_CC_OPTS"+appenedArch, " ", ["|"] )
+			cc_opts=GetConfigVar( "CC_MSVC_CC_OPTS"+appenedArch )
+		Endif
+		
+		If GetConfigVar( "CC_MSVC_LIB_OPTS"+appenedArch )
+			UnifyConfigVarSeparator( "CC_MSVC_LIB_OPTS"+appenedArch, ";", ["|"," "] )
+			cc_libs=GetConfigVar( "CC_MSVC_LIB_OPTS"+appenedArch )
+		Endif
+		
+		If GetConfigVar( "CC_MSVC_LD_OPTS"+appenedArch )
+			UnifyConfigVarSeparator( "CC_MSVC_LD_OPTS"+appenedArch, " ", ["|"] )
+			cc_ldopts=GetConfigVar( "CC_MSVC_LD_OPTS"+appenedArch )
+		Endif
+		
+		' TODO: Add copying 
+'		If GetConfigVar( "CC_MSVC_LIB_OPTS"+appenedArch )
+'			UnifyConfigVarSeparator( "CC_MSVC_LIB_OPTS"+appenedArch, " ", ["|"] )
+'			cc_libopts=GetConfigVar( "CC_MSVC_LIB_OPTS"+appenedArch )
+'		Endif
+		
 		' Start the build
 		If tcc.opt_build
+		
 			BuildOption( "msvc", outpath,
 			"~q"+tcc.MSBUILD_PATH+
 			"~q -p:OutDir=~q"+outpath+
-			"/~q;TargetName="+out+
+			"/~q;TargetName="+outfile+
 			";Configuration=~q"+casedConfig+msize+
 			"~q;platform=~q"+platform+
-			"~q;AdditionalOptions=~q"+cc_opts+" "+cc_ldopts+
-			"~q;AdditionalDependencies=~q"+cc_libs+
+			"~q;platformtoolset=~q"+platformtools+
+			"~q;windowstargetplatformversion=~q"+winsdk+
+			"~q;CompilerAdditionalOptions=~q"+cc_opts+
+			"~q;LinkerAdditionalOptions=~q"+cc_ldopts+
+'			"~q;AdditionalDependencies=~q"+cc_libopts+						' Not implemented yet.
 			"~q msvc.sln",
-			out )
+			outfile )
+
 		Endif
 	End
 	
@@ -213,38 +370,54 @@ Class StdcppBuilder Extends Builder
 		
 		UpdateMainSourceFile()	' Call common main.cpp update method.
 		
-		Local opts:="-Wno-parentheses -Wno-dangling-else -Wno-shorten-64-to-32 "+cc_opts, out:=GetConfigVar( "CC_OUTPUT_NAME" ), outpath:=GetConfigVar( "CC_OUTPUT_PATH" )
+		Local opts:="-Wno-parentheses -Wno-dangling-else -Wno-shorten-64-to-32", outfile:=GetConfigVar( "CC_OUTPUT_NAME" ), outpath:=GetConfigVar( "CC_OUTPUT_PATH_"+HostOS().ToUpper() )
 		
 		' Set the output file name and path.
 		' If there isn't an output path, then use the current directory.
 		' Else check the path passed and expand any environment variables.
-		If outpath="" outpath=CurrentDir() Else outpath=RealPath( ExpandEnv( outpath ) )
-		If out="" out="main_"+HostOS
+		If outpath="" outpath=CurrentDir() Else outpath=RealPath( outpath )
+		If outfile="" outfile="main_"+HostOS
+		If outfile.Contains( " " ) outfile=outfile.Replace( " ","_" )	' Remove any space characters
 		
 		' If used, override the CC_OPTS, CC_LIBS, CC_LDOPTS.
-		If GetConfigVar( "CC_XCODE_OPTS" ) cc_opts=GetConfigVar( "CC_XCODE_OPTS" )
-		If GetConfigVar( "CC_XCODE_LIBS" ) cc_libs=GetConfigVar( "CC_XCODE_LIBS" )
-		If GetConfigVar( "CC_XCODE_LDOPTS" ) cc_ldopts=GetConfigVar( "CC_XCODE_LDOPTS" )
+		If GetConfigVar( "CC_XCODE_CC_OPTS" )
+			UnifyConfigVarSeparator( "CC_XCODE_CC_OPTS", " ", ["|"] )
+			opts+=" "+GetConfigVar( "CC_XCODE_CC_OPTS" )
+		Else
+			IF cc_opts<>"" opts+=" "+cc_opts
+		Endif
+		
+		If GetConfigVar( "CC_XCODE_LIB_OPTS" )
+			UnifyConfigVarSeparator( "CC_XCODE_LIB_OPTS", " ", ["|"] )
+			cc_libs=GetConfigVar( "CC_XCODE_LIB_OPTS" )
+		Endif
+		
+		If GetConfigVar( "CC_XCODE_LD_OPTS" )
+			UnifyConfigVarSeparator( "CC_XCODE_LD_OPTS", " ", ["|"] )
+			cc_ldopts=GetConfigVar( "CC_XCODE_LD_OPTS" )
+		Endif
 		
 		' Start the build
 		If tcc.opt_build
 		
 			' Start the build
-			BuildOption( "xcode", outpath, "xcodebuild -configuration "+casedConfig+
+			BuildOption( "xcode", outpath, "xcodebuild -scheme main_macos -configuration "+casedConfig+
 						" OTHER_CPLUSPLUSFLAGS=~q"+opts+"~q"+
-						" OTHER_LIBTOOLFLAGS=~q"+cc_libs+"~q"+
-						" OTHER_LDFLAGS=~q"+cc_ldopts+"~q"+
-						" TARGET_NAME=~q"+out+"~q"+
-						" CONFIGURATION_BUILD_DIR=~q"+outpath+"~q", out )
+						'" OTHER_LIBTOOLFLAGS=~q"+cc_libs+"~q"+
+						" OTHER_LDFLAGS=~q"+cc_ldopts+" "+cc_libs+"~q"+
+						" TARGET_NAME=~q"+outfile+"~q"+
+						" -derivedDataPath "+CurrentDir+"/xcode/DerivedData"+
+						" TARGET_BUILD_DIR=~q"+outpath+"~q", outfile )
 	
 		Endif
 	End
 	
 	Method BuildOption:Void( buildDir:String,outpath:String,cmd:String,out:String )
 		ChangeDir buildDir
-		If Not FileType( outpath ) CreateDirs( outpath )
+		If Not FileType( outpath ) CreateDir( outpath )
 
 		Print "~nOutput Dir:~n"+outpath+"~n~nBuild Dir:~n"+CurrentDir
+		Print "Command:~n"+cmd+"~n"
 		Execute cmd
 		
 		' If the run option has been set; then run.

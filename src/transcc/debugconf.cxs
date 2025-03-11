@@ -11,8 +11,8 @@ Const TEST_BUILD:="-run"
 
 #If DEBUG_TARGET="Desktop"
 	#If DEBUG_TEST="TransCC"
-	    Const TEST_PATH:="/src/transcc/transcc_test/"
-	    Const TEST_FILE:="cpptool"
+	    Const TEST_PATH:="/examples/test_apps/"
+	    Const TEST_FILE:="transcc_test"
 	    Const TEST_TARGET:="C++_Tool"
 	    
 	 #Elseif DEBUG_TEST="Mojo"
@@ -35,6 +35,10 @@ Const TEST_BUILD:="-run"
 	    Const TEST_FILE:="audiotest"
 	    Const TEST_TARGET:="Desktop_Game"
 	    
+	 #Else DEBUG_TEST="FileIoTest"
+	 	Const TEST_PATH:="/examples/brl/databuffer/"
+	    Const TEST_FILE:="fileiotest"
+	    Const TEST_TARGET:="Desktop_Game"
 	 #Else
 	 	#Error "DEBUG_TEST: Desktop must be Transcc,Mojo,Mojo2,Reflection or Audio and not "+DEBUG_TEST
 	 #Endif
@@ -53,6 +57,12 @@ Const TEST_BUILD:="-run"
 	 	Const TEST_PATH:="/examples/mojo/mak/"
 	    Const TEST_FILE:="audiotest"
 	    Const TEST_TARGET:="Android_Game"
+	    
+	 #Else DEBUG_TEST="FileIoTest"
+	 	Const TEST_PATH:="/examples/brl/databuffer/"
+	    Const TEST_FILE:="fileiotest"
+	    Const TEST_TARGET:="Android_Game"
+	    
 	 #Else
 	 	#Error "DEBUG_TEST: Android must be Mojo,Mojo2 or Audio and not "+DEBUG_TEST
 	 #Endif
@@ -71,6 +81,12 @@ Const TEST_BUILD:="-run"
 	 	Const TEST_PATH:="/examples/mojo/mak/"
 	    Const TEST_FILE:="audiotest"
 	    Const TEST_TARGET:="iOS_Game"
+	    
+	 #Else DEBUG_TEST="FileIoTest"
+	 	Const TEST_PATH:="/examples/brl/databuffer/"
+	    Const TEST_FILE:="fileiotest"
+	    Const TEST_TARGET:="iOS_Game"
+	    
 	 #Else
 	 	#Error "DEBUG_TEST: iOS must be Mojo, Mojo2 or Audio and not "+DEBUG_TEST
 	 #Endif
@@ -89,6 +105,12 @@ Const TEST_BUILD:="-run"
 	 	Const TEST_PATH:="/examples/mojo/mak/"
 	    Const TEST_FILE:="audiotest"
 	    Const TEST_TARGET:="iOS_Metal_Game"
+	    
+	 #Else DEBUG_TEST="FileIoTest"
+	 	Const TEST_PATH:="/examples/brl/databuffer/"
+	    Const TEST_FILE:="fileiotest"
+	    Const TEST_TARGET:="iOS_Metal_Game"
+	    
 	 #Else
 	 	#Error "DEBUG_TEST: iOS must be Mojo, Mojo2 or Audio and not "+DEBUG_TEST
 	 #Endif
@@ -107,6 +129,12 @@ Const TEST_BUILD:="-run"
 	 	Const TEST_PATH:="/examples/mojo/mak/"
 	    Const TEST_FILE:="audiotest"
 	    Const TEST_TARGET:="Html5_Game"
+	    
+	 #Else DEBUG_TEST="FileIoTest"
+	 	Const TEST_PATH:="/examples/brl/databuffer/"
+	    Const TEST_FILE:="fileiotest"
+	    Const TEST_TARGET:="Html5_Game"
+	    
 	 #Else
 	 	#Error "DEBUG_TEST: HTML must be Mojo, Mojo2 or Audio and not "+DEBUG_TEST
 	 #Endif

@@ -1,0 +1,76 @@
+Import transcc
+
+' Beginning of a combined copy library class. This will change drastically as features and more targets are added.
+' This for the time being is just for the Windows GLFW target using libraries that come with Cerberus. It's been given it's own module,
+' as it will get much bigger. At some point once it's complete. It may end up in the builder.cxs module.
+
+Class LibraryCopy
+
+	Method New( tcc:TransCC )
+		Self.tcc=tcc
+	End
+	
+	Method CopyLibraries:Bool( configVar:String,outpath:String,msize:String )
+		
+		
+		If GetConfigVar( configVar )="" Return False
+		UnifyConfigVarSeparator( configVar, "|", ["|",";"] )
+		UnifyConfigVarSeparator( "COPY_LICENCE_FILES", "|", ["|",";"] )
+		
+		Local libraryMap:StringMap<String>=New StringMap<String>
+		For Local i:=Eachin LoadDir( tcc.cerberuslibdir+"Win"+msize )		
+			' Check that the file is an actual shared library before adding it to the map.
+			If ExtractExt( i.ToLower )="dll" libraryMap.Add( StripAll( i ).ToLower,i )
+		Next
+		
+		Local libraries:=GetConfigVar( configVar ).Split( "|" )
+		For Local i:=Eachin libraries
+			If i="" Continue
+			
+			' Skip if the library has been copied already
+			If FileType( outpath+"/"+i+".dll" )=FILETYPE_FILE Continue
+			
+			Local k:=StripAll( i ).ToLower
+			
+			If libraryMap.Contains( k )
+				If CopyFile( tcc.cerberuslibdir+"Win"+msize+"/"+libraryMap.Get( k ),outpath+"/"+i+".dll" ) Print "Copied "+i+".dll to "+outpath Else Print "Failed to copy "+i+" to "+outpath
+			Endif
+		Next
+		
+		Local licences:=GetConfigVar( "COPY_LICENCE_FILES" ).Split( "|" )
+		For Local i:=Eachin licences
+		
+			If FileType( tcc.cerberuslibdir+"/"+i+"_COPYING" )=FILETYPE_FILE
+				If FileType( outpath+"/"+i+"_COPYING" )=FILETYPE_NONE
+					If CopyFile( tcc.cerberuslibdir+"/"+i+"_COPYING",outpath+"/"+i+"_COPYING" ) Print "Copied "+i+"_COPYING to "+outpath Else Print "Failed to copy "+i+"_COPYING to "+outpath
+				Endif
+			Endif
+			
+			If FileType( tcc.cerberuslibdir+"/"+i+"_LICENCE" )=FILETYPE_FILE
+				If FileType( outpath+"/"+i+"_LICENCE" )=FILETYPE_NONE
+					If CopyFile( tcc.cerberuslibdir+"/"+i+"_LICENCE",outpath+"/"+i+"_LICENCE" ) Print "Copied "+i+"_LICENCE to "+outpath Else Print "Failed to copy "+i+"_LICENCE to "+outpath
+				Endif
+			Endif
+		Next
+		
+		Return True
+	End
+	
+	Private
+	Field tcc:TransCC
+	Global CopyLibStatic:LibraryCopy
+End
+
+Function InitCopyLibraries:Void( tcc:TransCC )
+	LibraryCopy.CopyLibStatic=New LibraryCopy( tcc )
+End
+
+Function CopyLibraries:Bool( configVar:String,outpath:String,msize:String )
+	Try
+		If LibraryCopy.CopyLibStatic=Null New Throwable
+	Catch e:Throwable
+		Die "Copy shared library calss not initialised."
+	End
+	
+	Return LibraryCopy.CopyLibStatic.CopyLibraries( configVar,outpath,msize )
+End
