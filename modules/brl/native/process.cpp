@@ -431,10 +431,11 @@ void BBProcess::ExitApp( int exitCode ){
 
 int BBProcess::ChangeDir( String path ){
 #if _WIN32
-	if( !SetCurrentDirectoryW( path.ToCString<WCHAR>() ) ) return -1;
-	return 0;
+	if( !SetCurrentDirectoryW( path.ToCString<WCHAR>() ) ) return 0;
+	return 1;
 #else
-	return chdir( path.ToUtf8() );
+	if ( chdir( path.ToUtf8() )!=0 ) return 0;
+	return 1;
 #endif
 }
 
