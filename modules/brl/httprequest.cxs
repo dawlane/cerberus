@@ -16,22 +16,131 @@ Import brl.asyncevent
 #If BRL_HTTPREQUEST_IMPLEMENTED
 
 #GLFW_USE_HTTPS=True
-#GLFW_COPY_LIBS+="libcurl-x64"
-#GLFW_COPY_LIBS+="libcurl"
-#GLFW_COPY_LIBS+="libcrypto-1_1-x64"
-#GLFW_COPY_LIBS+="libssl-1_1-x64"
 
-#GLFW_COPY_LIBS_32+="libcurl"
-#GLFW_COPY_LIBS_32+="libcrypto-1_1"
-#GLFW_COPY_LIBS_32+="libssl-1_1"
 
 ' Link libraries for curl
 #If HOST="linux"
   #GLFW_GCC_LIB_OPTS+="-lcurl"
-#Endif
+  
+#Elseif HOST="winnt"
 
-#If HOST="winnt"
-  #GLFW_GCC_LIB_OPTS+="-lcurldll"
+	#COPY_LICENCE_FILES+="libcurl"
+	
+    #If GLFW_CURL_STATIC=True
+    
+    #Print "Module: brl.httprequest"
+    #Print "        Linking curl statically"
+    
+      #GLFW_MSVC_CC_OPTS+="/DCURL_STATICLIB"
+      #GLFW_MSVC_CC_OPTS_32+="/DCURL_STATICLIB"
+      
+      #GLFW_MINGW_GCC_OPTS+="-DCURL_STATICLIB"
+      #GLFW_MINGW_GCC_OPTS_32+="-DCURL_STATICLIB"
+      
+      
+      
+      #If CONFIG="release"
+      	#Print "        Config Release"
+        ' NOTE: GCC and MinGW require that linking is carried out in the correct order.
+        ' Lib cURL Release - GCC/MinGW static linking
+        #GLFW_MINGW_LIB_OPTS+="-lcurl"
+        #GLFW_MINGW_LIB_OPTS_32+="-lcurl"
+        
+        ' zlib Release - GCC/MinGW static linking
+        #GLFW_MINGW_LIB_OPTS+="-lzlib"
+        #GLFW_MINGW_LIB_OPTS_32+="-lzlib"
+        
+        #GLFW_MINGW_LIB_OPTS+="-lzlib"
+        #GLFW_MINGW_LIB_OPTS_32+="-lzlib"
+        
+        #GLFW_MINGW_LIB_OPTS+="-lcrypt32"
+        #GLFW_MINGW_LIB_OPTS_32+="-lcrypt32"
+        
+        #GLFW_MINGW_LIB_OPTS+="-lbcrypt"
+        #GLFW_MINGW_LIB_OPTS_32+="-lbcrypt"
+        
+        ' Lib cURL Release - MSVC static linking
+        #GLFW_MSVC_LIB_OPTS+="libcurl.lib"
+        #GLFW_MSVC_LIB_OPTS_32+="libcurl.lib"
+        
+        ' zlib Release - MSVC static linking
+        #GLFW_MSVC_LIB_OPTS+="zlib.lib"
+        #GLFW_MSVC_LIB_OPTS_32+="zlib.lib"
+      
+      	' Paths to static release libraries
+      	#GLFW_MINGW_LD_OPTS+="-L${CERBERUSDIR}/libs/Win64/mingw-static"
+        #GLFW_MINGW_LD_OPTS_32+="-L${CERBERUSDIR}/libs/Win32/mingw-static"
+        
+        #GLFW_MSVC_LIB_PATHS+="${CERBERUSDIR}/libs/Win64/msvc-static"
+        #GLFW_MSVC_LIB_PATHS_32+="${CERBERUSDIR}/libs/Win32/msvc-static"
+        
+      #Else
+      	#Print "        Config Debug"
+      	 ' NOTE: GCC and MinGW require that linking is carried out in the correct order.
+        ' Lib cURL Release - GCC/MinGW static linking
+        #GLFW_MINGW_LIB_OPTS+="-lcurl-d"
+        #GLFW_MINGW_LIB_OPTS_32+="-lcurl-d"
+        
+        ' zlib Release - GCC/MinGW static linking
+        #GLFW_MINGW_LIB_OPTS+="-lzlibd"
+        #GLFW_MINGW_LIB_OPTS_32+="-lzlibd"
+        
+        #GLFW_MINGW_LIB_OPTS+="-lcrypt32"
+        #GLFW_MINGW_LIB_OPTS_32+="-lcrypt32"
+        
+        #GLFW_MINGW_LIB_OPTS+="-lbcrypt"
+        #GLFW_MINGW_LIB_OPTS_32+="-lbcrypt"
+        
+        ' Lib cURL Release - MSVC static linking
+        #GLFW_MSVC_LIB_OPTS+="libcurl-d.lib"
+        #GLFW_MSVC_LIB_OPTS_32+="libcurl-d.lib"
+        
+        ' zlib Release - MSVC static linking
+        #GLFW_MSVC_LIB_OPTS+="zlibd.lib"
+        #GLFW_MSVC_LIB_OPTS_32+="zlibd.lib"
+      
+      	' Paths to static release libraries
+      	#GLFW_MINGW_LD_OPTS+="-L${CERBERUSDIR}/libs/Win64/mingw-static/debug"
+        #GLFW_MINGW_LD_OPTS_32+="-L${CERBERUSDIR}/libs/Win32/mingw-static/debug"
+        
+        #GLFW_MSVC_LIB_PATHS+="${CERBERUSDIR}/libs/Win64/msvc-static/debug"
+        #GLFW_MSVC_LIB_PATHS_32+="${CERBERUSDIR}/libs/Win32/msvc-static/debug"
+      #Endif
+      
+	#Else
+      #Print "Module: brl.httprequest"
+      #Print "        Linking curl dynamically"
+      
+      ' Lib cURL 
+      #GLFW_MINGW_LIB_OPTS+="-lcurl"
+      #GLFW_MINGW_LIB_OPTS_32+="-lcurl"
+      
+      #GLFW_MINGW_LIB_OPTS+="-lzlib1"
+      #GLFW_MINGW_LIB_OPTS_32+="-lzlib1"
+      
+      ' Lib cURL 64 bit shared libraries for MS Windows
+      #GLFW_COPY_LIBS+="libcurl-x64"
+      #GLFW_COPY_LIBS+="libcurl"
+      #GLFW_COPY_LIBS+="zlib1"
+      
+      ' Lib cURL 32 bit shared libraries for MS Windows
+      #GLFW_COPY_LIBS_32+="libcurl"
+      #GLFW_COPY_LIBS_32+="zlib1"
+      
+      #GLFW_MSVC_LIB_OPTS+="libcurl.lib"
+      
+      ' Lib cURL MSVC linker options
+      #GLFW_MSVC_LIB_OPTS+="libcurl.lib"
+      #GLFW_MSVC_LIB_OPTS_32+="libcurl.lib"
+      
+      ' Paths to MSVC library imports
+      #GLFW_MSVC_LIB_PATHS+="${TARGETPATH}/curl/lib64"
+      #GLFW_MSVC_LIB_PATHS_32+="${TARGETPATH}/curl/lib"
+      
+    #Endif
+    
+#Elseif HOST="macos"
+  #GLFW_XCODE_LIB_OPTS+="-lcurl"
 #Endif
 
 
