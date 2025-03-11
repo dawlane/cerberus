@@ -33,8 +33,21 @@ int main(int argc, const char * argv[]) {
         [files addObject:[NSURL URLWithString:str]];
     }
     
+    // This should launch Ted and open any files if Ted is running.
+    NSWorkspaceOpenConfiguration *configuration = [NSWorkspaceOpenConfiguration new];
+    [[NSWorkspace sharedWorkspace] openURLs:files
+                           withApplicationAtURL:targetURL
+                            configuration:configuration
+                            completionHandler:^(NSRunningApplication *app, NSError *error) {
+        if(error) {
+            NSLog(@"ERROR LAUNCHING TED");
+            outlist(files);
+        };
+    }];
+    [NSThread sleepForTimeInterval: 1];
+    
     // Use NSWorkspace and pass the URL's to Ted
-    if(![[NSWorkspace sharedWorkspace] openURLs:files
+/*    if(![[NSWorkspace sharedWorkspace] openURLs:files
                            withApplicationAtURL:targetURL
                                         options:NSWorkspaceLaunchDefault
                                   configuration:nil
@@ -45,7 +58,7 @@ int main(int argc, const char * argv[]) {
     } else {
         NSLog(@"%@", targetURL);
         outlist(files);
-    }
+    };*/
     
     return 0;
 }
