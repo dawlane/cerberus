@@ -44,7 +44,7 @@ problems providing that the distributions vendor has built the run-times correct
 
 BUILDING
 There is a build script supplied in the Cerberus source directory called builder.sh.
-This script has two modes of operation. when run without options; the default is to build all tools providing that the requirement above are met. The second mode is used to display a menu
+This script has two modes of operation. When run without options; the default is to build all tools providing that the requirement above are met. The second mode is used to display a menu
 where all the tools can be built individually. Selection between modes is determined by the --showmenu/-m option listed further down in these instructions.
 
 Before the builder.sh script can be run. It requires that it's file permissions be set to execute.
@@ -61,13 +61,14 @@ If not, then the menu entry for building the IDE Ted will not be shown and build
 If there is an official Qt installer, then you can pass arguments to select it's root directory and a specific version.
 
 The optional arguments to pass to the builder.sh script for the official Qt Installer are:
--q or --qtsdk with the full path to the Qt Installers directory.
--k or --qtkit with the dot version number for a specific Qt SDK.
+-q or --qtsdk with the full path to the Qt Installers directory. The default is ~/Qt
+-k or --qtkit with the dot version number for a specific Qt SDK. The default is to select the highest available, or the Linux distributions version.
 -m or --showmenu will run the script in menu mode.
--d or --deploy with the full path to where Cerberus will be built and an archive created. NOTE: This requires that git is installed and is only available in menu mode.
--a or --archiver with the archiver to use. NOTE: This currently only supports tar.
+-d or --deploypath with the full path to where Cerberus will be built and an archive created.
 -g or --gcc to set the version of GCC to use for the build. If the version specified is not found, then the default it to use the system default.
---clearbuilds to remove all built files and exit. This also removes those for other systems leaving a clean git repository.
+-p or --pause to halt the script in menu mode so that the scripts configuration setup can be read. 
+--distclean to remove all built files and exit. This also removes those for other systems leaving a clean git repository.
+--clean to remove any orphaned tool build directories the did not get cleaned up in the event of a build error.
 -h or --help to shows help info.
 
 NOTE: The option below is special. It will allow icons to be generate from two svg files.
@@ -89,6 +90,6 @@ To run Cerberus you will have to open a bash shell and change directory to the C
 For a much easier solution, see IMPORTANT NOTE at
 https://www.cerberus-x.com/community/threads/install-requirements-for-linux-includes-raspbery-pi.741/#post-5728
 
-NOTE: Within the builders/bash directory is a bash script called freedesktop.sh
+NOTE: Within the builders/linux directory is a bash script called freedesktop.sh
 It can be use as a standalone script to create icons from svg images and install a .desktop menu, mime associations and icons.
 Use freedesktop.sh -h for options.
