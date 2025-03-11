@@ -14,24 +14,108 @@ There are 3 ways to specify app config settings:
 
 The following app config settings are currently supported:
 
+>>> Settings for Data File Filters
+Examples are shown,  actual allowable values depend on target.~n
 <pre>
-'Data file filters, examples shown, actual allowable values depend on target
-'
 #TEXT_FILES="*.txt|*.xml|*.json"
 #IMAGE_FILES="*.png|*.jpg"
 #SOUND_FILES="*.wav|*.ogg"
 #MUSIC_FILES="*.wav|*.ogg"
 #BINARY_FILES="*.bin|*.dat"
 #FAST_SYNC_PROJECT_DATA=True			'Set to True to enable 'fast syncing' of project data when building - warning: has problems with xcode, False by default.
+</pre>
 
-'Mojo settings, defaults shown
-'
+>> Setting for the Mojo module.
+The defaults are shown.
+<pre>
 #MOJO_AUTO_SUSPEND_ENABLED=True			'Set to True to cause app to suspend when desktop window loses focus.
 #MOJO_HICOLOR_TEXTURES=True	
 #MOJO_IMAGE_FILTERING_ENABLED=True
+</pre>
 
-'Html5 settings, defaults shown
-'
+>> Settings for the C++ tool chains
+The defaults are shown.~n
+<pre>
+#CPP_DOUBLE_PRECISION_FLOATS=False	'Set to True to enable 64 bit floats.
+#CPP_GC_MODE=1  					'0 disable GC, 1=incremental collect after every OnWhatever, 2=Incremental collect every GC allocation
+#CPP_GC_TRIGGER=8388608 			'Allocated memory (in bytes) before a GC 'sweep' occurs. Defaults to 8 MiB
+#CPP_GC_MAX_LOCALS=8192 			'This is used with GC_MODE 2 to track local object vars and defaults to 8192
+</pre>
+
+>> Settings for the C++ Tool target
+The defaults are shown~n
+<pre>
+#CC_OUTPUT_NAME="main_$HOST"		'Set the output name of the final executable.
+#CC_OUTPUT_PATH_WINNT=""			'Set the output path for the final executable Window host. Default path is targets .build folder
+#CC_OUTPUT_PATH_LINUX=""			'Set the output path for the final executable Linux host. Default path is targets .build folder
+#CC_OUTPUT_PATH_MACOS=""			'Set the output path for the final executable MacOS host. Default path is targets .build folder
+
+#CC_LINUX_CC="gcc"					'Set the C compiler to use. Linux only.
+#CC_LINUX_CXX="g++"					'Set the C++ compiler to use. Linux only.
+
+#CC_USE_MINGW="1"					'Sets the choice of compiler to use. True for MinGW, or false to use MSVC.
+
+#CC_MSVC_TOOLSET="v142"				'Set the tool set to use for Visual Studio builds.
+#CC_MSVC_WINSDK="10.0"				'Set the Windows SDK version to use. Note: 10.0 is the default to use any. 
+</pre>
+>> The C++ Tool compiler options
+*The following configuration variables are used for backwards compatibility for MinGW and Linux GCC targets.*~n
+These configuration variables are bound to makefile options.~n
+*OPTS* passed to to compiler~n
+*LDOPTS* and *LIBS* are passed to the linker.~n
+<pre>
+#CC_OPTS=""							'Pass additional gcc options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
+#CC_LIBS=""							'Pass additional libraries to link against for GCC type compilers.
+#CC_LDOPTS=""						'Pass additional linker options for stdcpp target, eg: #CC_OPTS+="-L../FILE_PATH"
+#CC_MSIZE=""						'Common architecture size for MINGW and GCC. If not set, defaults to compiler default.
+</pre>
+*The following configuration are compiler specific. And will merge with those above*~n
+These configuration variables are bound to makefile options.~n
+*VPATH_OPTS* is where the make program will look for additional paths to source files.~n
+*CC_OPTS* and *SRC_OPTS* passed to to compiler~n
+*LD_OPTS* and *LIB_OPTS* are passed to the linker.~n
+*NOTE:* To avoid issues between 64 bit and 32 bit builds. The 32 bit builds should append *_32* to each of the configuration variables ending with OPTS. 
+<pre>
+#CC_MINGW_CC_OPTS=""				'Pass additional MinGW options for stdcpp target, eg: #CC_MINGW_OPTS+="-DMyDefine"
+#CC_MINGW_LIB_OPTS=""				'Pass additional libraries to link against for MINGW type compilers.
+#CC_MINGW_LD_OPTS=""				'Pass additional linker options for stdcpp target, eg: #CC_MINGW_LD_OPTS+="-L../FILE_PATH"
+#CC_MINGW_VPATH_OPTS=""				'Pass additional search directories for source files.
+#CC_MINGW_SRC_OPTS=""				'Pass additional C++ source files to the compiler.
+#CC_MINGW_MSIZE=""					'Set architecture size for MINGW. If not set, defaults to compiler default.
+
+#CC_GCC_CC_OPTS=""					'Pass additional gcc options for stdcpp target, eg: #CC_GCC_OPTS+="-DMyDefine"
+#CC_GCC_LIB_OPTS=""					'Pass additional libraries to link against for GCC type compilers.
+#CC_GCC_LD_OPTS=""					'Pass additional linker options for stdcpp target, eg: #CC_GCC_LD_OPTS+="-L../FILE_PATH"
+#CC_GCC_VPATH_OPTS=""				'Pass additional search directories for source files.
+#CC_GCC_SRC_OPTS=""					'Pass additional C++ source files to the compiler.
+#CC_GCC_MSIZE=""					'Set architecture size for GCC. If not set, defaults to compiler default.
+</pre>
+*The following are for Visual Studio installations.*~n
+These configuration variables are bound to Visual Studio project properties.~n
+*CC_OPTS* the C++ *AdditionalOptions* property.~n
+*LD_OPTS* the Linker *AdditionalOptions* property.~n
+*LIB_OPTS* the Linker *AdditionalDependencies* property.~n
+*NOTES:* Targets being built against Visual Studio will produce 32 bit binaries by default. Therefore the configuration variables ending with OPTS should append *_32* to them.~n
+<pre>
+#CC_MSVC_CC_OPTS=""					'Pass additional MSVC options for stdcpp target, eg: #CC_MSVC_OPTS+="-DMyDefine"
+#CC_MSVC_LIB_OPTS=""				'Pass additional libraries to link against for MSVC compilers.
+#CC_MSVC_LD_OPTS=""					'Pass additional linker options for MSVC compiler.
+#CC_MSVC_MSIZE=""					'Set the CPU architecture to build for. Not setting this defaults to 32 bit.
+</pre>
+*The following are for Xcode installations.*~n
+These configuration variables are bound to Xcode properties.~n
+*CC_OPTS* are bound to the *OTHER_CPLUSPLUSFLAGS* property.~n
+*LD_OPTS* are bound to the *OTHER_LDFLAGS* property.~n
+*LIB_OPTS* are bound to the *OTHER_LDFLAGS* property after *LD_OPTS* configuration variable.~n
+<pre>
+#CC_XCODE_CC_OPTS=""				'Pass additional Xcode options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
+#CC_XCODE_LIB_OPTS=""				'Pass additional libraries to link against for Xcode compilers.
+#CC_XCODE_LD_OPTS=""				'Pass additional linker options for Xcode compiler.
+</pre>
+
+>> Settings for the HTML 5 target
+The defaults are show.
+<pre>
 #HTML5_APP_FILENAME="CerberusGame.html" 'Set the default name for the html outfile. 
 #HTML5_APP_ICON=""                      'set the name of a ico/png file which will be used as a favicon. If not provided, Trans will use the standard favicon.
                                         'PNG files will be converted to ICO files. Without a filepath, Trans will look in the folder where your .cxs source file is located at.
@@ -40,32 +124,108 @@ The following app config settings are currently supported:
 #HTML5_CANVAS_HEIGHT=480                'Set the height of the canvas.
 #HTML5_CANVAS_RESIZE_MODE=1             '0=locked, 1=stretch, 2=resize
 #HTML5_CANVAS_ALPHA=False               'Set to true to enable the canvas' background alpha channel, a prerequisite for transparent canvasses.
-#HTML5_CANVAS_ANTIALIAS=True			'Set to True to enable canvas antialiasing.
+#HTML5_CANVAS_ANTIALIAS=True			'Set to True to enable canvas anti aliasing.
 #HTML5_CONSOLE_SHOW=True                'Set it to False to hide the splitter and console DIV in your file.
 #HTML5_WEBAUDIO_ENABLED=True			'Set to false to disable webaudio support for mojo audio, and to use older multimedia audio system instead.
+</pre>
 
-'GLFW settings, defaults shown
-'
+>> Settings for the GLFW target
+The defaults shown.
+<pre>
+#GLFW_OUTPUT_NAME="CerberuGame"			'Set the output name of the final executable.
+#GLFW_OUTPUT_PATH_WINNT=""				'Set the output path for the final executable Window host. Default path is targets .build folder
+#GLFW_OUTPUT_PATH_LINUX=""				'Set the output path for the final executable Linux host. Default path is targets .build folder
+#GLFW_OUTPUT_PATH_MACOS=""				'Set the output path for the final executable MacOS host. Default path is targets .build folder
+
+#GLFW_LINUX_CC="gcc"					'Set the C compiler to use. Linux only.
+#GLFW_LINUX_CXX="g++"					'Set the C++ compiler to use. Linux only.
+
+#GLFW_MINGW_STATIC=False				'Set to true will force the libraries libgcc,libstdc++ and libwinptheard to be statically linked.
+										'Before doing this, check all the licencing for the MinGW distribution.
+
 #GLFW_USE_MINGW=True					'Set to false on Windows to use MSVC instead of MinGW to build glfw apps. Needs at least VS 2015 installed.
 #GLFW_GCC_MSIZE_WINNT="64"				'When building glfw apps with mingw/gcc, controls whether 32 or 64 bit apps are generated.
 										'Set to "64" to force 64 bit builds on Windows (needs mingw64), or "" to use compiler default.
-										'Currently that also works for MSVC!!!
+										'This still works for MSVC. But GLFW_MSVC_MSIZE_WINNT should be used and old sources updated.
+#GLFW_MSVC_MSIZE_WINNT="64"				'Ditto but for MSVC compilers.
 #GLFW_GCC_MSIZE_LINUX=""				'Ditto for Linux.
-#GLFW_GCC_CC_OPTS=""					'Pass compiler options to GCC type compilers
-#GLFW_GCC_LD_OPTS=""					'Pass linker options to GCC type compilers
-#GLFW_GCC_LIB_OPTS=""				    'Pass additional libraries to link against for GCC type compilers.
-#GLFW_GCC_SRC_OPTS=""				    'Pass additional source files to be build.
-#GLFW_GCC_VPATH_OPTS=""				    'Pass additional virtual paths to look into when building.
-#GLFW_COPY_LIBS=""						'Copy 64bit external libraries to build directory. Windows GCC only for now!
-#GLFW_COPY_LIBS_32=""					'Copy 32bit external libraries to build directory. Windows GCC only for now!
 
+#GLFW_MSVC_TOOLSET="v142"				'Set the tool set to use for Visual Studio builds.
+#GLFW_MSVC_WINSDK="10.0"				'Set the Windows SDK version to use. Note: 10.0 is the default to use the latest.
+</pre>
+
+>> The GLFW compiler options
+*The following configuration variables are used for backwards compatibility for MinGW and Linux GCC targets.*~n
+These configuration variables are bound to makefile options.~n
+*VPATH_OPTS* is where the make program will look for additional paths to source files.~n
+*CC_OPTS* and *SRC_OPTS* passed to to compiler~n
+*LD_OPTS* and *LIB_OPTS* are passed to the linker.~n
+<pre>
+#GLFW_GCC_CC_OPTS=""					'Pass compiler options to GCC type compilers.
+#GLFW_GCC_LD_OPTS=""					'Pass linker options to GCC type compilers.
+#GLFW_GCC_LIB_OPTS=""					'Pass additional libraries to link against for GCC type compilers.
+#GLFW_GCC_VPATH_OPTS=""				    'Pass additional virtual paths to look into when building. Currently only for GCC/MinGW compilers.
+#GLFW_GCC_SRC_OPTS=""				    'Pass additional source files to be build. Currently only for MinGW/Linux compilers.
+#GLFW_COPY_LIBS=""						'Copy 64bit external libraries to build directory. Currently only for Windows targets.
+#GLFW_COPY_LIBS_32=""					'Copy 32bit external libraries to build directory. Currently only for Windows targets.
+#
+</pre>
+*The following configuration are compiler specific. And will merge with those above*~n
+The bindings are the same as for those previously listed above.~n
+*NOTE:* To avoid issues between 64 bit and 32 bit builds. The 32 bit build should append *_32* to each of the configuration variables ending with OPTS.
+<pre>
+#GLFW_LINUX_GCC_CC_OPTS=""				'Pass compiler options to Linux GCC type compilers
+#GLFW_LINUX_GCC_LD_OPTS=""				'Pass linker options to Linux GCC type compilers
+#GLFW_LINUX_GCC_LIB_OPTS=""				'Pass additional libraries to link against for Linux GCC type compilers.
+#GLFW_LINUX_VPATH_OPTS=""				'Pass additional virtual paths to look into when building. Currently only for Linux GCC compilers.
+#GLFW_LINUX_SRC_OPTS=""				    'Pass additional source files to be build. Currently only for Linux GCC compilers.
+
+#GLFW_MINGW_GCC_CC_OPTS=""				'Pass compiler options to MinGW type compilers
+#GLFW_MINGW_LD_OPTS=""					'Pass linker options to MinGW type compilers
+#GLFW_MINGW_LIB_OPTS=""					'Pass additional libraries to link against for MinGW type compilers.
+#GLFW_MINGW_VPATH_OPTS=""				'Pass additional virtual paths to look into when building. Currently only for MinGW compilers.
+#GLFW_MINGW_SRC_OPTS=""				    'Pass additional source files to be build. Currently only for MinGW compilers.
+#GLFW_MINGW_COPY_LIBS=""				'Copy external libraries to build directory. Currently only for MinGW targets.
+</pre>
+
+*The following are for Visual Studio installations*~n
+These configuration variables are bound to Visual Studio project properties.~n
+*CC_OPTS* the C++ *AdditionalOptions* property.~n
+*LD_OPTS* the Linker *AdditionalOptions* property.~n
+*LIB_OPTS* the Linker *AdditionalDependencies* property.~n
+*LIB_PATHS* the Linker *AdditionalLibraryDirectories* property~n
+*NOTE:* It is not possile yet to pass additional source files, or search locations for sources.~n
+*NOTE:* To avoid issues between 64 bit and 32 bit builds. The 32 bit build should append *_32* to each of the configuration variables ending with OPTS.
+<pre>
+#GLFW_MSVC_CC_OPTS=""					'Pass compiler options to MSVC compilers
+#GLFW_MSVC_LD_OPTS=""					'Pass linker options to MSVC compilers
+#GLFW_MSVC_LIB_OPTS=""					'Pass additional libraries to link against for MSVC compilers.
+#GLFW_MSVC_LIB_PATHS=""                 'Pass a list of additional paths to search for libraries.
+#GLFW_MSVC_COPY_LIBS=""					'Copy external libraries to build directory. Currently only for MinGW targets.
+</pre>
+
+*The following are for Xcode installations*~n
+These configuration variables are bound to Xcode properties.~n
+*CC_OPTS* are bound to the *OTHER_CPLUSPLUSFLAGS* property.~n
+*LD_OPTS* are bound to the *OTHER_LDFLAGS* property.~n
+*LIB_OPTS* are bound to the *OTHER_LDFLAGS* property after *LD_OPTS* configuration variable.~n
+*NOTE:* It is not possile yet to pass additional source files, or search locations for sources.~n
+<pre>
+#GLFW_XCODE_CC_OPTS=""					'Pass compiler options to Xcode compilers
+#GLFW_XCODE_LD_OPTS=""					'Pass linker options to Xcode compilers
+#GLFW_XCODE_LIB_OPTS=""					'Pass additional libraries to link against for Xcode compilers.
+#GLFW_BUNDLE_ID_MACOS="com.yourcompany" 'Pass the first part of an application bundle id. The name is taken from #GLFW_OUTPUT_NAME.
+</pre>
+
+*GLFW Window settings*~n
+<pre>
 #GLFW_WINDOW_TITLE="Cerberus X Game"
 #GLFW_WINDOW_WIDTH=640					
 #GLFW_WINDOW_HEIGHT=480	
 #GLFW_WINDOW_RESIZABLE=False
 #GLFW_WINDOW_FULLSCREEN=False
-#GLFW_WINDOW_SAMPLES=0					'Set to number of samples for multisampling (glfw3 only).
-#GLFW_WINDOW_DECORATED=True				'Set to false to create a broderless window (glfw3 only).
+#GLFW_WINDOW_SAMPLES=0					'Set to number of samples for multi sampling (glfw3 only).
+#GLFW_WINDOW_DECORATED=True				'Set to false to create a boarder less window (glfw3 only).
 
 #GLFW_MACOS_RETINA_ENABLED=False		'Set to True to make use of the whole resolution of the Retina display. Only recommended if content is scaled accordingly and no absolute pixel coordinates are used.
 
@@ -80,28 +240,28 @@ The following app config settings are currently supported:
 										'<space>, <underscore> <minus>, <dot> should be OK.
 #GLFW_APP_PUBLISHER="My Company"		'Optional human readable publisher name for app. Must be filesystem friendly.
 										'Not defined by default.
+</pre>
 
-'FLASH settings, defaults shown
-#FLASH_APP_ICON=""
-#FLASH_RENDER_WHILE_SUSPENDED=False
-
-'IOS settings, defaults shown
-'
+>>> Settings for Apple iOS targets
+The defaults are show.~n
+<pre>
 #IOS_RETINA_ENABLED=True
 #IOS_ACCELEROMETER_ENABLED=True
 #IOS_DISPLAY_LINK_ENABLED=True
 #IOS_APP_ICON=""
+</pre>
 
-'Android settings, defaults shown
-'
+>>> Settings for Android targets
+The defaults are shown.~n
+<pre>
 #ANDROID_APP_LABEL="Cerberus X Game"
 #ANDROID_APP_PACKAGE="com.Cerberus_X.cxgame"
 #ANDROID_APP_ICON=""
 #ANDROID_SCREEN_ORIENTATION="user"					'"user", "portrait", "landscape"
 #ANDROID_GAMEPAD_ENABLED=False
 #ANDROID_ACCELEROMETER_ENABLED=True
-#ANDROID_MULTISAMPLING_ENABLED=False	'If set to True, Android tries to activate 4x Multisampling first, then 2x. 
-										'If that fails it reverts back to no multisampling. Be aware that Multisampling slows down the rendering performance.
+#ANDROID_MULTISAMPLING_ENABLED=False	'If set to True, Android tries to activate 4x Multi sampling first, then 2x. 
+										'If that fails it reverts back to no multi sampling. Be aware that Multi sampling slows down the rendering performance.
 
 #ANDROID_MIN_SDK_VERSION="16"
 #ANDROID_TARGET_SDK_VERSION="28"
@@ -122,61 +282,32 @@ The following app config settings are currently supported:
 #ANDROID_KEY_ALIAS_PASSWORD="password"
 #ANDROID_SIGN_APP=False
 #ANDROID_LOGCAT_OPTION="-s [Cerberus]:*"			'Setting this differently allows you to control the output during runtime of a connected device
+</pre>
 
+>>> Miscellaneous Settings
+<pre>
 'OpenGL settings. To override, set these in your code BEFORE importing opengl.gles11 or opengl.gles20
-'
 #OPENGL_DEPTH_BUFFER_ENABLED=True
 
 'Reflection settings
-'
 #REFLECTION_FILTER=""
 
-'Admob settings, defaults shown
-'
+'Curl settings
+#GLFW_CURL_STATIC=False                            'Set to true to statically link libcurl in to an executable.
+
+'Copy licence files
+#COPY_LICENCE_FILES=""							   'Use to copy any licence files. These are in the format name_COYING and name_LICENCE. 
+</pre>
+
+>>> Admob Settings
+The default are shown~n
+<pre>
 #ADMOB_ANDROID_ADS_APPID=""										'You need to set this for the latest admob sdk
 #ADMOB_PUBLISHER_ID="abcdabcdabcdabc"							'from your admob account
 #ADMOB_ANDROID_TEST_DEVICE1="TEST_EMULATOR"
 #ADMOB_ANDROID_TEST_DEVICE2="ABCDABCDABCDABCDABCDABCDABCDABCD"	'your device's admob ID for test mode
 #ADMOB_ANDROID_TEST_DEVICE3=""
 #ADMOB_ANDROID_TEST_DEVICE4=""
-
-'C++ settings, defaults shown
-'
-#CPP_DOUBLE_PRECISION_FLOATS=False	'Set to True to enable 64 bit floats.
-#CPP_GC_MODE=1  					'0 disable GC, 1=incremental collect after every OnWhatever, 2=Incremental collect every GC allocation
-#CPP_GC_TRIGGER=8388608 			'Allocated memory (in bytes) before a GC 'sweep' occurs. Defaults to 8 MiB
-#CPP_GC_MAX_LOCALS=8192 			'This is used with GC_MODE 2 to track local object vars and defaults to 8192
-
-'C++ Tool settings, defaults shown
-'
-#CC_OUTPUT_NAME="main_$HOST"		'Set the output name of the final executable.
-#CC_OUTPUT_PATH=".build/cpptool"	'Set the output path for the final executable.
-
-#CC_OPTS=""							'Pass additional gcc options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
-#CC_LIBS=""							'Pass additional libraries to link against for GCC type compilers.
-#CC_LDOPTS=""						'Pass additional linker options for stdcpp target, eg: #CC_OPTS+="-L../FILE_PATH"
-#CC_MSIZE=""						'Common architeture size for MINGW and GCC. If not set, defaults to compiler default.
-
-#CC_USE_MINGW="1"
-#CC_MINGW_OPTS=""					'Pass additional MinGW options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
-#CC_MINGS_LIBS=""					'Pass additional libraries to link against for MINGW type compilers.
-#CC_MINGW_LDOPTS=""					'Pass additional linker options for stdcpp target, eg: #CC_OPTS+="-L../FILE_PATH"
-#CC_MINGW_MSIZE=""					'Pass architeture size for MINGW. If not set, defaults to compiler default.
-
-#CC_GCC_OPTS=""						'Pass additional gcc options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
-#CC_GCC_LIBS=""						'Pass additional libraries to link against for GCC type compilers.
-#CC_GCC_LDOPTS=""					'Pass additional linker options for stdcpp target, eg: #CC_OPTS+="-L../FILE_PATH"
-#CC_GCC_MSIZE=""					'Pass architeture size for GCC. If not set, defaults to compiler default.
-
-#CC_MSVC_OPTS=""					'Pass additional MSVC options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
-#CC_MSVC_LIBS=""					'Pass additional libraries to link against for MSVC compilers.
-#CC_MSVC_LDOPTS=""					'Pass additional linker options for MSVC compiler.
-#CC_MSVC_MSIZE=""					'Set the CPU architecture to build for. Not setting this defaults to 32 bit.
-
-#CC_XCODE_OPTS=""					'Pass additional Xcode options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
-#CC_XCODE_LIBS=""					'Pass additional libraries to link against for Xcode compilers.
-#CC_XCODE_LDOPTS=""					'Pass additional linker options for Xcode compiler.
-
 </pre>
 
 Not all settings are supported by all targets, and when not supported they will silently fail.
@@ -204,7 +335,6 @@ The following config settings allow multiple values in one single line, using th
 #REFLECTION_FILTER=""
 
 </pre>
-
 
 For the following Android settings only the "~n" character is allowed as a separator because all other charactes can be used as content:
 
