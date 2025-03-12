@@ -111,7 +111,11 @@ function do_makedocs() {
     [int]$local:errCode = $(transcc "MakeDocs" "C++_Tool" "makedocs" "0")
     if ($errCode -eq 0) {
         if (Test-Path("$CERBERUS_BIN_DIR\makedocs_winnt.exe")) { do_delete "$CERBERUS_BIN_DIR\makedocs_winnt.exe" }
-        do_move "$build_dir\cpptool64\main_winnt.exe" "$CERBERUS_BIN_DIR\makedocs_winnt.exe"    
+        if ($msbuild -eq $true) {
+            do_move "$build_dir\cpptool\main_winnt.exe" "$CERBERUS_BIN_DIR\makedocs_winnt.exe"
+        } else {
+            do_move "$build_dir\cpptool64\main_winnt.exe" "$CERBERUS_BIN_DIR\makedocs_winnt.exe" 
+        }   
     }
 
     # Final output depends on the error code returned from tha function call.

@@ -278,7 +278,8 @@ function transcc([string]$_name, [string]$_target, [string]$_srcfile, [string]$_
         if ($_target -eq "C++_Tool") {
             $arguments += @("+CC_USE_MINGW=0",
                 "+CC_MSVC_TOOLSET=`"$toolset`"",
-                "+CC_MSVC_WINSDK=`"$winsdk`"")
+                "+CC_MSVC_WINSDK=`"$winsdk`""
+                "+CC_MSVC_MSIZE=`"64`"")
         } else {
             $arguments += @("+GLFW_USE_MINGW=0",
                 "+GLFW_MSVC_TOOLSET=`"$toolset`"",
