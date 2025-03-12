@@ -22,8 +22,8 @@ Param(
     [Alias("h")][switch]$help = $false,
     [Alias("b")][switch]$msbuild = $false,
     [Alias("d")][string]$deploypath = "",
-    #[Alias("w")][string]$winsdk = "10.0",
-    #[Alias("t")][string]$toolset = "v142",
+    [Alias("w")][string]$winsdk = "10.0",
+    [Alias("t")][string]$toolset = "v142",
     [Alias("n")][switch]$pause = $false,
     [switch]$distclean = $false,
     [switch]$clean = $false
@@ -31,7 +31,7 @@ Param(
 
 Clear-Host
 
-[string]$SCRIPT_VER = "2.0.1"
+[string]$SCRIPT_VER = "2.0.2"
 
 # Basic variable for common Cerberus directories.
 [string]$CERBERUS_SRC_DIR = "$PSScriptRoot"
@@ -56,8 +56,8 @@ if ($help -eq $true) {
     Write-Host "`t{-y|-vsver} `"PRODUCT_YEAR`"`t`t`t- Set Visual Studio product year`n`t{-c|-mingw} `"MINGW_DIR`"`t`t`t`t- Set MiGW root directory."
     Write-Host "`t{-b|-msbuild}`t`t`t`t`t- Build using MSBuild. Requires Visual Studio."
     Write-Host "`t{-d|-deploypath} `"DEPLOY_DIR`"`t`t`t- Build a deployment archive in the directory passed."
-    #Write-Host "`t{-w|-winsdk} `"10.0`"`t`t`t`t- Set the MS Windows SDK to use. Default is 10.0, which means any."
-    #Write-Host "`t{-t|-toolset} `"v142`"`t`t`t`t- Set the MSVC tool set to use. Default is v142, which is Visual Studio 2019."
+    Write-Host "`t{-w|-winsdk} `"10.0`"`t`t`t`t- Set the MS Windows SDK to use. Default is 10.0, which means the latest version."
+    Write-Host "`t{-t|-toolset} `"v142`"`t`t`t`t- Set the MSVC tool set to use. Default is v142, which is Visual Studio 2019."
     Write-Host "`t{-p|-pause}`t`t`t`t`t- Pause just before showing the menu to show script configuration setup."
     Write-Host "`t-clean`t`t`t`t`t`t- Removes Cerberus tools and build directories for current operating system."
     Write-Host "`t-distclean`t`t`t`t`t- Removes all previous built binaries of Cerberus within local repository."
@@ -205,6 +205,8 @@ function do_show_deps() {
     # The tool chain that's being use.
     if ($msbuild -eq $true) {
         do_info "Toolchain: MSBuild"
+        do_info "MSVC Toolset version: $toolset"
+        do_info "Windows SDK version: $winsdk"
     } else {
         do_info "Toolchain: MinGW"
     }

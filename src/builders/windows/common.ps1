@@ -265,15 +265,7 @@ function transcc([string]$_name, [string]$_target, [string]$_srcfile, [string]$_
 
     do_info "BUILDING $_name"
 
-    # Set the toolchain based upon the target and msbuild.
-    [string]$toolchain = ""
-    if ($msbuild -eq $true) {
-        if ($_target -eq "C++_Tool") {
-            $toolchain = "+CC_USE_MINGW=0"
-        } else {
-            $toolchain = "+GLFW_USE_MINGW=0"
-        }
-    }
+    # Initial arguments to pass to transcc
     $local:arguments = @("$CERBERUS_BIN_DIR\transcc_winnt.exe",
         "-target=$_target",
         "-builddir=`"$_srcfile.build`"",
@@ -281,9 +273,19 @@ function transcc([string]$_name, [string]$_target, [string]$_srcfile, [string]$_
         "-config=release",
         "+CPP_GC_MODE=$_gc_mode" )
 
-    if(-not([string]::IsNullOrEmpty($toolchain))) {
-        $arguments += @("$toolchain")
-    }                     
+    # Set the toolchain based upon the target and msbuild.
+    if ($msbuild -eq $true) {
+        if ($_target -eq "C++_Tool") {
+            $arguments += @("+CC_USE_MINGW=0",
+                "+CC_MSVC_TOOLSET=`"$toolset`"",
+                "+CC_MSVC_WINSDK=`"$winsdk`"")
+        } else {
+            $arguments += @("+GLFW_USE_MINGW=0",
+                "+GLFW_MSVC_TOOLSET=`"$toolset`"",
+                "+GLFW_MSVC_WINSDK=`"$winsdk`"")
+        }
+    }
+    
     $arguments += @("`"$srcpath\$_srcfile.cxs`"")
 
     # Cannot call $process.Execute as it causes transcc to lockup. So have to use another method.
