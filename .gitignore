@@ -57,6 +57,7 @@ Thumbs.db
 .vs
 **/msvc.vcxproj.user
 **/msvc.vcxproj.filters
+**/msvc.aps
 
 **/src/ted/build
 
