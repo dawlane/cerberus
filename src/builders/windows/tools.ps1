@@ -31,6 +31,8 @@ function do_transcc() {
                         "/p:TargetName=`"transcc_winnt`"",
                         "/p:Configuration=Release64",
                         "/p:Platform=x64",
+                        "/p:platformtoolset=$toolset",
+                        "/p:windowstargetplatformversion=$winsdk",
                         "msvc.sln" )
 
         Push-Location "$project_dir"
@@ -139,13 +141,15 @@ function do_launcher() {
     [string[]]$local:arguments = @()
     # Select the compiler to use if installed.
     if (($msbuild -eq $true)-and($global:MSVC_SELECTED_IDX -ge 0)) {
-        [string]$local:build_dir = "$project_dir\Release64"
-        $arguments = @("msbuild",
+        [string]$local:build_dir = "$project_dir\build"
+        $arguments = @("MSBuild.exe",
                 "/p:OutDir=`"$CERBERUS_ROOT_DIR\`"",
                 "/p:ApplicationIcon=`"$icon`"",
                 "/p:TargetName=`"Cerberus`"",
                 "/p:Configuration=Release64",
                 "/p:Platform=x64",
+                "/p:platformtoolset=$toolset",
+                "/p:windowstargetplatformversion=$winsdk",
                 "msvc.sln"
         )
         Push-Location "$project_dir"
