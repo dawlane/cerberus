@@ -56,13 +56,7 @@ private:
 // ***** process.cpp *****
 
 #if _WIN32
-
-#else
-
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
+// Works okay on MS Windows, but not on *nix operating systems.
 static char **makeargv( const char *cmd ){
     int n,c;
     char *p;
@@ -104,6 +98,43 @@ static char **makeargv( const char *cmd ){
     }
     argv[n]=0;
     return argv;
+}
+
+#else
+
+// Use the built in word expresion library for *nix operating systems.
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <wordexp.h>
+static char **makeargv( const char *cmd ){
+	wordexp_t p;
+	size_t wargc;
+	char **wargv;
+	char** argv;
+
+	// Use the systems built in commandline word expression parser.
+	if(wordexp(cmd, &p, 0)==WRDE_NOSPACE ) {
+		printf("The command line expression parser returned an \"OUT OF MEMORY error\"");
+		return NULL;
+	}
+	wargv = p.we_wordv;
+	wargc = p.we_wordc;
+
+	// Copy the argument array. This is to be returned.
+	argv=(char**)malloc((wargc+1) * sizeof *argv);
+	for(int i = 0; i < wargc; ++i)
+	{
+		size_t length = strlen(wargv[i])+1;
+		argv[i]=(char*)malloc(length);
+		memcpy(argv[i], wargv[i], length);
+	}
+	argv[wargc] = NULL;
+
+	// clean up.
+	wordfree(&p);
+	
+	return argv;
 }
 
 #endif
@@ -209,8 +240,10 @@ bool BBProcess::Start( String cmd ){
         close( out[0] );
         close( err[0] );
 
+		// TODO: On *nix machines, check that this actually works with errors.
         char **argv=makeargv( cmd.ToCString<char>() );
-        execvp( argv[0],argv );
+		if(argv!=NULL)
+			execvp( argv[0],argv );
 
         ::_exit( -1 );
         return false;
@@ -431,10 +464,11 @@ void BBProcess::ExitApp( int exitCode ){
 
 int BBProcess::ChangeDir( String path ){
 #if _WIN32
-	if( !SetCurrentDirectoryW( path.ToCString<WCHAR>() ) ) return -1;
-	return 0;
+	if( !SetCurrentDirectoryW( path.ToCString<WCHAR>() ) ) return 0;
+	return 1;
 #else
-	return chdir( path.ToUtf8() );
+	if ( chdir( path.ToUtf8() )!=0 ) return 0;
+	return 1;
 #endif
 }
 
