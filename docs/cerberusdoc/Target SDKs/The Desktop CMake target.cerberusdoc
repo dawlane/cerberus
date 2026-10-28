@@ -1,0 +1,121 @@
+> The CMake Desktop target
+
+The CMake target allows the CMake Build system to be used. It will generate build files that can be used outside of the Cerberus-X build environments.~n
+Desktop apps use the OpenGL API for graphics rendering and the OpenAL API for audio.
+
+>> Windows Requirements
+
+* [MinGW](https://www.mingw-w64.org/) or [Visual Studio Community 2019 for Windows Desktop](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&rel=16).
+* [OpenAL Windows Drivers](https://www.cerberus-x.com/downloads/oalinst.zip).
+* [CMake v3.23.0+](https://cmake.org)
+
+*NOTES:*~n
+For Visual Studio. The default is to use Visual Studio 2019, which uses v142 of the platform tool set. To select another, uncomment and set `PLATFORM_TOOLSET_VERSION` in the [[../../bin/config.winnt.txt|config.winnt.txt]] file.~n
+Platform tool sets can also be set via source file preprocessor config variables. See the GLFW settings in [[Programming/App config settings]]~n
+For Cerberus-X to find the Visual Studio build tools. You must set `MSBUILD_PATH` in the [[../../bin/config.winnt.txt|config.winnt.txt]] file to point to the MSBuild executable file.
+
+For MinGW and CMake, you will need to set the `MINGW_PATH` and `CMAKE_PATH` var in your [[Trans]] config file. These should point to the actual MinGW/CMake directory, not the 'bin' sub-directory.
+
+Please be aware that building on MS Windows has a file path limit of *260 characters*. MinGW compilers may work with paths exceeding this limit, but Visual Studio will not.~n
+The solution is to have your projects as close to the root directory of the hard drive letter as possible, and use short file and directory names.
+
+>> MacOS Requirements
+
+* [XCode](http://developer.apple.com/xcode) developer tools, and the XCode Commandline Tools. XCode is also available via the Mac 'App Store' app.
+* [CMake v3.23.0+](https://cmake.org)
+
+*NOTES:*~n
+To set a specific version for CMake. You will need to set the `CMAKE_PATH` var in your [[Trans]] config file. This should point to the actual CMake directory, not the 'bin' sub-directory.
+
+>> Linux Requirements
+*Basic Requirements*~n
+* GCC C/C++ Compiler
+* [CMake v3.23.0+](https://cmake.org)
+
+*NOTES:*~n
+To set a specific version for CMake. You will need to set the `CMAKE_PATH` var in your [[Trans]] config file. This should point to the actual CMake directory, not the 'bin' sub-directory.
+
+*Desktop Game Requirements*~n
+* OpenALSoft
+* xcursor
+* xrandr
+* xinerama
+* mesa
+* glut
+* xxf86vm
+* xi
+* joystick/joyutils (optional)
+
+
+>> Quick use instructions
+
+* Set the CMAKE_PATH in your [[Trans]] config file.
+* Start Ted
+* Select build target *CMake C++ Tool*, or *CMake GLFW Desktop Game* 
+* Add the preprocessor variable `#CMAKE_USE_PRESET`, and set it to the target you are compiling for e.g. linux-x64
+
+The current supported CMake Presets are:~n
+* linux-x86/x86
+* macos-intel/arm64/universal
+* mingw-x86/x64
+* vs2019-x86/x64
+* vs2022-x86/x64
+* vs2026-x86/x64
+
+You can create your own `CMakeUserPresets.json`, `CMakePresets.json`, and `CMakeLists.txt` file to override the templates own versions. Just place them in the projects root directory.~n
+*NOTE* If you wish to split the CMakePresets, then add a sub directory in the projects root with the name `cmake-presets`, and place the split cmake json files into it.~n
+Check out the example in: `examples/test_apps/transcc_test_suites/cmake_preset_glfw` on how this is done.
+
+Here is a list of Cerberus-X CMake options with the defaults shown:
+<pre>
+#CMAKE_USE_PRESET="{cmake-preset}"				- *Required See supported CMake Presets above.*
+#CMAKE_OUTPUT_PATH=""							- Changes the output directory of the final executable and supporting files.
+#CMAKE_PROJECT_NAME="application_{Host OS}"		- Sets the output file name for the final executable.
+#CMAKE_PROJECT_VER="1.0"						- Sets the CMake project version number.
+#CMAKE_DEBUG_CACHE_VARS=False					- Setting to True this will build the application and stop; showing all teh cache variables being used.
+#CMAKE_DEBUG_LOG=False							- Set to true will set CMake's message logging level to DEBUG.
+												- It will be up to the author of the CMakeLists.txt to implement any messaging.
+#CMAKE_RECONFIG=False							- Due to how CMake handles source files.
+												  It is not possible for auto reconfigure to run when new files are added without manually editing the CMake file.
+												  Setting this to true will delete the {cmake-preset}-{architecture}-{debug|release} build directory.
+												  It will also replace CMake files, which would be required if developing new CMake scripts.
+												  This will force CMake to reconfigure; providing that the CMake target template has got a target_lock file present.
+#CMAKE_VERBOSE_OUTPUT=False						- Set to true will generate verbose build output from the tool chain.
+#CMAKE_USE_PROJECT_FILES=False					- Set to true allows a a user to use their own CMake project files in side a project.
+												  NOTE: Requires that the users CMake files are in a project directory called cmake. This give total freedom from
+												  the Cerberus-X CMake defaults, but requires a user to implement their own CMakeLists.txt and support files.
+</pre>
+
+To pass options to the back-end compiler. You use preprocessor variables that match the CMake preset and build configuration. e.g. `#LINUX_X64_{DEBUG/RELEASE}_{OPTION IDENTIFIER}`.~n
+The `OPTION IDENTIFIER` list:
+<pre>
+COMPILER								- Use to pass additional options to the C++ compiler.
+STATIC_BUILD=False						- MinGW only. Statically links in gcc runtimes and winpthreads.
+WINDOWS_SDK="10.0"						- MSVC only. Set the Windows SDL version to use. The default is 10.0, which
+										- will just use the latest.
+SET_MSVC_PLATFORM_TOOLSET="v142"		- MSVC only. Sets the platform tool set to use. Default is to use VS 2019.
+DEFINES=""								- Use to pass additional preprocessor defines to the compiler.
+LINKER=""								- Use to pass additional options to the linker.
+SHARED_LIBS=""							- Use to pass additional shared libraries to the linker. e.g. DLL, SO, and DYLIB files.
+STATIC_LIBS=""							- Use to pass additional static libraries to the linker. e.g .lib, and .a files.
+SOURCES=""								- Use to pass additional C/C++ source files.
+FRAMEWORKS=""							- MacOS only. Use to pass a list of macOS frameworks.
+INCLUDE_PATHS=""						- Use to pass additional include paths to search for header files.
+SHARED_LIB_PATHS=""						- Use to pass additional shared library paths to search for header files.
+STATIC_LIB_PATHS=""						- Use to pass additional static library paths to search for header files.
+SOURCES_PATHS=""						- Use to pass additional C/C++ source paths to search for header files.
+FRAMEWORK_PATHS=""						- MacOS only. Use to pass additional framework search paths. 
+AUDIO_DRIVER="openal"					- Use to set the audio driver to use. NOTE: Only added for future expansion.
+CMAKE_NETWORK_CLIENT="curl"				- Use to set the networking client. NOTE: Only added for future expansion.
+APP_BUNDLE_ID="com.yourcompany"			- Use to set the application bundle id. Default is "com.yourcompany"
+</pre>
+
+The pre processor configuration variables below are for advanced users that are familiar wit CMake and how Cerberus generates cache and files.~n
+*NOTE:* This gives total control of how the Cerberus generated cache variables and files are used. This is an advanced subject, and requires knowledge of CMake and how the CMake target generates files to interact with CMake.~n
+You should start by examining the file [[../../src/transcc/builders/cmake.cxs|cmake.cxs]] and the contents of the directory [[../../shared/cmake|shared/cmake]] for how everything works. 
+<pre>
+#CMAKE_USE_PROJECT_FILES=False					- If set to true will totally ignore the Cerberus CMake files in favour of the CMake files places in a directory called
+												  cmake within the current selected directory that the main Cerberus source file is located.
+#CMAKE_IMPORT_DEFAULT_SHARED_LIBRARIES=False	- Used when creating a new Cerberus target. It will copy the contents of shared/cmake/share into the projects build directory.
+#CMAKE_IMPORT_DEFAULT_STATIC_LIBRARIES=False	- Used when creating a new Cerberus target. It will copy the contents of shared/cmake/static into the projects build directory.
+</pre>
