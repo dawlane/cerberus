@@ -12,8 +12,8 @@
 '
 ' It can also be useful to use symbolic links to these locations created in the users home directory to point to the target folders or files if
 ' the drive where the users home folder is limited for space.
-' For example, assuming that 'devdrive' is pre-mounted, set with the correct file access mount options, group and file permissions:
-' ln -s /mnt/devdrive/Android/Sdk $HOME/Android/Sdk
+' For example, assuming that 'dev_drive' is pre-mounted, set with the correct file access mount options, group and file permissions:
+' ln -s /mnt/dev_drive/Android/Sdk $HOME/Android/Sdk
 ' 
 ' Linux distributions will have a number of options on managing different versions of a Java Development Kit and compilers that can live side-by-side.
 ' Most distributions may already have these developer tools pre-installed, but many will not and will have to be manually installed and require
@@ -30,6 +30,15 @@
 '
 
 MODPATH="${CERBERUSDIR}/modules;${CERBERUSDIR}/modules_ext"
+'--------------------
+
+'--------------------
+' Cerberus targets path
+'
+' Can be overridden. See the Cerberus X documentation on the transcc command line tool
+'
+
+TARGETPATH="${CERBERUSDIR}/targets;${CERBERUSDIR}/targets_ext"
 '--------------------
 
 '--------------------
@@ -67,8 +76,9 @@ HTML_PLAYER="${CERBERUSDIR}/bin/cserver_linux"
 ' set to use the embedded JDK found in the Android Studio installation location.
 ' $HOME/android-studio/jre
 '
+' JDK_PATH="${HOME}/android-studio/jbr"
 
-JDK_PATH="${HOME}/android-studio/jbr"
+JDK_PATH="${CERBERUSDIR}/JDK"
 '--------------------
 
 '--------------------
@@ -81,8 +91,9 @@ JDK_PATH="${HOME}/android-studio/jbr"
 ' It will show the location of where the current Android SDK is and if it's different, then the ANDROID_PATH configuration variable should be updated to this path.
 ' NOTE: For the Android SDK to work successfully, it must be located in a folder that does not require elevated privileges.
 '
+' ANDROID_PATH="${HOME}/Android/Sdk"
 
-ANDROID_PATH="${HOME}/Android/Sdk"
+ANDROID_PATH="${CERBERUSDIR}/Android/Sdk"
 '--------------------
 
 '--------------------
@@ -94,11 +105,28 @@ ANDROID_PATH="${HOME}/Android/Sdk"
 ' Android Studio installs NDK's by version number. The are downloaded via Android SDK tools and
 ' are located in a subfolder called ndk located in the Android SDK folder.
 
-ANDROID_NDK_PATH="${HOME}/Android/Sdk/ndk/23.0.7599858"
+ANDROID_NDK_PATH="${CERBERUSDIR}/Android/Sdk/ndk/23.0.7599858"
 '--------------------
 
 '--------------------
-' Depreciated Targets
+' CMake
+'
+' If CMake is already installed, and is accessible from the PATH environment variable, and also meets the minimum requirements of v3.23. Then there is no need to set CMAKE_PATH.
+' NOTE: If you should get a compile not found error from CMake, then the version of CMake may be too old. It is recommended that the latest version of CMake is used.
+
+' CMAKE_PATH="${CERBERUSDIR}/CMake"
+'--------------------
+
+'--------------------
+' Ninja
+'
+' If Ninja is already installed, and is accessible from the PATH environment variable. Then there is no need to set NINJA_BUILD_PATH.
+'
+' NINJA_BUILD_PATH="${CERBERUSDIR}/Ninja"
+'--------------------
+
+'--------------------
+' Deprecated Targets
 ' These targets are no longer supported and are commented out. They are only here for reference.
 '
 ' Apache ANT is the main build system for Flash and at one point for Android.

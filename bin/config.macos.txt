@@ -11,8 +11,8 @@
 '
 ' It can also be useful to use symbolic links to these locations created in the users home directory, to point to the target folders or files if
 ' the drive where the users home folder is limited for space.
-' For example, assuming that 'devdrive' is pre-mounted, set with the correct file access mount options, group and file permissions:
-' ln -s /mnt/devdrive/Android/Sdk $HOME/Android/Sdk
+' For example, assuming that 'dev_drive' is pre-mounted, set with the correct file access mount options, group and file permissions:
+' ln -s /mnt/dev_drive/Android/Sdk $HOME/Android/Sdk
 ' 
 '--------------------
 
@@ -52,10 +52,17 @@ HTML_PLAYER=open -n "${CERBERUSDIR}/bin/cserver_macos.app" --args
 ' If using Android Studio, It is possible that the install will have a much newer version of a JDK, but
 ' it could be incompatible with the current release of Cerberus X. If that's the case, then a different JDK must be installed.
 '
-' Alternative to the repository JDK's can be found from:
+' Alternative JDK's can be found from:
 ' Oracle JDK, found here: https://www.oracle.com/java/technologies/downloads/
 ' OpenJDK. You can see which vendors offer this from https://en.wikipedia.org/wiki/OpenJDK
 ' NOTE: The wiki only links to the vendors main websites, so a search for OpenJDK on their sites will be needed.
+' 
+' You can also use one of the 'package managers' such as Homebrew and MacPorts to download and install OpenJDK.
+' MacPorts: https://www.macports.org/
+' homebrew: https://brew.sh/
+'
+' Read the documentation on how to use Homebrew and MacPorts, and how install. Installing a package usually displays addition setup information.
+' It is highly recommended that a Java manager such as jabba or jEnv be used.
 '
 ' NOTE: Some JDK installations use a combined JDK/JRE, so make sure that the path chosen has the Java compiler (javac)
 ' within the bin subfolder.
@@ -66,7 +73,8 @@ HTML_PLAYER=open -n "${CERBERUSDIR}/bin/cserver_macos.app" --args
 ' /Applications/Android Studio.app/Contents/jre/Contents/Home
 '
 
-JDK_PATH="/Applications/Android Studio.app/Contents/jbr/Contents/Home" 
+' JDK_PATH="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+JDK_PATH="${CERBERUSDIR}/JDK"
 '--------------------
 
 '--------------------
@@ -80,7 +88,8 @@ JDK_PATH="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 ' NOTE: For the Android SDK to work successfully, it must be located in a folder that does not require elevated privileges.
 '
 
-ANDROID_PATH="${HOME}/Library/Android/sdk"
+' ANDROID_PATH="${HOME}/Library/Android/sdk"
+ANDROID_PATH="${CERBERUSDIR}/Android/Sdk"
 '--------------------
 
 '--------------------
@@ -92,7 +101,25 @@ ANDROID_PATH="${HOME}/Library/Android/sdk"
 ' Android Studio installs NDK's by version number. The are downloaded via Android SDK tools and
 ' are located in a subfolder called ndk located in the Android SDK folder.
 
-ANDROID_NDK_PATH="${HOME}/Library/Android/sdk/ndk/23.0.7599858"
+ANDROID_NDK_PATH="${CERBERUSDIR}/Android/Sdk"
+'--------------------
+
+'--------------------
+' CMake
+'
+' If CMake is already installed, and is accessible from the PATH environment variable, and also meets the minimum requirements of v3.23. Then there is no need to set CMAKE_PATH.
+' NOTE: If you should get a compile not found error from CMake, then the version of CMake may be too old. It is recommended that the latest version of CMake is used.
+
+' CMAKE_PATH="${CERBERUSDIR}/CMake"
+'--------------------
+
+'--------------------
+' Ninja
+'
+' If Ninja is already installed, and is accessible from the PATH environment variable. Then there is no need to set NINJA_BUILD_PATH.
+'
+' NINJA_BUILD_PATH="/opt/homebrew/bin"
+NINJA_BUILD_PATH="${CERBERUSDIR}/Ninja"
 '--------------------
 
 '--------------------

@@ -49,7 +49,7 @@
 ' Can be overridden. See the Cerberus X documentation on the transcc command line tool
 '
 
-MODPATH="${CERBERUSDIR}/modules;${CERBERUSDIR}/modules_ext;C:\Cerberus_v2022-03-12_Windows\CerberusModules"
+MODPATH="${CERBERUSDIR}/modules;${CERBERUSDIR}/modules_ext"
 '--------------------
 
 '--------------------
@@ -58,7 +58,7 @@ MODPATH="${CERBERUSDIR}/modules;${CERBERUSDIR}/modules_ext;C:\Cerberus_v2022-03-
 ' Can be overridden. See the Cerberus X documentation on the transcc command line tool
 '
 
-TARGETPATH="${CERBERUSDIR}/targets;${CERBERUSDIR}/targets_ext;C:\Cerberus_v2022-03-12_Windows\Targets"
+TARGETPATH="${CERBERUSDIR}/targets;${CERBERUSDIR}/targets_ext"
 '--------------------
 
 '--------------------
@@ -94,8 +94,7 @@ HTML_PLAYER="${CERBERUSDIR}\bin\cserver_winnt.exe"
 ' In this case, the MINGW_PATH would only need to be set if there is more than one version of MinGW installed and the first entry
 ' in environment PATH is not to be used.
 
-'MINGW_PATH="C:\TDM-GCC-64"
-MINGW_PATH="${CERBERUSDIR}\TDM-GCC-64"
+MINGW_PATH="${CERBERUSDIR}\mingw64"
 '--------------------
 
 '--------------------
@@ -121,8 +120,9 @@ MINGW_PATH="${CERBERUSDIR}\TDM-GCC-64"
 ' The default JDK_PATH is set to use the embedded JDK in the Android Studio installation location.
 ' C:\Program Files\Android\Android Studio\jre
 '
+' JDK_PATH="${PROGRAMFILES}\Android\Android Studio\jbr"
 
-JDK_PATH="${PROGRAMFILES}\Android\Android Studio\jbr"
+JDK_PATH="${CERBERUSDIR}\JDK"
 '--------------------
 
 '--------------------
@@ -134,8 +134,10 @@ JDK_PATH="${PROGRAMFILES}\Android\Android Studio\jbr"
 ' To confirm that this is where the Android Sdk is installed, start Android Studio and locate the SDK Manager. See the Android Studio documentation on how to do this.
 ' It will show the location of where the current Android SDK is and if it's different, then the ANDROID_PATH configuration variable should be updated to this path.
 ' NOTE: For the Android SDK to work successfully, it must be located in a folder that does not require elevated privileges.
+'
+' ANDROID_PATH="${LOCALAPPDATA}\Android\Sdk"
 
-ANDROID_PATH="${LOCALAPPDATA}\Android\Sdk"
+ANDROID_PATH="${CERBERUSDIR}\Android\Sdk"
 '--------------------
 
 '--------------------
@@ -146,8 +148,10 @@ ANDROID_PATH="${LOCALAPPDATA}\Android\Sdk"
 ' The Android NDK tools are not currently used, but is here if it should be used in the future.
 ' Android Studio installs NDK's by version number. The are downloaded via Android SDK tools and
 ' are located in a subfolder called ndk located in the Android SDK folder.
+'
+' ANDROID_NDK_PATH="${LOCALAPPDATA}\Android\Sdk\ndk\23.0.7599858"
 
-ANDROID_NDK_PATH="${LOCALAPPDATA}\Android\Sdk\ndk\23.0.7599858"
+ANDROID_NDK_PATH="${CERBERUSDIR}\Android\Sdk\ndk\23.0.7599858"
 '--------------------
 
 '--------------------
@@ -158,11 +162,47 @@ ANDROID_NDK_PATH="${LOCALAPPDATA}\Android\Sdk\ndk\23.0.7599858"
 ' The tool for building with Visual Studio is MSBuild.exe. This tools can be located in any number of locations.
 ' As from Visual Studio 2017, all Visual Studio Editions using the default install locations, use the release year, the edition and the version number of MSBuild:
 ' examples:
-' MSBUILD_PATH="${PROGRAMFILES}\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
-' MSBUILD_PATH="${PROGRAMFILES}\Microsoft Visual Studio\2019\Community\MSBuild\16.0\Bin\MSBuild.exe"
 ' MSBUILD_PATH="${PROGRAMFILES(x86)}\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"
+' MSBUILD_PATH="${PROGRAMFILES}\Microsoft Visual Studio\2019\Community\MSBuild\16.0\Bin\MSBuild.exe"
+' MSBUILD_PATH="${PROGRAMFILES(x86)}\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
+' MSBUILD_PATH="${PROGRAMFILES}\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
+' MSBUILD_PATH="${PROGRAMFILES}\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
 
 MSBUILD_PATH="${PROGRAMFILES(x86)}\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
+'--------------------
+
+'--------------------
+' WINDOWS SDK & PLATFORM TOOLSET Versions
+'
+' Used to override the default Windows SDK and MSVC Platform Toolset.
+' NOTE: TransCC sets these internally. You can change them here, or via source config variables:
+' #CC/GLFW_WINSDK_VERSION
+' #CC/GLFW_PLATFORM_TOOLSET
+'
+'WIN_SDK_VERSION="10.0"
+'PLATFORM_TOOLSET_VERSION="v142"
+'--------------------
+
+'--------------------
+' CMake
+'
+' If CMake is already installed, and is accessible from the PATH environment variable, and also meets the minimum requirements of v3.23. Then there is no need to set CMAKE_PATH.
+' To support both the 32 bit and 64 bit versions of MinGW, you can set the paths in the two MINGW configuration variables.
+'
+' NOTE: If you should get a compile not found error from CMake, then the version of CMake may be too old. It is recommended that the latest version of CMake is used.
+
+CMAKE_PATH="${CERBERUSDIR}\CMake"
+CMAKE_MINGW_PATH_X86="${CERBERUSDIR}\mingw32"
+CMAKE_MINGW_PATH_X64="${CERBERUSDIR}\mingw64"
+'--------------------
+
+
+'--------------------
+' Ninja
+'
+' If Ninja is already installed, and is accessible from the PATH environment variable. Then there is no need to set NINJA_BUILD_PATH.
+
+NINJA_BUILD_PATH="${CERBERUSDIR}\Ninja"
 '--------------------
 
 '--------------------
@@ -177,14 +217,14 @@ AGK_PATH="${PROGRAMFILES(x86)}\The Game Creators\AGK2"
 '--------------------
 
 '--------------------
-' Depreciated Targets
+' Deprecated Targets
 ' These targets are no longer supported and are commented out. They are only here for reference.
 '
 ' Apache ANT is the main build system for Flash and at one point for Android.
 '
 ' The Flex SDK is the software development kit for Flash enabled web applications.
 ' It's still available from https://flex.apache.org/
-' With the advance of HTML5, Flash is seldom used anymore and Flash player and it's web browser plugin reached it's
+' With the advance of HTML5, Flash is seldom used any more and Flash player and it's web browser plugin reached it's
 ' End of Life on December 31 2020.
 ' You can still download the flash player debugger from https://www.adobe.com/support/flashplayer/debug_downloads.html
 '
