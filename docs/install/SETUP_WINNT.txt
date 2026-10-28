@@ -3,10 +3,21 @@ Before you begin. You should check out one of the desktop sub forums for any iss
 https://www.cerberus-x.com/community/categories/desktop-targets.70/
 
 Requirements:
-For Standard Desktop Console targets, a MinGW compiler is required.
+For Standard Desktop Console targets, a MinGW compiler or Visual Studio 2019+ is required.
 For Desktop Game targets, either a MinGW compiler or Visual Studio with Desktop C++ workload is required.
-For Android Game targets, an Android Studio installation is recommended, but it is possible to do a manual setup using the command line tools.
+For CMake Desktop Game and CMake Console targets. The above and the CMake build tool (v3.23+) from https://cmake.org/ 
+For Android Game targets, an Android Studio installation is recommended for better control, but it is possible to do a manual setup using the command line tools.
+It should be noted that Android Studio usually comes with a newer version of the JDK that may not be compatible with the current version of Cerberus.
+You can find alternative vendors listed at https://en.wikipedia.org/wiki/OpenJDK, with the most popular being at Eclipse Adoptium Project https://adoptium.net/ 
+
 
 If all the above are installed to their default locations, then Cerberus should not need any additional set up.
-But if required, modify the config.winnt.txt file located in the Cerberus bin directory with the path to those build tools.
+But if required, modify the config.winnt.txt file located in the Cerberus bin directory with the path to those build tools,
+or use the gen-tool-links.ps1 script (Cerberus/src/gen-tool-links.ps1) to setup links to the application. Just type .\gen-tool-links.ps1 to see the options.
+NOTE: To use Powershell script, you must open a powershell terminal as Administrator, and set the execution policy to Unrestricted.
+Before changing, get the current execution policy first to restore it.
+See:
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/get-executionpolicy?view=powershell-7.6
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.security/set-executionpolicy?view=powershell-7.6
+
 The config.winnt.txt also contains addition information on setting up Cerberus X requirements.
