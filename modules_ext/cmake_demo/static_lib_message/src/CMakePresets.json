@@ -1,0 +1,226 @@
+{
+    "version": 4,
+    "configurePresets": [
+        {
+            "name": "vs2019-x64-release",
+            "generator": "Visual Studio 16 2019",
+            "displayName": "Visual Studio 2019 x64 Release",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/demo_build/vs2019-x64-release"
+        },
+        {
+            "name": "vs2019-x86-release",
+            "generator": "Visual Studio 16 2019",
+            "displayName": "Visual Studio 2019 x86 Release",
+            "architecture": "Win32",
+            "binaryDir": "${sourceDir}/demo_build/vs2019-x86-release"
+        },
+
+        {
+            "name": "vs2022-x64-release",
+            "generator": "Visual Studio 17 2022",
+            "displayName": "Visual Studio 2022 x64 Release",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/demo_build/vs2022-x64-release"
+        },
+        {
+            "name": "vs2022-x86-release",
+            "generator": "Visual Studio 17 2022",
+            "displayName": "Visual Studio 2022 x86 Release",
+            "architecture": "Win32",
+            "binaryDir": "${sourceDir}/demo_build/vs2022-x86-release"
+        },
+
+        {
+            "name": "vs2026-x64-release",
+            "generator": "Visual Studio 18 2026",
+            "displayName": "Visual Studio 2026 x64 Release",
+            "architecture": "x64",
+            "binaryDir": "${sourceDir}/demo_build/vs2026-x64-release"
+        },
+        {
+            "name": "vs2026-x86-release",
+            "generator": "Visual Studio 18 2026",
+            "displayName": "Visual Studio 2026 x86 Release",
+            "architecture": "Win32",
+            "binaryDir": "${sourceDir}/demo_build/vs2026-x86-release"
+        },
+        {
+            "name": "mingw-x64-release",
+            "generator": "MinGW Makefiles",
+            "displayName": "MinGW x64 Release",
+            "binaryDir": "${sourceDir}/demo_build/mingw-x64-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "mingw-x86-release",
+            "generator": "MinGW Makefiles",
+            "displayName": "MinGW x86 Release",
+            "binaryDir": "${sourceDir}/demo_build/mingw-x86-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "linux-x64-release",
+            "generator": "Unix Makefiles",
+            "displayName": "Linux x64 Release",
+            "binaryDir": "${sourceDir}/demo_build/linux-x64-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_FLAGS": "-m64",
+                "CMAKE_EXE_LINKER_FLAGS": "-m64",
+                "CMAKE_SHARED_LINKER_FLAGS": "-m64"
+            }
+        },
+        {
+            "name": "macos-arm64-release",
+            "generator": "Xcode",
+            "displayName": "macOS ARM64 Release",
+            "binaryDir": "${sourceDir}/demo_build/macos-arm64-release",
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Release",
+                "CMAKE_OSX_ARCHITECTURES": "arm64"
+            }
+        },
+        {
+            "name": "macos-intel-release",
+            "generator": "Xcode",
+            "displayName": "macOS Intel Release",
+            "binaryDir": "${sourceDir}/demo_build/macos-intel-release",
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Release",
+                "CMAKE_OSX_ARCHITECTURES": "x86_64"
+            }
+        },
+        {
+            "name": "macos-universal-release",
+            "generator": "Xcode",
+            "displayName": "macOS Universal Release",
+            "binaryDir": "${sourceDir}/demo_build/macos-universal-release",
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Release",
+                "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64"
+            }
+        },
+        
+        {
+            "name": "linux-x86-release",
+            "generator": "Unix Makefiles",
+            "displayName": "Linux x86 Release",
+            "binaryDir": "${sourceDir}/demo_build/linux-x86-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_FLAGS": "-m32",
+                "CMAKE_EXE_LINKER_FLAGS": "-m32",
+                "CMAKE_SHARED_LINKER_FLAGS": "-m32"
+            }
+        },
+        {
+            "name": "ninja-linux-x64-release",
+            "generator": "Ninja",
+            "displayName": "Ninja Linux x64 Release",
+            "binaryDir": "${sourceDir}/demo_build/ninja-linux-x64-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_FLAGS": "-m64",
+                "CMAKE_EXE_LINKER_FLAGS": "-m64",
+                "CMAKE_SHARED_LINKER_FLAGS": "-m64"
+            }
+        },
+        {
+            "name": "ninja-linux-x86-release",
+            "generator": "Ninja",
+            "displayName": "Ninja Linux x86 Release",
+            "binaryDir": "${sourceDir}/demo_build/ninja-linux-x86-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_FLAGS": "-m32",
+                "CMAKE_EXE_LINKER_FLAGS": "-m32",
+                "CMAKE_SHARED_LINKER_FLAGS": "-m32"
+            }
+        },
+        {
+            "name": "ninja-mingw-x64-release",
+            "generator": "Ninja",
+            "displayName": "Ninja MinGW x64 Release",
+            "binaryDir": "${sourceDir}/demo_build/ninja-mingw-x64-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_FLAGS": "-m64",
+                "CMAKE_EXE_LINKER_FLAGS": "-m64",
+                "CMAKE_SHARED_LINKER_FLAGS": "-m64"
+            }
+        },
+        {
+            "name": "ninja-mingw-x86-release",
+            "generator": "Ninja",
+            "displayName": "Ninja MinGW x86 Release",
+            "binaryDir": "${sourceDir}/demo_build/ninja-mingw-x86-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_CXX_FLAGS": "-m32",
+                "CMAKE_EXE_LINKER_FLAGS": "-m32",
+                "CMAKE_SHARED_LINKER_FLAGS": "-m32"
+            }
+        },
+        {
+            "name": "ninja-msvc-x64-release",
+            "generator": "Ninja",
+            "displayName": "Ninja MSVC x64 Release",
+            "binaryDir": "${sourceDir}/demo_build/ninja-msvc-x64-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "ninja-msvc-x86-release",
+            "generator": "Ninja",
+            "displayName": "Ninja MSVC x86 Release",
+            "binaryDir": "${sourceDir}/demo_build/ninja-msvc-x86-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            },
+            "architecture": {
+                "value": "x86",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "ninja-macos-intel-release",
+            "generator": "Ninja",
+            "displayName": "Ninja macOS Intel Release",
+            "binaryDir": "${sourceDir}/demo_build/ninja-macos-intel-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_OSX_ARCHITECTURES": "x86_64"
+            }
+        },
+        {
+            "name": "ninja-macos-arm64-release",
+            "generator": "Ninja",
+            "displayName": "Ninja macOS ARM64 Release",
+            "binaryDir": "${sourceDir}/demo_build/ninja-macos-arm64-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_OSX_ARCHITECTURES": "arm64"
+            }
+        },
+        {
+            "name": "ninja-macos-universal-release",
+            "generator": "Ninja",
+            "displayName": "Ninja macOS Universal Release",
+            "binaryDir": "${sourceDir}/demo_build/ninja-macos-universal-release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_OSX_ARCHITECTURES": "x86_64;arm64"
+            }
+        }
+    ]
+}

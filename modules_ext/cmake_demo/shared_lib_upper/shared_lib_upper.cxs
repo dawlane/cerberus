@@ -1,0 +1,280 @@
+' This is a demonstration of how to link in and handle shared files
+' Before you can use this shared library, it has to be built. On Windows, use build_libs.ps1, and Linux and macOS use build_libs.sh.
+' To see the options for building, use -h, or [--help/-help] depending on if the terminal is Powershell of bash. 
+
+' As the compiled library output uses Unix style directory structures.
+' The shared library will be outout to shared_library_upper/demo_build/<preset name>/bin
+' The the linker archive files will be placed in cx_shared_library_upper/demo_build/<preset name>/lib
+' The lib directory will have a symbolic link the the actual shared library located in cx_shared_library_upper/demo_build/<preset name>/bin
+'
+' CMake will by design use linker archive files for linking, and the Cerberus implementation for CMake will use the symbolic link to copy the
+' shared library. If the symbolic link is not there; then you should also include the actual path to the shared library binary to make sure that it's copied.
+
+Import "interface/shared_lib_wrapper_upper.cpp"
+
+#Print "[Static Library: static_lib_upper] Setting up the static library test wrapper. Make sure that you have build the library first before use."
+
+' For the test module. We will use scripts to controls the setup, build and installation.
+#If CMAKE_USE_PRESET="linux-x86"
+
+	#Print "[Linux x86] Preprocessor options"
+	#LINUX_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#LINUX_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#LINUX_X86_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#LINUX_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#LINUX_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#LINUX_X86_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+	
+#Elseif CMAKE_USE_PRESET="linux-x64"
+
+	#Print "[Linux x64] Preprocessor options"
+	#LINUX_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#LINUX_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#LINUX_X64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#LINUX_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#LINUX_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#LINUX_X64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+	
+#Elseif CMAKE_USE_PRESET="mingw-x86"
+	
+	#Print "[MinGW x86] Preprocessor options"
+	#MINGW_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MINGW_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MINGW_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#MINGW_X86_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#MINGW_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MINGW_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MINGW_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#MINGW_X86_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="mingw-x64"
+
+	#Print "[MinGW x64] Preprocessor options"
+	#MINGW_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MINGW_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MINGW_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#MINGW_X64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#MINGW_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MINGW_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MINGW_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#MINGW_X64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="vs2019-x86"
+
+	#Print "[VS2019 x86] Preprocessor options"
+	#VS2019_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2019_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2019_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2019_X86_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#VS2019_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2019_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2019_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2019_X86_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="vs2019-x64"
+
+	#Print "[VS2019 x64] Preprocessor options"
+	#VS2019_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2019_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2019_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2019_X64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#VS2019_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2019_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2019_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2019_X64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="vs2022-x86"
+	
+	#Print "[VS2022 x86] Preprocessor options"
+	#VS2022_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2022_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2022_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2022_X86_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#VS2022_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2022_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2022_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2022_X86_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="vs2022-x64"
+
+	#Print "[VS2022 x64] Preprocessor options"
+	#VS2022_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2022_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2022_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2022_X64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#VS2022_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2022_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2022_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2022_X64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="vs2026-x86"
+
+	#Print "[VS2026 x86] Preprocessor options"
+	#VS2026_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2026_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2026_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2026_X86_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#VS2026_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2026_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2026_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2026_X86_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="vs2026-x64"
+
+	#Print "[VS2026 x64] Preprocessor options"
+	#VS2026_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2026_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2026_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2026_X64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#VS2026_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2026_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2026_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/bin"
+	#VS2026_X64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+	
+#Elseif CMAKE_USE_PRESET="macos-arm64"
+
+	#Print "[macOS ARM64] Preprocessor options"
+	#MACOS_ARM64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_ARM64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_ARM64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#MACOS_ARM64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_ARM64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_ARM64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+	
+#Elseif CMAKE_USE_PRESET="macos-intel"
+
+	#Print "[macOS Intel] Preprocessor options"
+	#MACOS_INTEL_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_INTEL_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_INTEL_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#MACOS_INTEL_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_INTEL_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_INTEL_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+	
+#Elseif CMAKE_USE_PRESET="macos-universal"
+
+	#Print "[macOS Universal] Preprocessor options"
+	#MACOS_UNIVERSAL_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_UNIVERSAL_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_UNIVERSAL_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#MACOS_UNIVERSAL_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_UNIVERSAL_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_UNIVERSAL_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="ninja-linux-x64"
+
+	#Print "[Ninja Linux x64] Preprocessor options"
+	#NINJA_LINUX_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_LINUX_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_LINUX_X64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#NINJA_LINUX_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_LINUX_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_LINUX_X64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+	
+#Elseif CMAKE_USE_PRESET="ninja-linux-x86"
+
+	#Print "[Ninja Linux x86] Preprocessor options"
+	#NINJA_LINUX_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_LINUX_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_LINUX_X86_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#NINJA_LINUX_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_LINUX_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_LINUX_X86_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="ninja-mingw-x64"
+
+	#Print "[Ninja MinGW x64] Preprocessor options"
+	#NINJA_MINGW_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MINGW_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MINGW_X64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#NINJA_MINGW_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MINGW_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MINGW_X64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="ninja-mingw-x86"
+
+	#Print "[Ninja MinGW x86] Preprocessor options"
+	#NINJA_MINGW_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MINGW_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MINGW_X86_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#NINJA_MINGW_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MINGW_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MINGW_X86_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="ninja-msvc-x64"
+
+	#Print "[Ninja MSVC x64] Preprocessor options"
+	#NINJA_MSVC_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MSVC_X64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MSVC_X64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#NINJA_MSVC_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MSVC_X64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MSVC_X64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="ninja-msvc-x86"
+
+	#Print "[Ninja MSVC x86] Preprocessor options"
+	#NINJA_MSVC_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MSVC_X86_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MSVC_X86_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#NINJA_MSVC_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MSVC_X86_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MSVC_X86_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-intel"
+
+	#Print "[Ninja macOS Intel] Preprocessor options"
+	#NINJA_MACOS_INTEL_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_INTEL_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_INTEL_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#NINJA_MACOS_INTEL_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_INTEL_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_INTEL_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-arm64"
+
+	#Print "[Ninja macOS ARM64] Preprocessor options"
+	#NINJA_MACOS_ARM64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_ARM64_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_ARM64_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#NINJA_MACOS_ARM64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_ARM64_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_ARM64_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-universal"
+
+	#Print "[Ninja macOS Universal] Preprocessor options"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_SHARED_LIBS+="cx_shared_library_upper"
+	
+	#NINJA_MACOS_UNIVERSAL_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_UNIVERSAL_DEBUG_SHARED_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_UNIVERSAL_DEBUG_SHARED_LIBS+="cx_shared_library_upper"
+	
+#Endif
+
+
+Extern
+	Function CerberusSays:String( msg:String )="CXSharedLibraryUpper::cx_says"

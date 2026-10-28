@@ -1,0 +1,257 @@
+Import "interface/static_lib_wrapper_maths.cpp"
+
+#Print "[Static Library: static_lib_maths] Setting up the static library test wrapper. Make sure that you have build the library first before use."
+
+' For the test module. We will use scripts to controls the setup, build and installation.
+' It will not invoke the 
+#If CMAKE_USE_PRESET="linux-x86"
+
+	#Print "[Linux x86] Preprocessor options"
+	#LINUX_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#LINUX_X86_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#LINUX_X86_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#LINUX_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#LINUX_X86_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#LINUX_X86_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="linux-x64"
+
+	#Print "[Linux x64] Preprocessor options"
+	#LINUX_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#LINUX_X64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#LINUX_X64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#LINUX_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#LINUX_X64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#LINUX_X64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+	
+#Elseif CMAKE_USE_PRESET="mingw-x86"
+	
+	#Print "[MinGW x86] Preprocessor options"
+	#MINGW_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MINGW_X86_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MINGW_X86_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#MINGW_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MINGW_X86_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MINGW_X86_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+
+#Elseif CMAKE_USE_PRESET="mingw-x64"
+
+	#Print "[MinGW x64] Preprocessor options"
+	#MINGW_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MINGW_X64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MINGW_X64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#MINGW_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MINGW_X64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MINGW_X64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="vs2019-x86"
+
+	#Print "[VS2019 x86] Preprocessor options"
+	#VS2019_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2019_X86_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2019_X86_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#VS2019_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2019_X86_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2019_X86_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="vs2019-x64"
+
+	#Print "[VS2019 x64] Preprocessor options"
+	#VS2019_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2019_X64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2019_X64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#VS2019_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2019_X64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2019_X64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="vs2022-x86"
+	
+	#Print "[VS2022 x86] Preprocessor options"
+	#VS2022_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2022_X86_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2022_X86_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#VS2022_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2022_X86_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2022_X86_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="vs2022-x64"
+
+	#Print "[VS2022 x64] Preprocessor options"
+	#VS2022_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2022_X64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2022_X64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#VS2022_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2022_X64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2022_X64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="vs2026-x86"
+
+	#Print "[VS2026 x86] Preprocessor options"
+	#VS2026_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2026_X86_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2026_X86_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#VS2026_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2026_X86_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2026_X86_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="vs2026-x64"
+
+	#Print "[VS2026 x64] Preprocessor options"
+	#VS2026_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#VS2026_X64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2026_X64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#VS2026_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#VS2026_X64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#VS2026_X64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+	
+#Elseif CMAKE_USE_PRESET="macos-arm64"
+
+	#Print "[macOS ARM64] Preprocessor options"
+	#MACOS_ARM64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_ARM64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_ARM64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#MACOS_ARM64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_ARM64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_ARM64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+	
+#Elseif CMAKE_USE_PRESET="macos-intel"
+
+	#Print "[macOS Intel] Preprocessor options"
+	#MACOS_INTEL_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_INTEL_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_INTEL_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#MACOS_INTEL_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_INTEL_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_INTEL_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+	
+#Elseif CMAKE_USE_PRESET="macos-universal"
+
+	#Print "[macOS Universal] Preprocessor options"
+	#MACOS_UNIVERSAL_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_UNIVERSAL_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_UNIVERSAL_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#MACOS_UNIVERSAL_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#MACOS_UNIVERSAL_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#MACOS_UNIVERSAL_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="ninja-linux-x64"
+
+	#Print "[Ninja Linux x64] Preprocessor options"
+	#NINJA_LINUX_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_LINUX_X64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_LINUX_X64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#NINJA_LINUX_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_LINUX_X64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_LINUX_X64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+	
+#Elseif CMAKE_USE_PRESET="ninja-linux-x86"
+
+	#Print "[Ninja Linux x86] Preprocessor options"
+	#NINJA_LINUX_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_LINUX_X86_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_LINUX_X86_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#NINJA_LINUX_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_LINUX_X86_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_LINUX_X86_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="ninja-mingw-x64"
+
+	#Print "[Ninja MinGW x64] Preprocessor options"
+	#NINJA_MINGW_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MINGW_X64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MINGW_X64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#NINJA_MINGW_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MINGW_X64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MINGW_X64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="ninja-mingw-x86"
+
+	#Print "[Ninja MinGW x86] Preprocessor options"
+	#NINJA_MINGW_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MINGW_X86_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MINGW_X86_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#NINJA_MINGW_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MINGW_X86_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MINGW_X86_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="ninja-msvc-x64"
+
+	#Print "[Ninja MSVC x64] Preprocessor options"
+	#NINJA_MSVC_X64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MSVC_X64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MSVC_X64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#NINJA_MSVC_X64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MSVC_X64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MSVC_X64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="ninja-msvc-x86"
+
+	#Print "[Ninja MSVC x86] Preprocessor options"
+	#NINJA_MSVC_X86_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MSVC_X86_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MSVC_X86_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#NINJA_MSVC_X86_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MSVC_X86_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MSVC_X86_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-intel"
+
+	#Print "[Ninja macOS Intel] Preprocessor options"
+	#NINJA_MACOS_INTEL_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_INTEL_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_INTEL_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#NINJA_MACOS_INTEL_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_INTEL_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_INTEL_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-arm64"
+
+	#Print "[Ninja macOS ARM64] Preprocessor options"
+	#NINJA_MACOS_ARM64_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_ARM64_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_ARM64_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#NINJA_MACOS_ARM64_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_ARM64_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_ARM64_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-universal"
+
+	#Print "[Ninja macOS Universal] Preprocessor options"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_STATIC_LIBS+="cx_static_library_maths"
+	
+	#NINJA_MACOS_UNIVERSAL_DEBUG_INCLUDE_PATHS+="${CD}/include"
+	#NINJA_MACOS_UNIVERSAL_DEBUG_STATIC_LIB_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release/lib"
+	#NINJA_MACOS_UNIVERSAL_DEBUG_STATIC_LIBS+="cx_static_library_maths"
+	
+#Endif
+
+Extern
+
+	Function Addition:Float( a:Float,b:Float ) = "cx_add"
+	Function Subtract:Float( a:Float,b:Float ) = "cx_sub"
+	Function Multiple:Float( a:Float,b:Float ) = "cx_mul"
+	Function Divide:Float( a:Float,b:Float ) = "cx_div"

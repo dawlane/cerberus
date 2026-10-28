@@ -1,0 +1,77 @@
+' This is a demonstration of how to link in and handle shared files
+' Before you can use this shared library, it has to be built. On Windows, use build_libs.ps1, and Linux and macOS use build_libs.sh.
+' To see the options for building, use -h, or [--help/-help] depending on if the terminal is Powershell of bash. 
+
+' As the compiled framework output uses Unix style directory structures.
+' The framework will be outout to macos_framework_test/demo_build/<preset name>
+' The the linker archive files will be placed in macos_framework_test/demo_build/<preset name>
+' The framework directory will have a symbolic link the the actual shared library located in macos_framework_test/demo_build/<preset name>
+'
+' CMake will by design use linker archive files for linking, and the Cerberus implementation for CMake will use the symbolic link to copy the
+' framework. If the symbolic link is not there; then you should also include the actual path to the shared library binary to make sure that it's copied.
+
+#Print "[macos_framework_hexagon.framework] Setting up the static library test wrapper. Make sure that you have build the library first before use."
+
+Import "interface/macos_framework_wrapper_hexagon.cpp"
+
+' For the test module. We will use scripts to controls the setup, build and installation.
+#If CMAKE_USE_PRESET="macos-arm64"
+
+	#Print "[macOS ARM64] Preprocessor options"
+	
+	#MACOS_ARM64_RELEASE_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#MACOS_ARM64_RELEASE_FRAMEWORKS+="cx_framework_hexagon.framework"
+	
+	#MACOS_ARM64_DEBUG_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#MACOS_ARM64_DEBUG_FRAMEWORKS+="cx_framework_hexagon.framework"
+	
+#Elseif CMAKE_USE_PRESET="macos-intel"
+
+	#Print "[macOS Intel] Preprocessor options"
+	#MACOS_INTEL_RELEASE_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#MACOS_INTEL_RELEASE_FRAMEWORKS+="cx_framework_hexagon.framework"
+	
+	#MACOS_INTEL_DEBUG_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#MACOS_INTEL_DEBUG_FRAMEWORKS+="cx_framework_hexagon.framework"
+	
+#Elseif CMAKE_USE_PRESET="macos-universal"
+
+	#Print "[macOS Universal] Preprocessor options"
+	#MACOS_UNIVERSAL_RELEASE_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#MACOS_UNIVERSAL_RELEASE_FRAMEWORKS+="cx_framework_hexagon.framework"
+	
+	#MACOS_UNIVERSAL_DEBUG_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#MACOS_UNIVERSAL_DEBUG_FRAMEWORKS+="cx_framework_hexagon.framework"
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-intel"
+
+	#Print "[Ninja macOS Intel] Preprocessor options"
+	#NINJA_MACOS_INTEL_RELEASE_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#NINJA_MACOS_INTEL_RELEASE_FRAMEWORKS+="cx_framework_hexagon.framework"
+	
+	#NINJA_MACOS_INTEL_DEBUG_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#NINJA_MACOS_INTEL_DEBUG_FRAMEWORKS+="cx_framework_hexagon.framework"
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-arm64"
+
+	#Print "[Ninja macOS ARM64] Preprocessor options"
+	#NINJA_MACOS_ARM64_RELEASE_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#NINJA_MACOS_ARM64_RELEASE_FRAMEWORKS+="cx_framework_hexagon.framework"
+	
+	#NINJA_MACOS_ARM64_DEBUG_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#NINJA_MACOS_ARM64_DEBUG_FRAMEWORKS+="cx_framework_hexagon.framework"
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-universal"
+
+	#Print "[Ninja macOS Universal] Preprocessor options"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_FRAMEWORKS+="cx_framework_hexagon.framework"
+	
+	#NINJA_MACOS_UNIVERSAL_DEBUG_FRAMEWORK_PATHS+="${CD}/demo_build/${CMAKE_USE_PRESET}-release"
+	#NINJA_MACOS_UNIVERSAL_DEBUG_FRAMEWORKS+="cx_framework_hexagon.framework"
+	
+#Endif
+
+
+Extern
+	Function Hexagon:String( side:Int )="cx_draw_hexagon"
