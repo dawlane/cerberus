@@ -1,0 +1,277 @@
+' This file is a work-in-progress
+' Currently only iOS simulators and Xcode versions that use the commandline xcrun simctl devices.
+' This may change in the future, and due to Apple making changes at random. It will be restricted
+' to the version of macOS and a specific version of Xcode that runs on that version of macos.
+
+Import os
+Import transcc
+Import xcode_utils
+
+Class iOSDevice
+	Field ios_version:String
+	Field udid:String
+	Field name:String
+	Field status:String
+End
+
+Class iOSDeviceUtils
+
+	Method New( tcc:TransCC,physical_device:String )
+		_tcc=tcc
+		_uses_device_hub=False
+		_physical_device=Bool( Int(physical_device) )
+		
+		' Due to changes in Xcode 27. The simulator application has been removed in favour of Device Hub
+		If Int(XcodeVersionMajor())>=27 _uses_device_hub=True
+		
+		If _devices=Null _devices=New StringMap<iOSDevice>
+		
+		iOSDeviceScan()
+	End
+	
+	Method StartDevice:Void( device:String,ios_version:String )
+		'------------------------------------------------------------------------
+		' StartAppleDevice
+		'	1. Check to see if any device were detected, terminate the application
+		'		if none were found.
+		'	2. If not a physical device.
+		'		a. Check to see if a name and ios version were used.
+		'		b. Look in the devices map to see if it's there.
+		'		c. If the device string is empty, then start the first device installed.
+		'		d. If the device wasn't found and is not an empty string, then throw an error
+		'	3. TODO: Real Hardware
+		'------------------------------------------------------------------------
+		If _devices.Count()=0 Die "Failed to locate any iOS devices to run.~nCheck that Xcode, or DeviceHub have devices set."
+		
+		If Not _physical_device
+			If device<>"" And ios_version="" Die "#IOS_DEVICE_NAME set without #IOS_VERSION set"
+			
+			Local str:="["+ios_version+"] "+device
+			If _devices.Contains( str )
+				_device=_devices.Get( str )
+				Print "Found iOS device: "+device+" ( iOS "+ios_version+" )"
+			Elseif device=""
+				_device=_devices.FirstNode().Value()
+				Print "iOS device not set. Using first found"
+			Else
+				Die "iOS device not found: "+device+" ( iOS "+ios_version+" )"
+			Endif
+		
+			StartSimulatorApplication()
+		Endif
+	
+	End
+	
+	Method InstallApp( source:String )
+		
+		Local err:=0
+		If Not _physical_device
+			Print "Installing to iOS device: "+_device.name+" ( iOS "+_device.ios_version+" ) ["+_device.udid+"]"
+			ExecuteProcess( "xcrun simctl install ~q"+_device.udid+"~q ~q"+source+"~q",False,False )
+		Endif
+		
+	End
+	
+	Method IsBooted:Bool()
+		If Not _physical_device
+			If _device.status.ToLower()="booted" Return True 
+		Endif
+		
+		Return False
+	End
+	
+	Method LaunchApp:Void( bundleID:String )
+		Local err:=0
+
+		If Not _physical_device
+			Print "Launching: "+bundleID+" on "+_device.name+" ( iOS "+_device.ios_version+" ) ["+_device.udid+"]"
+			ExecuteProcess( "xcrun simctl launch ~q"+_device.udid+"~q ~q"+bundleID+"~q",False,False )
+		Endif
+		
+		If err<>0 Die( "Failed to Launch "+bundleID )
+	End
+	
+	Private
+	
+	Method StartSimulatorApplication:Void()
+		Local err:=-1
+		
+		If Not (_device.status.ToLower()="booted")
+			Print "Initialising iOS Simulator:~n    NAME: "+_device.name+
+				"~n    iOS version: "+_device.ios_version+
+				"~n    UDID: "+_device.udid
+			err=ExecuteProcess( "xcrun simctl boot ~q"+_device.udid+"~q",False,False )
+			err=ExecuteProcess( "xcrun simctl bootstatus ~q"+_device.udid+"~q -b",False,False )
+		Endif
+		
+		If Not _uses_device_hub
+			If Not FileType( "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app" )=FILETYPE_DIR Die "Could not find the iOS Simulator application"
+			err=Execute("open -a ~q/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app~q")
+		Else
+			err=Execute( "open -a DeviceHub" )
+		Endif
+		
+		If err<>0 Die( "Failed to start the the simulator manager." )
+		
+		_device.status="Booted"
+		
+	End
+	
+	Method IsUDID:Bool( value:String )
+
+		If value.Length <> 36 Return False
+		
+		For Local i:Int = 0 Until value.Length
+	
+			Local c:Int = value[i]
+	
+			If i = 8 Or i = 13 Or i = 18 Or i = 23
+				If c <> 45 Return False
+			Else
+				If Not ((c >= 48 And c <= 57) Or (c >= 65 And c <= 70) Or (c >= 97 And c <= 102)) Return False
+			Endif
+	
+		Next
+	
+		Return True
+	
+	End
+	
+	Method iOSDeviceScan:Void()
+		SimulatorScan()
+		' TODO: Real Hawrdware. Physical devices requires info on device data output  
+	End
+	
+	Method SimulatorScan:Void()
+	
+		'------------------------------------------------------------------------
+		' iOSDeviceParse
+		'	1. Run the xcode simctl to return a list of devices
+		'	2. Iterate each line. If its the iOS then set the start marker
+		'	   for processing the devices until the next marker is found
+		'	3. For each device found, extract the UDID, boot status and the name
+		'------------------------------------------------------------------------
+		
+		Local err:=ExecuteProcess( "xcrun simctl list devices available",False,False )
+		
+		If err<>0 Die "Failed to get iOS devices"
+		
+		Local lines:String[] = GetStdOut().Split("~n"),
+			ios_version:String = ""
+	
+		For Local line:String = EachIn lines
+	
+			line = line.Trim()
+	
+			If line.StartsWith("-- ") And line.EndsWith(" --")
+	
+				' Extract the runtime version from the heading.
+				Local start:Int = line.Find("iOS "),
+					finish:Int = line.Find(" --")
+	
+				If start <> -1 And finish > start ios_version = line[start + 4..finish].Trim()
+	
+			Else
+	
+				' Find the UUID by its fixed 36-character format.
+				Local udid_start:Int = -1,udid_end:Int = -1
+	
+				' A parenthesized UUID occupies 38 characters.
+				If line.Length >= 38
+	
+					For Local i:Int = 0 Until line.Length - 37
+	
+						If line[i..i + 1] = "(" And line[i + 37..i + 38] = ")"
+	
+							Local candidate:String = line[i + 1..i + 37]
+	
+							If IsUDID(candidate)
+								udid_start = i
+								udid_end = i + 38
+								Exit
+							Endif
+	
+						Endif
+	
+					Next
+	
+				Endif
+	
+				If udid_start <> -1
+	
+					' Extract the device name and UUID.
+					Local device_name:String = line[..udid_start].Trim(),
+						udid:String = line[udid_start + 1..udid_end - 1]
+	
+					' Extract the state after the UUID.
+					Local state:String = line[udid_end..].Trim()
+	
+					If state.StartsWith("(") And state.EndsWith(")")
+	
+						state = state[1..state.Length - 1].Trim()
+	
+						Local device:iOSDevice = New iOSDevice
+	
+						device.ios_version = ios_version
+						device.udid = udid
+						device.name = device_name
+						device.status = state
+	
+						' Include the runtime version to avoid key clashes.
+						Local key:String = "["+ios_version+"] " + device_name
+	
+						AddDevice(device,key)
+					Endif
+	
+				Endif
+	
+			Endif
+	
+		Next
+	End
+	
+	Method AddDevice:Void(device:iOSDevice, key:String)
+        If _devices.Contains(key) Return
+
+        If Not device.status.Contains( "unavailable" )
+        	_devices.Set(key, device)
+        	Print "Found Device:~n    NAME: "+device.name+
+				"~n    iOS version: "+device.ios_version+
+				"~n    UDID: "+device.udid+"~n"
+		
+        Endif
+    End
+	
+	Global _global:iOSDeviceUtils					' Static variable for use with external functions
+	Field _device:iOSDevice							' Holds the currently selected device
+	Field _devices:StringMap<iOSDevice>				' String map to store the devices
+	Field _physical_device:Bool						' Set to use a physical iOS device.
+	Field _uses_device_hub:Bool						' Xcode 27 used device hub to control simulator. Set this to true if Xcode is version 27
+	Field _tcc:TransCC								' Reference to class that supports the functions from the main application
+	Field _default_device:iOSDevice					' To be use for either a named device, the first booted, or physical device
+End
+
+Function iOSUtilsInit:Void( tcc:TransCC, physical_device:String="0" )
+	InitXcodeUtils( tcc )
+	If iOSDeviceUtils._global=Null iOSDeviceUtils._global=New iOSDeviceUtils( tcc,physical_device )
+End
+
+Function iOSUtilsStartDevice:Bool( device_string:String="",ios_version:String="" )
+	If iOSDeviceUtils._global=Null Die( "Internarl Error: iOSDeviceUtils not initialised" )
+	iOSDeviceUtils._global.StartDevice( device_string,ios_version )
+End
+
+Function iOSUtilsDeviceBooted:Bool()
+	If iOSDeviceUtils._global=Null Die( "Internarl Error: iOSDeviceUtils not initialised" )
+	Return iOSDeviceUtils._global.IsBooted()
+End
+
+Function iOSUtilsInstallApp:Void( source:String )
+	If iOSDeviceUtils._global=Null Die( "Internarl Error: iOSDeviceUtils not initialised" )
+	iOSDeviceUtils._global.InstallApp( source )
+End
+
+Function iOSUtilsLaunchApp( bundleID:String )
+	If iOSDeviceUtils._global=Null Die( "Internarl Error: iOSDeviceUtils not initialised" )
+	iOSDeviceUtils._global.LaunchApp( bundleID )
+End

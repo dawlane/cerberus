@@ -1,0 +1,94 @@
+Import transcc
+Import os
+
+Class XcodeUtils
+
+	Method New( tcc:TransCC )
+		If Not FileType( "/Applications/Xcode.app/Contents/MacOS/xcode" )=FILETYPE_FILE Die "Xcode is not installed in /Applications"
+		Local err:=ExecuteProcess( "xcodebuild -version",False,False )
+		
+		If err<>0 Die "Failed xcodebuild -version check with exit code "+err
+		
+		_tcc=tcc
+		
+		Local version_lines:=GetStdOut().Split( "~n" )
+		_version_number=version_lines[0][version_lines[0].Find( " " )+1..].Split( "." )
+		_build_version=version_lines[1][version_lines[1].Find( "version " )+8..]
+	End
+	
+	Private
+	Field _tcc:TransCC
+	Field _version_number:String[]			' Stores the major,minor, and patch version
+	Field _build_version:String				' Stores the build version of xcode
+	Global _global:XcodeUtils
+	
+	Method XcodeVersionNumber:String()
+		Local major:=XcodeVersionMajor(),
+			minor:=XcodeVersionMinor(),
+			patch:=XcodeVersionPatch()
+		
+		If major<>"" And minor<>"" And patch<>""
+			Return major+"."+minor+"."+patch
+		Elseif major<>"" And minor<>"" And patch=""
+			Return major+"."+minor
+		Elseif major<>"" And minor="" And patch=""
+			Return major
+		Endif
+		
+		Return ""
+	End
+	
+	Method XcodeVersionMajor:String()
+		If _version_number.Length()>0 Return _version_number[0]
+		Return ""
+	End
+	
+	Method XcodeVersionMinor:String()
+		If _version_number.Length()>1 Return _version_number[1]
+		Return ""
+	End
+	
+	Method XcodeVersionPatch:String()
+		If _version_number.Length()>2 Return _version_number[2]
+		Return ""
+	End
+	
+	Method XcodeBuildVersion:String()
+		Return _build_version
+	End
+	
+End
+
+Function InitXcodeUtils:Void( tcc:TransCC )
+	If XcodeUtils._global=Null XcodeUtils._global=New XcodeUtils( tcc )
+End
+
+Function XcodeVersion:String()
+	If XcodeUtils._global=Null Die( "Internarl Error: InternInitXcodeUtils not initialised" )
+	Return "Xcode version: "+XcodeUtils._global.XcodeVersionNumber()+" ("+XcodeUtils._global.XcodeBuildVersion()+")"
+End
+
+Function XcodeVersionNumber:String()
+	If XcodeUtils._global=Null Die( "Internarl Error: InternInitXcodeUtils not initialised" )
+	Return XcodeUtils._global.XcodeVersionNumber()
+End
+
+Function XcodeVersionMajor:String()
+	If XcodeUtils._global=Null Die( "Internarl Error: InternInitXcodeUtils not initialised" )
+	Return XcodeUtils._global.XcodeVersionMajor()
+End
+
+Function XcodeVersionMinor:String()
+	If XcodeUtils._global=Null Die( "Internarl Error: InternInitXcodeUtils not initialised" )
+	Return XcodeUtils._global.XcodeVersionMinor()
+End
+
+Function XcodeVersionPatch:String()
+	If XcodeUtils._global=Null Die( "Internarl Error: InternInitXcodeUtils not initialised" )
+	Return XcodeUtils._global.XcodeVersionPatch()
+End
+
+Function XcodeBuildVersion:String()
+	If XcodeUtils._global=Null Die( "Internarl Error: InternInitXcodeUtils not initialised" )
+	Return XcodeUtils._global.XcodeBuildVersion()
+End
