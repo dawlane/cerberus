@@ -9,6 +9,8 @@ Import brl.asyncevent
 #BRL_SOCKET_IMPLEMENTED=True
 Import "native/socket.cpp"
 
+#CMAKE_USE_WINSOCKET2=True
+
 #Else If TARGET="android"
 
 #BRL_SOCKET_IMPLEMENTED=True

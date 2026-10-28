@@ -1,12 +1,20 @@
 
 // ***** HttpRequest.h *****
 
-// Libcurl for Linux will be from a system repository when installed
-#ifdef __linux__
-#include <curl/curl.h>
-#include "curl/include/curl.h"
+// Check to see if CMAKE is being used, as the directory stucture is different.
+// CFG_CMAKE_USE_PRESET would be set if it is.
+#ifndef CFG_CMAKE_USE_PRESET
+
+	// Libcurl for Linux will be from a system repository when installed
+	#ifdef __linux__
+		#include <curl/curl.h>
+		#include "curl/include/curl.h"
+	#else
+		#include "curl/include/curl.h"
+	#endif
+	
 #else
-#include "curl/include/curl.h"
+	#include "dependencies/include/curl/curl.h"
 #endif
 
 #include <string>

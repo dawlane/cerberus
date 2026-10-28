@@ -5,6 +5,10 @@ Import brl.asyncevent
   #If TARGET="android" Or TARGET="ios" Or TARGET="winrt" Or TARGET="html5" Or TARGET="flash" Or TARGET="glfw"
     #BRL_HTTPREQUEST_IMPLEMENTED=True
     Import "native/httprequest.${TARGET}.${LANG}"
+    
+    ' NOTE: The CMakeLists.txt MUST contain a macro/funtion to handle this correcctly. See how the cmake_glfw target deals with this.
+    #CMAKE_NETWORK_CLIENT="curl"
+    
   #Endif
 #Endif
 #If TARGET="android" And Not ANDROID_PERMISSION_INTERNET_IMPLEMENTED
