@@ -1,0 +1,5 @@
+
+#TARGET_NAME="CMake Desktop Game"
+#TARGET_SYSTEM="glfw"
+#TARGET_BUILDER="cmake"
+#TARGET_DEVICE="desktop"
