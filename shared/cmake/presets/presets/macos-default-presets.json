@@ -1,0 +1,68 @@
+{
+	"configurePresets": [
+		{
+			"cacheVariables": {
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_MACOS_INTEL",
+                "CMAKE_OSX_ARCHITECTURES": "x86_64",
+				"CX_TARGET_TOOL": "CX_MACOS_XCODE"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Xcode",
+			"hidden": true,
+			"name": "macos-default-intel"
+		},
+		{
+			"cacheVariables": {
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_MACOS_ARM64",
+                "CMAKE_OSX_ARCHITECTURES": "arm64",
+				"CX_TARGET_TOOL": "CX_MACOS_XCODE"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Xcode",
+			"hidden": true,
+			"name": "macos-default-arm64"
+		},
+		{
+			"cacheVariables": {
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_MACOS_UNIVERSAL",
+                "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+				"CX_TARGET_TOOL": "CX_MACOS_XCODE"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Xcode",
+			"hidden": true,
+			"name": "macos-default-universal"
+		}
+	],
+	"version": 4
+}

@@ -1,0 +1,137 @@
+{
+	"configurePresets": [
+		{
+			"cacheVariables": {
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_NINJA_MACOS_INTEL",
+                "CMAKE_OSX_ARCHITECTURES": "x86_64",
+				"CMAKE_BUILD_TYPE": "Release",
+				"CX_TARGET_TOOL": "CX_MACOS_XCODE"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Ninja",
+			"hidden": true,
+			"name": "ninja-macos-default-intel-rel"
+		},
+		{
+			"cacheVariables": {
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_NINJA_MACOS_INTEL",
+                "CMAKE_OSX_ARCHITECTURES": "x86_64",
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CX_TARGET_TOOL": "CX_MACOS_XCODE"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Ninja",
+			"hidden": true,
+			"name": "ninja-macos-default-intel-dbg"
+		},
+		{
+			"cacheVariables": {
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_NINJA_MACOS_ARM64",
+                "CMAKE_OSX_ARCHITECTURES": "arm64",
+				"CMAKE_BUILD_TYPE": "Release",
+				"CX_TARGET_TOOL": "CX_MACOS_XCODE"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Ninja",
+			"hidden": true,
+			"name": "ninja-macos-default-arm64-rel"
+		},
+		{
+			"cacheVariables": {
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_NINJA_MACOS_ARM64",
+                "CMAKE_OSX_ARCHITECTURES": "arm64",
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CX_TARGET_TOOL": "CX_MACOS_XCODE"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Ninja",
+			"hidden": true,
+			"name": "ninja-macos-default-arm64-dbg"
+		},
+		{
+			"cacheVariables": {
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_NINJA_MACOS_UNIVERSAL",
+                "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+				"CMAKE_BUILD_TYPE": "Release",
+				"CX_TARGET_TOOL": "CX_MACOS_XCODE"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Ninja",
+			"hidden": true,
+			"name": "ninja-macos-default-universal-rel"
+		},
+		{
+			"cacheVariables": {
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_NINJA_MACOS_UNIVERSAL",
+                "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64",
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CX_TARGET_TOOL": "CX_MACOS_XCODE"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Ninja",
+			"hidden": true,
+			"name": "ninja-macos-default-universal-dbg"
+		}
+	],
+	"version": 4
+}

@@ -1,0 +1,241 @@
+{
+	"configurePresets": [
+		{
+			"displayName": "linux-x86-release",
+			"inherits": "linux-default-x86-rel",
+			"name": "linux-x86-release"
+		},
+		{
+			"displayName": "linux-x86-debug",
+			"inherits": "linux-default-x86-dbg",
+			"name": "linux-x86-debug"
+		},
+		{
+			"displayName": "linux-x64-release",
+			"inherits": "linux-default-x64-rel",
+			"name": "linux-x64-release"
+		},
+		{
+			"displayName": "linux-x64-debug",
+			"inherits": "linux-default-x64-dbg",
+			"name": "linux-x64-debug"
+		},
+
+		{
+			"displayName": "macos-intel-release",
+			"inherits": "macos-default-intel",
+			"name": "macos-intel-release"
+		},
+		{
+			"displayName": "macos-intel-debug",
+			"inherits": "macos-default-intel",
+			"name": "macos-intel-debug"
+		},
+		{
+			"displayName": "macos-arm64-release",
+			"inherits": "macos-default-arm64",
+			"name": "macos-arm64-release"
+		},
+		{
+			"displayName": "macos-arm64-debug",
+			"inherits": "macos-default-arm64",
+			"name": "macos-arm64-debug"
+		},
+		{
+			"displayName": "macos-universal-release",
+			"inherits": "macos-default-universal",
+			"name": "macos-universal-release"
+		},
+		{
+			"displayName": "macos-universal-debug",
+			"inherits": "macos-default-universal",
+			"name": "macos-universal-debug"
+		},
+
+		{
+			"displayName": "mingw-x86-release",
+			"inherits": "mingw-default-x86-rel",
+			"name": "mingw-x86-release"
+		},
+		{
+			"displayName": "mingw-x86-debug",
+			"inherits": "mingw-default-x86-dbg",
+			"name": "mingw-x86-debug"
+		},
+		{
+			"displayName": "mingw-x64-release",
+			"inherits": "mingw-default-x64-rel",
+			"name": "mingw-x64-release"
+		},
+		{
+			"displayName": "mingw-x64-debug",
+			"inherits": "mingw-default-x64-dbg",
+			"name": "mingw-x64-debug"
+		},
+
+		{
+			"displayName": "vs2019-x86-release",
+			"inherits": "vs2019-default-x86-rel",
+			"name": "vs2019-x86-release"
+		},
+		{
+			"displayName": "vs2019-x86-debug",
+			"inherits": "vs2019-default-x86-dbg",
+			"name": "vs2019-x86-debug"
+		},
+		{
+			"displayName": "vs2019-x64-release",
+			"inherits": "vs2019-default-x64-rel",
+			"name": "vs2019-x64-release"
+		},
+		{
+			"displayName": "vs2019-x64-debug",
+			"inherits": "vs2019-default-x64-dbg",
+			"name": "vs2019-x64-debug"
+		},
+
+		{
+			"displayName": "vs2022-x86-release",
+			"inherits": "vs2022-default-x86-rel",
+			"name": "vs2022-x86-release"
+		},
+		{
+			"displayName": "vs2022-x86-debug",
+			"inherits": "vs2022-default-x86-dbg",
+			"name": "vs2022-x86-debug"
+		},
+		{
+			"displayName": "vs2022-x64-release",
+			"inherits": "vs2022-default-x64-rel",
+			"name": "vs2022-x64-release"
+		},
+		{
+			"displayName": "vs2022-x64-debug",
+			"inherits": "vs2022-default-x64-dbg",
+			"name": "vs2022-x64-debug"
+		},
+
+		{
+			"displayName": "vs2026-x86-release",
+			"inherits": "vs2026-default-x86-rel",
+			"name": "vs2026-x86-release"
+		},
+		{
+			"displayName": "vs2026-x86-debug",
+			"inherits": "vs2026-default-x86-dbg",
+			"name": "vs2026-x86-debug"
+		},
+		{
+			"displayName": "vs2026-x64-release",
+			"inherits": "vs2026-default-x64-rel",
+			"name": "vs2026-x64-release"
+		},
+		{
+			"displayName": "vs2026-x64-debug",
+			"inherits": "vs2026-default-x64-dbg",
+			"name": "vs2026-x64-debug"
+		},
+
+		{
+			"displayName": "ninja-linux-x64-release",
+			"inherits": "ninja-linux-default-x64-rel",
+			"name": "ninja-linux-x64-release"
+		},
+		{
+			"displayName": "ninja-linux-x64-debug",
+			"inherits": "ninja-linux-default-x64-dbg",
+			"name": "ninja-linux-x64-debug"
+		},
+		{
+			"displayName": "ninja-linux-x86-release",
+			"inherits": "ninja-linux-default-x86-rel",
+			"name": "ninja-linux-x86-release"
+		},
+		{
+			"displayName": "ninja-linux-x86-debug",
+			"inherits": "ninja-linux-default-x86-dbg",
+			"name": "ninja-linux-x86-debug"
+		},
+
+		{
+			"displayName": "ninja-mingw-x64-release",
+			"inherits": "ninja-mingw-default-x64-rel",
+			"name": "ninja-mingw-x64-release"
+		},
+		{
+			"displayName": "ninja-mingw-x64-debug",
+			"inherits": "ninja-mingw-default-x64-dbg",
+			"name": "ninja-mingw-x64-debug"
+		},
+		{
+			"displayName": "ninja-mingw-x86-release",
+			"inherits": "ninja-mingw-default-x86-rel",
+			"name": "ninja-mingw-x86-release"
+		},
+		{
+			"displayName": "ninja-mingw-x86-debug",
+			"inherits": "ninja-mingw-default-x86-dbg",
+			"name": "ninja-mingw-x86-debug"
+		},
+
+		{
+			"displayName": "ninja-msvc-x64-release",
+			"inherits": "ninja-msvc-default-x64-rel",
+			"name": "ninja-msvc-x64-release"
+		},
+		{
+			"displayName": "ninja-msvc-x64-debug",
+			"inherits": "ninja-msvc-default-x64-dbg",
+			"name": "ninja-msvc-x64-debug"
+		},
+		{
+			"displayName": "ninja-msvc-x86-release",
+			"inherits": "ninja-msvc-default-x86-rel",
+			"name": "ninja-msvc-x86-release"
+		},
+		{
+			"displayName": "ninja-macos-universal-release",
+			"inherits": "ninja-macos-default-universal-rel",
+			"name": "ninja-macos-universal-release"
+		},
+		{
+			"displayName": "ninja-macos-universal-debug",
+			"inherits": "ninja-macos-default-universal-dbg",
+			"name": "ninja-macos-universal-debug"
+		},
+		{
+			"displayName": "ninja-macos-arm64-release",
+			"inherits": "ninja-macos-default-arm64-rel",
+			"name": "ninja-macos-arm64-release"
+		},
+		{
+			"displayName": "ninja-macos-arm64-debug",
+			"inherits": "ninja-macos-default-arm64-dbg",
+			"name": "ninja-macos-arm64-debug"
+		},
+		{
+			"displayName": "ninja-macos-intel-release",
+			"inherits": "ninja-macos-default-intel-rel",
+			"name": "ninja-macos-intel-release"
+		},
+		{
+			"displayName": "ninja-macos-intel-debug",
+			"inherits": "ninja-macos-default-intel-dbg",
+			"name": "ninja-macos-intel-debug"
+		}
+
+	],
+	"include": [
+		"./presets/linux-default-presets.json",
+		"./presets/macos-default-presets.json",
+		"./presets/mingw-default-presets.json",
+		"./presets/vs2019-default-presets.json",
+		"./presets/vs2022-default-presets.json",
+		"./presets/vs2026-default-presets.json",
+		"./presets/ninja-linux-default-presets.json",
+		"./presets/ninja-macos-default-presets.json",
+		"./presets/ninja-mingw-default-presets.json",
+		"./presets/ninja-msvc-default-presets.json"
+	],
+	"version": 4
+}

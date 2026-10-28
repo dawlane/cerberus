@@ -1,0 +1,93 @@
+{
+	"configurePresets": [
+		{
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_VS2026_X86",
+				"CX_TARGET_TOOL": "CX_WINDOWS_MSVC"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Visual Studio 18 2026",
+			"architecture": "Win32",
+			"hidden": true,
+			"name": "vs2026-default-x86-rel"
+		},
+		{
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_VS2026_X86",
+				"CX_TARGET_TOOL": "CX_WINDOWS_MSVC"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Visual Studio 18 2026",
+			"architecture": "Win32",
+			"hidden": true,
+			"name": "vs2026-default-x86-dbg"
+		},
+		{
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_VS2026_X64",
+				"CX_TARGET_TOOL": "CX_WINDOWS_MSVC"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Visual Studio 18 2026",
+			"architecture": "x64",
+			"hidden": true,
+			"name": "vs2026-default-x64-rel"
+		},
+		{
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug",
+				"CX_OPTS_COMPILER": "",
+				"CX_OPTS_LINKER": "",
+				"CX_OPTS_SHARED_LIB": "",
+				"CX_OPTS_SOURCE": "",
+				"CX_OPTS_STATIC_LIB": "",
+				"CX_PATHS_INCLUDE": "",
+				"CX_PATHS_SHARED_LIB": "",
+				"CX_PATHS_STATIC_LIB": "",
+				"CX_PLATFORM": "CX_VS2026_X64",
+				"CX_TARGET_TOOL": "CX_WINDOWS_MSVC"
+			},
+			"warnings": {
+				"unusedCli": false
+			},
+			"generator": "Visual Studio 18 2026",
+			"architecture": "x64",
+			"hidden": true,
+			"name": "vs2026-default-x64-dbg"
+		}
+	],
+	"version": 4
+}
