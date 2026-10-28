@@ -1,6 +1,6 @@
 OpenAL Soft Binary Distribution
 
-The two shared shared libraries provides are provided as a convenience for developer and users so thay you do not have to rebuild them from source
+The two shared shared libraries provides are provided as a convenience for developer and users so that you do not have to rebuild them from source
 
 Please note that these libraries are not direct replacements for the OpenAl binaries distributed by Creative Labs Ltd.
 Installing these system wide may affect those applications that use OpenAL from Creative Labs Ltd.
