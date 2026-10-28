@@ -1,16 +1,26 @@
-
 Import transcc
 
+#If BUILDER_TYPE="experimental"
+	#Print "EXPERIMENTAL TARGETS ENABLED"
+	Import cmake
+
+#Elseif BUILDER_TYPE="deprecated"
+	' If there is a big call for it. These may be fixed for to work again,
+	' so a user can build the own custom transcc.
+	#Print "DEPRECATED TARGETS ENABLED"
+	Import _depreciated.android_ndk
+	Import _depreciated.flash
+	Import _depreciated.psm
+	Import _depreciated.winrt
+	Import _depreciated.xna
+
+#Endif
+
 Import android
-'Import android_ndk
-'Import flash
 Import glfw
 Import html5
 Import ios
-'Import psm
 Import stdcpp
-'Import winrt
-'Import xna
 Import agk
 Import agk_ios
 Import agk_android
@@ -19,17 +29,23 @@ Import custom
 
 Function Builders:StringMap<Builder>( tcc:TransCC )
 	Local builders:=New StringMap<Builder>
+	
+	#If BUILDER_TYPE="experimental"
+		builders.Set "cmake",New CMakeBuilder( tcc )
+		
+	#Elseif BUILDER_TYPE="deprecated"
+		builders.Set "android_ndk",New AndroidNdkBuilder( tcc )
+		builders.Set "flash",New FlashBuilder( tcc )
+		builders.Set "psm",New PsmBuilder( tcc )
+		builders.Set "winrt",New WinrtBuilder( tcc )
+		builders.Set "xna",New XnaBuilder( tcc )
+	#Endif
 
 	builders.Set "android",New AndroidBuilder( tcc )
-	'builders.Set "android_ndk",New AndroidNdkBuilder( tcc )
 	builders.Set "glfw",New GlfwBuilder( tcc )
 	builders.Set "html5",New Html5Builder( tcc )
 	builders.Set "ios",New IosBuilder( tcc )
-	'builders.Set "flash",New FlashBuilder( tcc )
-	'builders.Set "psm",New PsmBuilder( tcc )
 	builders.Set "stdcpp",New StdcppBuilder( tcc )
-	'builders.Set "winrt",New WinrtBuilder( tcc )
-	'builders.Set "xna",New XnaBuilder( tcc )
 	builders.Set "agk",New AGKBuilder( tcc )
 	builders.Set "agk_ios",New AGKBuilder_ios( tcc )
 	builders.Set "agk_android",New AGKBuilder_android( tcc )
