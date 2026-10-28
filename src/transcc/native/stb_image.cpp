@@ -1,8 +1,0 @@
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STB_IMAGE_RESIZE_IMPLEMENTATION
-// undefining __STDC_WANT_SECURE_LIB__ makes an error disappear
-
-//#ifdef __STDC_WANT_SECURE_LIB__
-//#undef __STDC_WANT_SECURE_LIB__
-//#endif
