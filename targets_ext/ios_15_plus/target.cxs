@@ -1,0 +1,4 @@
+
+#TARGET_NAME="iOS 15+"
+#TARGET_SYSTEM="ios"
+#TARGET_BUILDER="ios"
