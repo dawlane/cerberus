@@ -12,6 +12,8 @@ There are 3 ways to specify app config settings:
 
 * By editing the CONFIG.CXS text file in your apps .build/target folder. Settings in CONFIG.CXS will not overwrite any settings passed to Trans or in Cerberus X source code, so this provides a mechanism for defining 'default' settings.
 
+For the CMake target. See [[The Desktop CMake target|The Desktop CMake target]].
+
 The following app config settings are currently supported:
 
 <pre>
@@ -46,18 +48,37 @@ The following app config settings are currently supported:
 
 'GLFW settings, defaults shown
 '
+#GLFW_OUTPUT_NAME="CerberusGame"		'The file name for the final executable file.
+#GLFW_OUTPUT_PATH=""					'The final output path for the game files. The default is in the targets build directory for the target build system.
+
 #GLFW_USE_MINGW=True					'Set to false on Windows to use MSVC instead of MinGW to build glfw apps. Needs at least VS 2015 installed.
+#GLFW_MINGW_STATIC_LINK=False			'Force the static linking of winpthreads, and GCC runtimes into the executable. Windows only.
+										'NOTE: Check the licencing for winpthreads and GCC.
+
 #GLFW_GCC_MSIZE_WINNT="64"				'When building glfw apps with mingw/gcc, controls whether 32 or 64 bit apps are generated.
 										'Set to "64" to force 64 bit builds on Windows (needs mingw64), or "" to use compiler default.
-										'Currently that also works for MSVC!!!
+#GLFW_MSVC_MSIZE_WINNT="32"				'Ditto for Visual Studio.
 #GLFW_GCC_MSIZE_LINUX=""				'Ditto for Linux.
-#GLFW_GCC_CC_OPTS=""					'Pass compiler options to GCC type compilers
-#GLFW_GCC_LD_OPTS=""					'Pass linker options to GCC type compilers
+
+#GLFW_GCC_CC_OPTS=""					'Pass compiler options to GCC type compilers.
+#GLFW_GCC_LD_OPTS=""					'Pass linker options to GCC type compilers.
 #GLFW_GCC_LIB_OPTS=""				    'Pass additional libraries to link against for GCC type compilers.
-#GLFW_GCC_SRC_OPTS=""				    'Pass additional source files to be build.
-#GLFW_GCC_VPATH_OPTS=""				    'Pass additional virtual paths to look into when building.
-#GLFW_COPY_LIBS=""						'Copy 64bit external libraries to build directory. Windows GCC only for now!
-#GLFW_COPY_LIBS_32=""					'Copy 32bit external libraries to build directory. Windows GCC only for now!
+#GLFW_GCC_SRC_OPTS=""				    'Pass additional source files to be build. GCC compilers only.
+#GLFW_GCC_VPATH_OPTS=""				    'Pass additional virtual paths to look into when building. GCC compilers only.
+
+#GLFW_MSVC_CC_OPTS=""					'Pass compiler options to MSVC type compilers
+#GLFW_MSVC_LD_OPTS=""					'Pass linker options to MSVC type compilers
+#GLFW_MSVC_LIB_OPTS=""				    'Pass additional libraries to link against for MSVC type compilers.
+#GLFW_MSVC_LIB_DIRS=""					'Pass additional directories to search for libraries.
+#GLFW_WINSDK_VERSION="10.0"				'Pass the Windows SDK version to use. The default will select any installed.
+#GLFW_PLATFORM_TOOLSET="v142"			'Pass the MSVC C++ tool set to use. The default is MSVC v142 - VS 2019 C++ x64/86 tool set.
+
+#GLFW_XCODE_CC_OPTS=""					'Pass compiler options to XCODE.
+#GLFW_XCODE_LD_OPTS=""					'Pass linker options to XCODE.
+#GLFW_XCODE_LIB_OPTS=""				    'Pass additional libraries to link against for XCODE.
+
+#GLFW_COPY_LIBS=""						'Copy 64bit external libraries to build directory. Windows GCC & MSVC only for now!
+#GLFW_COPY_LIBS_32=""					'Copy 32bit external libraries to build directory. Windows GCC & MSVC only for now!
 
 #GLFW_WINDOW_TITLE="Cerberus X Game"
 #GLFW_WINDOW_WIDTH=640					
@@ -91,13 +112,17 @@ The following app config settings are currently supported:
 #IOS_ACCELEROMETER_ENABLED=True
 #IOS_DISPLAY_LINK_ENABLED=True
 #IOS_APP_ICON=""
+#IOS_APP_ICON_BACK_COLOUR=""			' Set a background colour if the image has transparency.
+#IOS_DEVICE_NAME=""						' Select a defined iOS simulator by name. Must be used in conjunction with #IOS_VERSION
+#IOS_VERSION=""							' Select a defined iOS simulator version number. Must be used in conjunction with #IOS_DEVICE_NAME
 
 'Android settings, defaults shown
 '
 #ANDROID_APP_LABEL="Cerberus X Game"
 #ANDROID_APP_PACKAGE="com.Cerberus_X.cxgame"
 #ANDROID_APP_ICON=""
-#ANDROID_SCREEN_ORIENTATION="user"					'"user", "portrait", "landscape"
+#ANDROID_APP_ICON_BACK_COLOUR=""		' Set a background colour if the image has transparency.
+#ANDROID_SCREEN_ORIENTATION="user"		'"user", "portrait", "landscape"
 #ANDROID_GAMEPAD_ENABLED=False
 #ANDROID_ACCELEROMETER_ENABLED=True
 #ANDROID_MULTISAMPLING_ENABLED=False	'If set to True, Android tries to activate 4x Multisampling first, then 2x. 
@@ -159,19 +184,26 @@ The following app config settings are currently supported:
 
 #CC_USE_MINGW="1"
 #CC_MINGW_OPTS=""					'Pass additional MinGW options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
-#CC_MINGS_LIBS=""					'Pass additional libraries to link against for MINGW type compilers.
+#CC_MINGW_LIBS=""					'Pass additional libraries to link against for MINGW type compilers.
 #CC_MINGW_LDOPTS=""					'Pass additional linker options for stdcpp target, eg: #CC_OPTS+="-L../FILE_PATH"
 #CC_MINGW_MSIZE=""					'Pass architeture size for MINGW. If not set, defaults to compiler default.
+#CC_MINGW_SRC_OPTS=""				'Pass additional source files to be build. GCC compilers only.
+#CC_MINGW_VPATH_OPTS=""				'Pass additional virtual paths to look into when building. GCC compilers only.
 
 #CC_GCC_OPTS=""						'Pass additional gcc options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
 #CC_GCC_LIBS=""						'Pass additional libraries to link against for GCC type compilers.
 #CC_GCC_LDOPTS=""					'Pass additional linker options for stdcpp target, eg: #CC_OPTS+="-L../FILE_PATH"
 #CC_GCC_MSIZE=""					'Pass architeture size for GCC. If not set, defaults to compiler default.
+#CC_GCC_SRC_OPTS=""				    'Pass additional source files to be build. GCC compilers only.
+#CC_GCC_VPATH_OPTS=""			    'Pass additional virtual paths to look into when building. GCC compilers only.
 
 #CC_MSVC_OPTS=""					'Pass additional MSVC options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
 #CC_MSVC_LIBS=""					'Pass additional libraries to link against for MSVC compilers.
 #CC_MSVC_LDOPTS=""					'Pass additional linker options for MSVC compiler.
 #CC_MSVC_MSIZE=""					'Set the CPU architecture to build for. Not setting this defaults to 32 bit.
+#CC_MSVC_LIB_DIRS=""				'Pass additional directories to search for libraries.
+#CC_WINSDK_VERSION="10.0"			'Pass the Windows SDK version to use. The default will select any installed.
+#CC_PLATFORM_TOOLSET="v142"			'Pass the MSVC C++ tool set to use. The default is MSVC v142 - VS 2019 C++ x64/86 tool set.
 
 #CC_XCODE_OPTS=""					'Pass additional Xcode options for stdcpp target, eg: #CC_OPTS+="-DMyDefine"
 #CC_XCODE_LIBS=""					'Pass additional libraries to link against for Xcode compilers.
