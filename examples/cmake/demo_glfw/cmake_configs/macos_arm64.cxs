@@ -1,0 +1,26 @@
+' Set up the parameters to pass to CMake, and do any imports.
+#Print "[macOS ARM64] CMake Console: Import....."
+
+#If INCLUDE_ONE_HUNDRED=True
+
+	Import "../native/header-onehundred.h"
+
+	#Print "Including the one hundred sources."
+		
+	#MACOS_ARM64_RELEASE_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#MACOS_ARM64_RELEASE_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#MACOS_ARM64_RELEASE_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#MACOS_ARM64_RELEASE_SOURCES="onehundred.cpp"
+	
+	#MACOS_ARM64_DEBUG_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#MACOS_ARM64_DEBUG_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#MACOS_ARM64_DEBUG_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#MACOS_ARM64_DEBUG_SOURCES="onehundred.cpp"	
+	
+#Endif
+
+#CMAKE_USE_PRESET="macos-arm64"
+
+#Print "[macOS ARM64] Imported Settings"
+
+Import externals

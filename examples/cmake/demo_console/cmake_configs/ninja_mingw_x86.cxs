@@ -1,0 +1,35 @@
+' Set up the parameters to pass to CMake, and do any imports.
+#Print "[Ninja MinGW x86] CMake Console: Import....."
+
+#If INCLUDE_ONE_HUNDRED=True
+
+	Import "../native/header-onehundred.h"
+
+	#Print "Including the one hundred sources."
+		
+	#NINJA_MINGW_X86_RELEASE_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#NINJA_MINGW_X86_RELEASE_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#NINJA_MINGW_X86_RELEASE_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#NINJA_MINGW_X86_RELEASE_SOURCES="onehundred.cpp"
+	
+	#NINJA_MINGW_X86_DEBUG_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#NINJA_MINGW_X86_DEBUG_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#NINJA_MINGW_X86_DEBUG_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#NINJA_MINGW_X86_DEBUG_SOURCES="onehundred.cpp"	
+	
+#Endif
+
+#If MINGW_BUILD_STATIC
+
+	#Print "[Ninja MinGW x86] MinGW static build on"
+	
+	#NINJA_MINGW_X86_RELEASE_STATIC_BUILD=True
+	#NINJA_MINGW_X86_DEBUG_STATIC_BUILD=True
+
+#Endif
+
+#CMAKE_USE_PRESET="ninja-mingw-x86"
+
+#Print "[Ninja MinGW x86] Imported Settings"
+
+Import externals

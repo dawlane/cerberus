@@ -1,0 +1,134 @@
+' Test version by community member WICK
+
+Strict
+Import mojo
+Import brl.httprequest
+
+#CMAKE_PROJECT_NAME="http_request"
+
+'#CMAKE_CONFIG_ONLY=True					' Will only run the CMake configure
+'#CMAKE_RECONFIG=True						' Will force CMake to rerun configure and copy over CMake support files and directories.
+'#CMAKE_DEBUG_LOG=True						' Will enable CMake's message DEBUG for use. 
+'#CMAKE_VERBOSE_OUTPUT=True					' Will generate compiler output.
+'#CMAKE_DEBUG_CACHE_VARS=True				' Will show cache variables passed.
+'#CMAKE_DEBUG_BUILD_CACHE_VARS=True			' Will show all the cache variables used.
+
+#If HOST="linux"
+
+	#CMAKE_USE_PRESET="linux-x64"
+'	#CMAKE_USE_PRESET="linux-x86"
+	
+#Elseif HOST="winnt"
+
+	#CMAKE_USE_PRESET="mingw-x64"
+'	#CMAKE_USE_PRESET="mingw-x86"
+'	#CMAKE_USE_PRESET="vs2019-x64"
+'	#CMAKE_USE_PRESET="vs2019-x86"
+'	#CMAKE_USE_PRESET="vs2022-x64"
+'	#CMAKE_USE_PRESET="vs2022-x86"
+'	#CMAKE_USE_PRESET="vs2026-x64"
+'	#CMAKE_USE_PRESET="vs2026-x86"
+
+	#MINGW_X86_RELEASE_STATIC_BUILD=True
+	#MINGW_X64_RELEASE_STATIC_BUILD=True
+	
+	#MINGW_X86_DEBUG_STATIC_BUILD=True
+	#MINGW_X64_DEBUG_STATIC_BUILD=True
+
+#Elseif HOST="macos"
+
+'	#CMAKE_USE_PRESET="macos-arm64"
+'	#CMAKE_USE_PRESET="macos-intel"
+	#CMAKE_USE_PRESET="macos-universal"
+	
+#Endif
+
+Function Main:Int()
+	New Game()
+	Return 0
+End
+
+Class Game Extends App
+	Field server:HttpManager
+	
+	Const HTTPS$ = "https://"
+	Field getAddress$ = "httpbin.org/get"
+	Field postAddress$ = "httpbin.org/post"
+		
+	Method OnCreate:Int()
+		SetUpdateRate(60)
+		server = New HttpManager()
+		Print "Initialized!"
+					
+		Return 0
+	End
+	
+	Method OnUpdate:Int()
+		UpdateAsyncEvents()
+	
+		If KeyHit(KEY_SPACE) Then SendGet()
+		If KeyHit(KEY_ENTER) Then SendPost()
+		If KeyHit(KEY_ESCAPE) Then EndApp()
+		
+		Return 0
+	End
+	
+	Method OnRender:Int()
+		Cls()
+
+		DrawText "ENTER - GET request: " + getAddress,0,0
+		DrawText "SPACE - POST request: " + postAddress,0,16
+		DrawText "ESCAPE - exit",0,32
+		
+		If server.lastResponse <> Null
+			DrawText "Http         status="+server.lastResponse.Status(),0,116
+			DrawText "Http bytes received="+server.lastResponse.BytesReceived(),0,132
+			DrawText "Http text received="+server.lastResponse.ResponseText(),0,148
+		Endif
+				
+		Return 0
+	End
+	
+	Method SendGet:Void()		
+		Print ""
+		Print "     >> assembling GET..."
+		
+		Local req:HttpRequest
+		Local address$ = HTTPS + getAddress
+		Print address
+		
+		req = New HttpRequest( "GET", address, server)		
+		req.SetHeader("accept", "application/json")		
+		req.Send()
+
+		Print "     >> sent GET to " + address	
+	End
+
+	Method SendPost:Void()
+		Print ""
+		Print "     >> assembling POST..."			
+	
+		Local req:HttpRequest			
+		Local address$ = HTTPS + postAddress
+		Local data$ = "{name: 'peahen'}"
+			
+		'send the post request
+		req = New HttpRequest( "POST", address, server)
+		req.SetHeader("accept", "application/json")
+		req.Send(data, "application/json")
+				
+		Print "     >> sent POST to " + address + " with data " + data						
+	End
+End
+
+
+Class HttpManager Implements IOnHttpRequestComplete
+	Field lastResponse:HttpRequest
+
+	Method OnHttpRequestComplete:Void( req:HttpRequest )
+		Print "HTTP request complete!   Status="+req.Status()
+		Print "  Text="+req.ResponseText()
+			
+		lastResponse = req
+	End
+End

@@ -1,0 +1,35 @@
+' Set up the parameters to pass to CMake, and do any imports.
+#Print "[MinGW x64] CMake Console: Import....."
+
+#If INCLUDE_ONE_HUNDRED
+
+	Import "../native/header-onehundred.h"
+	
+	#Print "Including the one hundred sources."
+	
+	#MINGW_X64_RELEASE_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#MINGW_X64_RELEASE_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#MINGW_X64_RELEASE_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#MINGW_X64_RELEASE_SOURCES="onehundred.cpp"
+	
+	#MINGW_X64_DEBUG_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#MINGW_X64_DEBUG_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#MINGW_X64_DEBUG_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#MINGW_X64_DEBUG_SOURCES="onehundred.cpp"
+
+#Endif
+
+#If MINGW_BUILD_STATIC
+
+	#Print "[MinGW x64] MinGW static build on"
+	
+	#MINGW_X64_RELEASE_STATIC_BUILD=True
+	#MINGW_X64_DEBUG_STATIC_BUILD=True
+
+#Endif
+
+#CMAKE_USE_PRESET="mingw-x64"
+
+#Print "[MinGW x64] Imported Settings"
+
+Import externals

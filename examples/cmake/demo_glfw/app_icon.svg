@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+    <!-- App Icon Rim Glow -->
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.0"/>
+    </linearGradient>
+    <!-- Red Prism Gradients -->
+    <linearGradient id="redMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff4b4b"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+    <linearGradient id="redDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b91c1c"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </linearGradient>
+    <!-- Green Prism Gradients -->
+    <linearGradient id="greenMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <linearGradient id="greenDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15803d"/>
+      <stop offset="100%" stop-color="#064e3b"/>
+    </linearGradient>
+    <!-- Blue Prism Gradients -->
+    <linearGradient id="blueMain" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="blueDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="100%" stop-color="#1e3a8a"/>
+    </linearGradient>
+    <!-- Center Core Glow Filter -->
+    <filter id="coreGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <!-- Drop Shadow for Geometric Layers -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <!-- Squircle App Badge Container -->
+  <rect x="32" y="32" width="960" height="960" rx="224" fill="url(#bgGrad)" stroke="url(#rimGrad)" stroke-width="4"/>
+  <!-- Background Tech Grid Overlay -->
+  <g opacity="0.05" stroke="#ffffff" stroke-width="2">
+    <path d="M 32,256 L 992,256 M 32,512 L 992,512 M 32,768 L 992,768"/>
+    <path d="M 256,32 L 256,992 M 512,32 L 512,992 M 768,32 L 768,992"/>
+  </g>
+  <!-- CMake Dynamic Tessellated Geometry -->
+  <g filter="url(#dropShadow)">
+    <!-- TOP RED FACETS -->
+    <!-- Top Left Light Red -->
+    <polygon points="512,180 512,500 240,680" fill="url(#redMain)"/>
+    <!-- Top Right Dark Red (Inner Edge) -->
+    <polygon points="512,180 512,500 580,430" fill="url(#redDark)" opacity="0.6"/>
+    <!-- BOTTOM RIGHT BLUE FACETS -->
+    <!-- Outer Blue Main -->
+    <polygon points="512,500 800,740 512,840" fill="url(#blueMain)"/>
+    <!-- Deep Blue Shadow Facet -->
+    <polygon points="512,500 800,740 580,430" fill="url(#blueDark)"/>
+    <!-- BOTTOM LEFT GREEN FACETS -->
+    <!-- Outer Green Main -->
+    <polygon points="240,680 512,500 512,840" fill="url(#greenMain)"/>
+    <!-- Darker Green Facet -->
+    <polygon points="240,680 512,500 370,440" fill="url(#greenDark)"/>
+    <!-- OVERLAPPING ACCENT CRYSTAL (Center Top Peak to Bottom) -->
+    <polygon points="512,180 800,740 512,500" fill="url(#redMain)" opacity="0.85"/>
+  </g>
+  <!-- Light Highlights / Edge Reflections -->
+  <g stroke="#ffffff" stroke-opacity="0.3" stroke-width="3" stroke-linecap="round">
+    <!-- Red Top Ridge -->
+    <line x1="512" y1="180" x2="240" y2="680"/>
+    <!-- Blue Outer Ridge -->
+    <line x1="512" y1="180" x2="800" y2="740"/>
+    <!-- Bottom Base Connection -->
+    <line x1="240" y1="680" x2="512" y2="840"/>
+    <line x1="800" y1="740" x2="512" y2="840"/>
+  </g>
+  <!-- Center Apex Core Glow -->
+  <circle cx="512" cy="500" r="12" fill="#ffffff" filter="url(#coreGlow)" opacity="0.9"/>
+</svg>

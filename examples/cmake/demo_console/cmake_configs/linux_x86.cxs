@@ -1,0 +1,26 @@
+' Set up the parameters to pass to CMake, and do any imports.
+#Print "[Linux x86] CMake Console: Import....."
+
+#If INCLUDE_ONE_HUNDRED=True
+
+	Import "../native/header-onehundred.h"
+
+	#Print "Including the one hundred sources."
+		
+	#LINUX_X86_RELEASE_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#LINUX_X86_RELEASE_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#LINUX_X86_RELEASE_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#LINUX_X86_RELEASE_SOURCES="onehundred.cpp"
+	
+	#LINUX_X86_DEBUG_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#LINUX_X86_DEBUG_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#LINUX_X86_DEBUG_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#LINUX_X86_DEBUG_SOURCES="onehundred.cpp"	
+	
+#Endif
+
+#CMAKE_USE_PRESET="linux-x86"
+
+#Print "[Linux x86] Imported Settings"
+
+Import externals

@@ -1,0 +1,162 @@
+' This example shows the power of the CMake build system for Cerberus-X
+' Before building this example follow these steps:
+' 1. Install CMake and the compiler tool chain to use. And where required, update the config.{winnt|linux|macos}.txt file
+' 2. Restart Ted for it to pick up CMake.
+' 3. In the Projects Browser, open the directory modules_ext/cmake_demo.
+' 4. Right click on 'cmake_demo', and select 'Open on Desktop'
+' 5. Depending on the host operating system, you can right click and select open terminal there.
+'	If not, then open a terminal and change directory to where the Cerberus/module_ext/cmake_demo directory is located.
+'	For MS Windows, open a Powershell.
+' 6. Depending on your host your shell and your compiler toolchain type:
+'		{./|\.}build_libs.{shell type ps1|sh} -p <preset name>
+'	 The preset names follow this format:
+'		(ninja-)?[mingw|msvc|vs20xx|linux|macos]-[x86|x64|universal:intel:arm64:x86_64]-release
+'		e.g. To build binaries for MinGW 32 bit using ninja build, use the preset ninja-mingw-x86-release
+'			For macOS fat binaries: macOS-universal-release.
+'			For Visual Studio installations: vs2019-x64-release.
+'			For MinGW: mingw-x64-release.
+' 7. Select CMake C++ Tool from the target drop down.
+'	
+' Once the external libraries are built, you can run the example.
+
+#CMAKE_IMPORT_DEFAULT_PRESETS=False
+#CMAKE_PROJECT_NAME="demo_console"
+#CMAKE_PROJECT_VER="1.0"
+
+'#CMAKE_CONFIG_ONLY=True					' Will only run the CMake configure
+'#CMAKE_RECONFIG=True						' Will force CMake to rerun configure and copy over CMake support files and directories.
+'#CMAKE_DEBUG_LOG=True						' Will enable CMake's message DEBUG for use. 
+'#CMAKE_VERBOSE_OUTPUT=True					' Will generate compiler output.
+'#CMAKE_DEBUG_CACHE_VARS=True				' Will show cache variables passed.
+'#CMAKE_DEBUG_BUILD_CACHE_VARS=True			' Will show all the cache variables used.
+
+' Test for importing code, static and shared libraries.
+
+#INCLUDE_ONE_HUNDRED=True
+
+#INCLUDE_STATIC_LIB_MESSAGE=True
+#INCLUDE_STATIC_LIB_MATHS=True
+
+#INCLUDE_SHARED_LIB_UPPER=True
+#INCLUDE_SHARED_LIB_RECT=True
+
+#If HOST="macos"
+	#INCLUDE_MACOS_FRAMEWORK_TEST=True
+	#INCLUDE_MACOS_FRAMEWORK_HEXAGON=True
+#Endif
+
+#Print "HOST: "+HOST
+
+' Two styles to import. Indirect using a big next #If/#Elseif
+#If HOST="linux"
+	#CMAKE_USE_PRESET="linux-x64"
+'	#CMAKE_USE_PRESET="linux-x86"
+'	#CMAKE_USE_PRESET="ninja-linux-x64"
+'	#CMAKE_USE_PRESET="ninja-linux-x86"
+	
+#Elseif HOST="winnt"
+	#CMAKE_USE_PRESET="mingw-x64"
+'	#CMAKE_USE_PRESET="mingw-x86"
+'	#CMAKE_USE_PRESET="vs2019-x64"
+'	#CMAKE_USE_PRESET="vs2019-x86"
+'	#CMAKE_USE_PRESET="vs2022-x64"
+'	#CMAKE_USE_PRESET="vs2022-x86"
+'	#CMAKE_USE_PRESET="vs2026-x64"
+'	#CMAKE_USE_PRESET="vs2026-x86"
+
+'	#CMAKE_USE_PRESET="ninja-mingw-x64"
+'	#CMAKE_USE_PRESET="ninja-mingw-x86"
+'	#CMAKE_USE_PRESET="ninja-msvc-x64"
+'	#CMAKE_USE_PRESET="ninja-msvc-x86"
+
+	' Setting MINGW_BUILD_STATIC will only affect MinGW targets where the compiler does not support statically linked runtime libraries by default.
+	#MINGW_BUILD_STATIC=True
+
+#Elseif HOST="macos"
+'	#CMAKE_USE_PRESET="macos-arm64"
+'	#CMAKE_USE_PRESET="macos-intel"
+	#CMAKE_USE_PRESET="macos-universal"
+	
+'	#CMAKE_USE_PRESET="ninja-macos-arm64"
+'	#CMAKE_USE_PRESET="ninja-macos-intel"
+'	#CMAKE_USE_PRESET="ninja-macos-universal"
+	
+	' Suppress all warnings
+	#MACOS_UNIVERSAL_RELEASE_COMPILER+="-w"
+	#MACOS_INTEL_RELEASE_COMPILER+="-w"
+	#MACOS_ARM64_RELEASE_COMPILER+="-w"
+	
+	#MACOS_UNIVERSAL_DEBUG_COMPILER+="-w"
+	#MACOS_INTEL_DEBUG_COMPILER+="-w"
+	#MACOS_ARM64_DEBUG_COMPILER+="-w"
+	
+	#NINJA_MACOS_UNIVERSAL_RELEASE_COMPILER+="-w"
+	#NINJA_MACOS_INTEL_RELEASE_COMPILER+="-w"
+	#NINJA_MACOS_ARM64_RELEASE_COMPILER+="-w"
+	
+	#NINJA_MACOS_UNIVERSAL_DEBUG_COMPILER+="-w"
+	#NINJA_MACOS_INTEL_DEBUG_COMPILER+="-w"
+	#NINJA_MACOS_ARM64_DEBUG_COMPILER+="-w"
+	
+#Endif
+
+
+' You can control configuration flow by defining configuration variables before importing any other config files.
+' Or directly. Providing that #CMAKE_USE_PRESET is defined either in this file or the config file.
+'Import cmake_configs.vs2022_x86
+Import cmake_configs
+
+' Or direct. Providing that #CMAKE_USE_PRESET is defined either in this file or the config one.
+' e.g. Import cmake_configs.vs2022_x86
+
+Function Main:Int()
+	Print "Hello Cerberus-X Users!"
+	
+#If INCLUDE_ONE_HUNDRED
+	Print "~nImported source code test: onehundred.cpp"
+	Local val:=OneHundred()
+	Print "The function OneHundred(), which is within the source file onehundred.cpp returned the value of "+val
+#Endif
+
+#If INCLUDE_STATIC_LIB_MESSAGE
+	Print "~nImported static library test: static_lib_message"
+	Print static_lib_message.CerberusSays( "you should be using it to program games with." )
+#Endif
+
+#If INCLUDE_STATIC_LIB_MATHS
+	Print "~nImported static library test: shared_lib_maths"
+	Print "The sum of 10.5x200 is: "+Multiple( 10.5,200 )
+#Endif
+
+#If INCLUDE_SHARED_LIB_UPPER
+	Print "~nImported shared library test: shared_lib_upper"
+	Print "Can you here me? No? "+shared_lib_upper.CerberusSays( "can you hear me now!" )
+#Endif
+
+#If INCLUDE_SHARED_LIB_RECT
+	Print "~nImported shared library test: shared_lib_rect"
+	Print "NOTE: This looks better if the executable is run from outside of the IDE."
+	Local rect:=ConsoleRect( 20,10 )
+	For Local i:=Eachin rect.Split( "~n" )
+		Print i
+	Next
+#Endif
+
+#If HOST="macos"
+	#If INCLUDE_MACOS_FRAMEWORK_TEST
+		Print "~nImported macOS Framework test: macos_framework_test"
+		Print "Cerberus-X says: "+macos_framework_test.CerberusSays()
+	#Endif
+	
+	#If INCLUDE_MACOS_FRAMEWORK_HEXAGON
+		Print "~nImported macOS Framework test: macos_framework_hexagon"
+		Print "NOTE: This looks better if the executable is run from outside of the IDE."
+		Local hexagon:=Hexagon( 10 )
+		For Local i:=Eachin hexagon.Split( "~n" )
+			Print i
+		Next
+	#Endif
+#Endif
+
+	Return 0
+End

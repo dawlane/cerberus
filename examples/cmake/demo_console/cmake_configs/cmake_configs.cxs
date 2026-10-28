@@ -1,0 +1,101 @@
+#If TARGET<>"stdcpp"
+	#Error "This is a C++ Tool CMake production. Brought to you by some clueless nutter."
+#Endif
+
+#Print "Cerberus-X Config CMake Preset: "+CMAKE_USE_PRESET
+
+#If CMAKE_USE_PRESET="linux-x86"
+
+	Import linux_x86
+	
+#Elseif CMAKE_USE_PRESET="linux-x64"
+
+	Import linux_x64
+	
+#Elseif CMAKE_USE_PRESET="macos-arm64"
+
+	Import macos_arm64
+	
+#Elseif CMAKE_USE_PRESET="macos-intel"
+
+	Import macos_intel
+	
+#Elseif CMAKE_USE_PRESET="macos-universal"
+
+	Import macos_universal
+	
+#Elseif CMAKE_USE_PRESET="mingw-x86"
+
+	Import mingw_x86
+	
+#Elseif CMAKE_USE_PRESET="mingw-x64"
+
+	Import mingw_x64
+
+#Elseif CMAKE_USE_PRESET="vs2019-x86"
+
+	Import vs2019_x86
+	
+#Elseif CMAKE_USE_PRESET="vs2019-x64"
+	
+	Import vs2019_x64
+	
+#Elseif CMAKE_USE_PRESET="vs2022-x86"
+
+	Import vs2022_x86
+
+#Elseif CMAKE_USE_PRESET="vs2022-x64"
+
+	Import vs2022_x64
+	
+#Elseif CMAKE_USE_PRESET="vs2026-x64"
+
+	Import vs2026_x64
+	
+#Elseif CMAKE_USE_PRESET="vs2026-x86"
+
+	Import vs2026_x86
+	
+#Elseif CMAKE_USE_PRESET="ninja-linux-x64"
+
+	Import ninja_linux_x64
+
+#Elseif CMAKE_USE_PRESET="ninja-linux-x86"
+
+	Import ninja_linux_x86
+
+#Elseif CMAKE_USE_PRESET="ninja-mingw-x64"
+
+	Import ninja_mingw_x64
+
+#Elseif CMAKE_USE_PRESET="ninja-mingw-x86"
+
+	Import ninja_mingw_x86
+
+#Elseif CMAKE_USE_PRESET="ninja-msvc-x64"
+
+	Import ninja_msvc_x64
+
+#Elseif CMAKE_USE_PRESET="ninja-msvc-x86"
+
+	Import ninja_msvc_x86
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-intel"
+
+	Import ninja_macos_intel
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-arm64"
+
+	Import ninja_macos_arm64
+
+#Elseif CMAKE_USE_PRESET="ninja-macos-universal"
+
+	Import ninja_macos_universal
+	
+#Else
+
+#Error "INVALID CMAKE_USE_PRESET"
+	
+#Endif
+
+Import externals

@@ -1,0 +1,26 @@
+' Set up the parameters to pass to CMake, and do any imports.
+#Print "[VS2026 x64] CMake Console: Import....."
+
+#If INCLUDE_ONE_HUNDRED
+
+	Import "../native/header-onehundred.h"
+	
+	#Print "Including the one hundred sources."
+	
+	#VS2026_X64_RELEASE_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#VS2026_X64_RELEASE_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#VS2026_X64_RELEASE_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#VS2026_X64_RELEASE_SOURCES="onehundred.cpp"
+	
+	#VS2026_X64_DEBUG_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#VS2026_X64_DEBUG_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#VS2026_X64_DEBUG_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#VS2026_X64_DEBUG_SOURCES="onehundred.cpp"
+
+#Endif
+
+#CMAKE_USE_PRESET="vs2026-x64"
+
+#Print "[VS2026 x64] Imported Settings"
+
+Import externals

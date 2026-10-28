@@ -1,0 +1,25 @@
+' Set up the parameters to pass to CMake, and do any imports.
+#Print "[Ninja macOS UNIVERSAL] CMake Console: Import....."
+
+#If INCLUDE_ONE_HUNDRED=True
+
+	Import "../native/header-onehundred.h"
+
+	#Print "Including the one hundred sources."
+		
+	#NINJA_MACOS_UNIVERSAL_RELEASE_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#NINJA_MACOS_UNIVERSAL_RELEASE_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#NINJA_MACOS_UNIVERSAL_RELEASE_SOURCES="onehundred.cpp"
+	
+	#NINJA_MACOS_UNIVERSAL_DEBUG_DEFINES="-DHAIRCUT_100" ' Comment out to get something else.
+	#NINJA_MACOS_UNIVERSAL_DEBUG_INCLUDE_PATHS+="${PROJECTDIR}/native"
+	#NINJA_MACOS_UNIVERSAL_DEBUG_SOURCES_PATHS+="${PROJECTDIR}/native"
+	#NINJA_MACOS_UNIVERSAL_DEBUG_SOURCES="onehundred.cpp"	
+	
+#Endif
+
+
+#Print "[Ninja macOS UNIVERSAL] Imported Settings"
+
+Import externals

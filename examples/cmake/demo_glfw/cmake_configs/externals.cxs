@@ -1,0 +1,30 @@
+' Remember import must come first.
+
+#If INCLUDE_STATIC_LIB_MESSAGE
+	Import cmake_demo.static_lib_message
+#Endif
+
+#If INCLUDE_STATIC_LIB_MATHS
+	Import cmake_demo.static_lib_maths
+#Endif
+
+#If INCLUDE_SHARED_LIB_UPPER
+	Import cmake_demo.shared_lib_upper
+#Endif
+
+#If INCLUDE_MACOS_FRAMEWORK_TEST
+	Import cmake_demo.macos_framework_test
+#Endif
+
+#If INCLUDE_MACOS_FRAMEWORK_HEXAGON
+	Import cmake_demo.macos_framework_hexagon
+#Endif
+
+#If INCLUDE_SHARED_LIB_RECT
+	Import cmake_demo.shared_lib_rect
+#Endif
+
+#If INCLUDE_ONE_HUNDRED
+	Extern
+		Function OneHundred:Int() = "onehundred"
+#Endif
