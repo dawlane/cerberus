@@ -1,0 +1,33 @@
+> Shell Scripts
+
+There are a number of helper shell script that can be used for various tasks, with the main shell scripts being found in the Cerberus source directory (src).
+
+*NOTE:* You will more than likely require either elevated privileges, or set the script execution policy ([[../../src/builder.ps1|see the actual Powershell script for information]]). 
+
+>> The Builder & Gen Links Tool Scripts
+
+There are three scripts within the [[../../src|Cerberus/src]] directory. These are use to actually build Cerberus and create symbolic links to various tools that are used by Cerberus.
+
+>> The builder.sh & builder.ps1 scripts
+
+These are scripts to build Cerberus.~n
+Instructions for use: [[../../src/docs/BUILDING_WINNT.txt|Windows]], 
+[[../../src/docs/BUILDING_MACOS.txt|macOS]], 
+[[../../src/docs/BUILDING_LINUX.txt|Linux]]
+
+>> The gen-tool-links.sh & gen-tool-links.ps1
+
+These two scripts are used to generate symbolic links in the Cerberus directory to external tools.~n
+To see the options available, type the command and pass the option -h.
+
+>> The gen-mingw-dll-imports.ps1 script
+
+If MinGW installed. The [[../../tools/gen-mingw-dll-imports.ps1|gen-mingw-dll-imports.ps1]] script is used to generate import libraries from shared libraries created with Visual Studio.
+
+*NOTE:* MinGW and Visual Studio generate different export symbol names for C++, and are therefore the tools that come with MinGW to do the conversion will not work.
+Only shared libraries that export C style naming symbols will work.
+
+>> The build_libs.sh & build_libs.ps1 scripts
+
+These two scripts are found in the [[../../modules_ext/cmake_demo|modules_ext/cmake_demo/cmake_demo]]. They are used to build and manage the demonstration libraries for use with the [[../../examples/cmake|CMake target examples]].~n
+To see the options, type the command and pass the -h option.
