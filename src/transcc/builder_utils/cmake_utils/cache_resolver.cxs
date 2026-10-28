@@ -1,0 +1,158 @@
+Import os
+Import transcc
+Import cmake_functions
+
+' Class structure to hold a CMake Cache options
+Class CMakeCacheOption
+
+	Method New()
+		'---------------------------------------------------------------------------------------
+		' INITIALISE
+		'	1. Create a stack to hold a list of cache options
+		'	2. Creaet a look up map of cache options
+		'	3. Store the TARGET path, i.e. the copied template
+		'	4. Delete the old cache file
+		'---------------------------------------------------------------------------------------
+		_cacheStk=New Stack<CacheOption>()
+		_lookupMap=New StringMap<CacheOption>
+		_cachePath=GetConfigVar( "TARGETPATH" )
+		
+		' Delete the old cache file if it exists.
+		If FileType( _cachePath+"/cx-cachefile.cmake" )=FILETYPE_FILE DeleteFile( _cachePath+"/cx-cachefile.cmake" )
+		
+	End
+	
+	Method AddCacheVar( cacheName:String,valuetype:String,value:String,help:String="" )
+		
+		'---------------------------------------------------------------------------------------
+		' ADD A CACHE VALUE
+		'	1. Check that the cache stack was created before use
+		'	2. Generate the cache options
+		'	3. Map the cache option to it's identifier
+		'---------------------------------------------------------------------------------------
+		If _cacheStk=Null Die("CMAKE BUILDER INTERNAL ERROR:"+
+								"~n You didn't create an object of CMakeCacheOption.")
+		Local option:=New CacheOption( cacheName,valuetype,value,help )
+		
+ 		
+ 		_cacheStk.Push( option )
+ 		_lookupMap.Add( cacheName,option )
+	End
+	
+	Method GetCacheVar:CMakeCacheOption( key:String )
+		' Return the stored cache option by is identifier
+		Return _lookupMap.Get( key )
+	End
+	
+	Method RemoveCachVar:Void( key:String )
+		
+		'---------------------------------------------------------------------------------------
+		' REMOVE CACHE OPTION
+		'	1. Get the cache option from the map by it's identifier
+		'	2. Check that the data is valid
+		'	3. Remove the the cache option from the stack
+		'	4. Remove the cache option from the look up map
+		'---------------------------------------------------------------------------------------
+		Local option:=_lookupMap.Get( key )
+		
+		' The key does not exist, so throw an error
+		If option=Null Die("CMAKE BUILDER INTERNAL ERROR:"+
+							"~n There is no key in the stored cache options called '"+key+"'")
+		
+		' Safety. This shouldn't be triggered at all.
+		Local idx:=_cacheStk.Find( option )
+		If idx<0 Die("CMAKE BUILDER INTERNAL ERROR:"+
+							"~n Cannot find cache object associated with '"+key+"'")
+		
+		' Remove the object from the stack first, the from the map
+		_cacheStk.Remove( idx )
+		_lookupMap.Remove( key )
+			
+	End
+	
+	Method GenerateCacheFile:Void()
+
+		'---------------------------------------------------------------------------------------
+		' GENERATE THE CACHE FILE
+		'	1. Open the cache file: Creates or over writes
+		'	2. Add option to silence CMAKE_WARN_DEPRECATED and CMAKE_ERROR_DEPRECATED
+		'	3. If CMAKE_DEBUG_LOG set, then enable CMAKE_MESSAGE_LOG_LEVEL to DEBUG. See the CMake documentation.
+		'	4. Iterate throught the stored cache options and write to file
+		'---------------------------------------------------------------------------------------
+		Local cacheFile:=FileStream.Open( _cachePath+"/cx-cachefile.cmake","w" )
+		
+		cacheFile.WriteString( "set(CMAKE_POLICY_DEFAULT_CMP0218 ~qNEW~q CACHE STRING ~qSilence CMP0218~q FORCE)~n" )
+		
+		' Debug CMAKE CACHE and general debug.
+		If ConfigVarsContain( "CMAKE_DEBUG_LOG" ) And GetConfigVar( "CMAKE_DEBUG_LOG" )="1" cacheFile.WriteString( "set(CMAKE_MESSAGE_LOG_LEVEL ~qDEBUG~q CACHE STRING ~qLog level~q FORCE)~n" )
+		
+		For Local i:=Eachin _cacheStk
+			cacheFile.WriteString( ToCMakeCacheString(i.CacheName(),i.CacheValue(),i.CacheType(),i.CacheHelp()) )
+		Next
+		
+		cacheFile.Close()
+	End
+	
+ 	Method Type:String( cacheName:String )
+ 		Return _lookupMap.Get( key ).Type()
+ 	End
+ 	
+ 	Method Help:String( cacheName:String )
+ 		Return _lookupMap.Get( key ).Help()
+ 	End
+ 	
+ 	Method Value:String( cacheName:String )
+ 		Return _lookupMap.Get( key ).Value()
+ 	End
+ 	
+ 	Private
+ 	
+ 	Field _cachePath:String
+ 	Field _cacheStk:Stack<CacheOption>
+ 	Field _lookupMap:StringMap<CacheOption>
+ 
+End
+ 
+Class CacheOption
+
+	Method CacheType:String()
+ 		Return _valuetype
+ 	End
+ 	
+ 	Method CacheHelp:String()
+ 		Return _help
+ 	End
+ 	
+ 	Method CacheValue:String()
+ 		Return _value
+ 	End
+ 	
+ 	Method CacheName:String()
+ 		Return _cacheName
+ 	End
+ 	
+	Method New( cacheName:String,valuetype:String,value:String,help:String="" )
+	
+		'---------------------------------------------------------------------------------------
+		' NEW CACHE OPTION
+		'	1. Store the values, type, help, and cache name
+		'	2. Add quotes around strings. Stops CMamke turnung these into a list
+		'	3. Normalise paths for CMake. CMake expects posix style strings.
+		'	4. Store the value
+		'---------------------------------------------------------------------------------------
+		_valuetype=valuetype.ToUpper()
+		_help=help
+ 		_cacheName=cacheName
+ 		
+		If _valuetype="STRING" And Not ( value.StartsWith( "~q" ) Or value.EndsWith( "~q" ) ) value="~q"+value+"~q"
+		
+ 		If HostOS="winnt" And (_valuetype="PATH" Or _valuetype="FILEPATH") value=value.Replace( "\","/" )
+ 		_value=value
+	End
+ 	
+ 	Private
+ 	Field _cacheName:String
+	Field _value:String
+	Field _help:String
+	Field _valuetype:String
+End

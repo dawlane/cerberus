@@ -1,0 +1,51 @@
+Import os
+Import transcc
+
+Function ToCMakeCacheString:String( cache_name:String,cache_value:String,cache_type:String,cache_help:String )
+	
+	'---------------------------------------------------------------------------------------
+	' CONVERT THE CACHE OPTION INTO A STRING
+	'	1. If the value type is PATH or FILEPATH, then convert to an organised list
+	'---------------------------------------------------------------------------------------
+	If cache_type="PATH" OR cache_type="FILEPATH"
+		
+		Local cache_list:=""
+		
+		For Local i:=Eachin cache_value.Split( ";" )
+			cache_list+="~t~q"+i+"~q~n"
+		Next
+		
+		Return "set("+cache_name+"~n"+cache_list+"~tCACHE "+cache_type+"~n~t~q"+cache_help+"~q~n~tFORCE~n)~n~n"
+	Else
+		Return "set("+cache_name+"~n~t"+cache_value+"~n~tCACHE "+cache_type+"~n~t~q"+cache_help+"~q~n~tFORCE~n)~n~n"
+	Endif
+	
+ End
+ 
+ Function ToCMakeCacheString:String( cache_name:String,cache_value:StringStack,cache_type:String="",cache_help:String="" )
+	
+	'---------------------------------------------------------------------------------------
+	' CONVERT THE CACHE OPTION INTO A STRING
+	'	1. Iterate the stack. Quote if test prove that it's a PATH
+	'	2. Construct the set function based on the values of cache_type and cache_help
+	'---------------------------------------------------------------------------------------
+	Local cache_list:=""		
+	
+	For Local i:=Eachin cache_value
+	
+		If cache_type="STRING" Or cache_type="PATH" Or cache_type="FILEPATH"
+			cache_list+="~t~q"+i+"~q~n"
+		Else
+			cache_list+="~t"+i+"~n"
+		Endif
+		
+	Next
+	
+	If cache_type<>"" And cache_help<>""
+		Return "set("+cache_name+"~n"+cache_list+"~tCACHE "+cache_type+"~n~t~q"+cache_help+"~q~n~tFORCE~n)~n~n"
+	Else
+		Return "set("+cache_name+"~n"+cache_list+"~n)~n~n"
+	Endif
+	
+ End
+ 
