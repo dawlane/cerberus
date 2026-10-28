@@ -9,6 +9,7 @@ This config file is named "config.winnt.txt" or "config.macos.txt" and is locate
 Please refer to the following installation guides: 
 
 * [[The Desktop target]]
+* [[The Desktop CMake target]]
 * [[The Stdcpp target]]
 * [[The HTML5 target]]
 * [[The Flash target]]    (depreciated)

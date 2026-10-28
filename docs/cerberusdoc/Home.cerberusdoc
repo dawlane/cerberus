@@ -5,9 +5,7 @@ This is the ultimate guide to Cerberus X.
 >> Introduction
 
 * [[Tutorials/Getting started]] - If you're new to Cerberus X, this is what you're looking for
-
 * [[Target SDKs]] - what target platforms Cerberus X supports and how to set them up
-
 * [[Tutorials]] - more tutorials teaching you the Cerberus X programming language
 * [[Samples|Mojo1 samples]] - samples for the base game framework
 * [[Mojo2 samples|Mojo2 samples]] - samples for the advanced 2D rendering API
