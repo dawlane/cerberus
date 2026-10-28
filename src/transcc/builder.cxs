@@ -1,14 +1,8 @@
 
 Import transcc
 Import reflection.reflector
-
-Import "native/stb_image.cpp"
-Import "native/stb_image.h"
-Import "native/stb_image_write.h"
-Import "native/stb_image_resize.h"
-Import "native/image.cpp"
-
-
+Import brl.json
+Import builder_utils.image2icon
 
 Class Builder
 
@@ -55,6 +49,20 @@ Class Builder
 		ENV_TARGET=tcc.target.system
 		ENV_LANG=tcc.target.lang
 		ENV_CUSTOMBUILDSCRIPT=tcc.target.buildscript
+		ENV_PROJECT_DIRECTORY=ExtractDir( tcc.opt_srcpath )
+		
+		' Moved creation of the build path forward so that it can be made available as a ${tag} for file paths.
+		Local buildPath:String
+		
+		If tcc.opt_builddir
+			buildPath=ExtractDir( tcc.opt_srcpath )+"/"+tcc.opt_builddir
+		Else
+			buildPath=StripExt( tcc.opt_srcpath )+".build"+tcc.GetReleaseVersion()
+		Endif
+		
+		Local targetPath:=buildPath+"/"+tcc.target.dir	'ENV_TARGET
+		
+		ENV_PROJECT_TARGETPATH=targetPath
 			
 		Self.Begin
 
@@ -69,6 +77,8 @@ Class Builder
 		SetConfigVar "CONFIG",ENV_CONFIG
 		SetConfigVar "SAFEMODE",ENV_SAFEMODE
 		'SetConfigVar "CUSTOMBUILDSCRIPT",ENV_CUSTOMBUILDSCRIPT
+		SetConfigVar "PROJECTDIR",ENV_PROJECT_DIRECTORY
+		SetConfigVar "TARGETPATH",ENV_PROJECT_TARGETPATH
 		
 		app=ParseApp( tcc.opt_srcpath )
 
@@ -102,15 +112,15 @@ Class Builder
 
 		transCode=transbuf.Join()
 		
-		Local buildPath:String
-		
-		If tcc.opt_builddir
-			buildPath=ExtractDir( tcc.opt_srcpath )+"/"+tcc.opt_builddir
-		Else
-			buildPath=StripExt( tcc.opt_srcpath )+".build"+tcc.GetReleaseVersion()
-		Endif
-		
-		Local targetPath:=buildPath+"/"+tcc.target.dir	'ENV_TARGET
+'		Local buildPath:String
+'		
+'		If tcc.opt_builddir
+'			buildPath=ExtractDir( tcc.opt_srcpath )+"/"+tcc.opt_builddir
+'		Else
+'			buildPath=StripExt( tcc.opt_srcpath )+".build"+tcc.GetReleaseVersion()
+'		Endif
+'		
+'		Local targetPath:=buildPath+"/"+tcc.target.dir	'ENV_TARGET
 		
 		If tcc.opt_clean
 			DeleteDir targetPath,True
@@ -173,6 +183,14 @@ Class Builder
 	Field MUSIC_FILES$
 	Field BINARY_FILES$
 	
+	Method Message( msg:String )
+		Print tcc.messagePrefix+" : "+msg
+	End
+	
+	Method SetMessagePrefix:Void( prefix:String )
+		tcc.messagePrefix=prefix
+	End
+	
 	Method Execute:Bool( cmd:String,failHard:Bool=True )
 		Return tcc.Execute( cmd,failHard )
 	End
@@ -181,48 +199,6 @@ Class Builder
 		If FileTime( src )>FileTime( dst ) Or FileSize( src )<>FileSize( dst )
 			DeleteFile dst
 			CopyFile src,dst
-		Endif
-	End
-
-	Method MakeIcons:Void(srcFilename:String,icons:String[],round:Int=False)
-		Local iconPath:=ExtractDir(StripExt( tcc.opt_srcpath ))
-		Local iconFile:String = RealPath(iconPath+"\"+srcFilename)
-		
-		If Not FileType( iconFile )=FILETYPE_FILE Then iconFile = RealPath(srcFilename)
-				
-		If FileType( iconFile )=FILETYPE_FILE
-'			If FileSize(iconFile) = FileSize(CurrentDir()+"\icon.cache") Then Return
-			
-			For Local i:Int = 0 Until icons.Length() Step 3
-'				Print "building "+CurrentDir()+"/"+icons[i]
-				_CreateIcon(iconFile,CurrentDir()+"/"+icons[i],Int(icons[i+1]),Int(icons[i+2]),round)
-			Next
-			
-			' cache icon file
-'			CopyFile (iconFile,CurrentDir()+"\icon.cache")
-		Endif
-	End
-	
-	Method CopyIcon:Void(iFile:String,targetIcon:String)		
-		If HostOS() = "winnt"
-			Local iconPath:=ExtractDir(StripExt( tcc.opt_srcpath ))
-			Local iconFile:String = RealPath(iconPath+"\"+iFile)
-			If FileType( iconFile )=FILETYPE_FILE
-				If ExtractExt( iconFile).ToLower() = "ico"
-					CopyFile (iconFile,targetIcon)
-				Else
-					_ConvertToIco (iconFile,targetIcon)
-				End
-			Else
-				iconFile = iFile
-				If FileType( iconFile )=FILETYPE_FILE
-					If ExtractExt( iconFile).ToLower() = "ico"
-						CopyFile (iconFile,targetIcon)
-					Else
-						_ConvertToIco (iconFile,targetIcon)
-					End
-				Endif
-			Endif
 		Endif
 	End
 
@@ -399,6 +375,129 @@ End
 Global _html5_Info_Width:Int
 Global _html5_Info_Height:Int
 
+Function SetIcon:Void( target:Int,cfgVar:String,target_dir:String="" )
+
+	If HostOS()="linux" Return
+	
+	Local target_dst:=CurrentDir()+"/",
+		icon_path:=GetConfigVar(cfgVar),
+		valid_path:Bool
+		
+	If icon_path<>""
+	
+		If FileType( icon_path )=FILETYPE_FILE Or FileType( ENV_PROJECT_DIRECTORY+"/"+icon_path )=FILETYPE_FILE
+			valid_path=True
+			If FileType( ENV_PROJECT_DIRECTORY+"/"+icon_path )=FILETYPE_FILE icon_path=ENV_PROJECT_DIRECTORY+"/"+icon_path
+		Endif
+		
+		If valid_path
+			
+			Local input_ext:=ExtractExt( icon_path ),
+				colour:="#FFFFFF",
+				circular:=False
+				
+			Select input_ext.ToLower()
+				Case "svg","png","jpg","tga","bmp","psd","hdr","pic","pnm","gif"
+					Print "Image for icon: "+StripDir( icon_path )
+					
+				Default
+					Die "Invalid input image format for icon. Excepted: svg, png, jpg, tga, bmp, psd, hdr, pic, pnm, and gif"
+			End Select
+					
+			Select target
+				Case TARGET_ICON_HTML
+					Image2Icon("winnt",icon_path,CurrentDir()+"/favicon.ico")
+					
+				Case TARGET_ICON_WINDOWS				
+					If target_dir<>"" target_dst+=target_dir+"/cerberus.ico" Else target_dst+="/cerberus.ico"
+					Image2Icon( "winnt",
+						icon_path,
+						CurrentDir()+target_dst )
+					
+				Case TARGET_ICON_MACOS
+					If target_dir<>"" target_dst+=target_dir+"/cerberus.icns" Else target_dst+="/cerberus.icns"
+					Image2Icon( "macos",
+								icon_path,
+								target_dst )
+					
+				Case TARGET_ICON_ANDROID
+					If GetConfigVar( "ANDROID_APP_ROUND_ICON" )<>"" circular=True
+					If GetConfigVar( "ANDROID_APP_ICON_BACK_COLOUR" )<>"" colour=GetConfigVar( "ANDROID_APP_ICON_BACK_COLOUR" )
+					Image2Icon(
+						"android",
+						icon_path,
+						CurrentDir()+"/app/src/main/",
+						circular,
+						colour )
+					
+				Case TARGET_ICON_IOS
+					If GetConfigVar( "IOS_APP_ICON_BACK_COLOUR" )<>"" colour=GetConfigVar( "IOS_APP_ICON_BACK_COLOUR" )
+					
+					If Int( XcodeVersionMajor() ) >=13
+						
+						Image2Icon(
+							"ios",
+							icon_path,
+							CurrentDir(),
+							False,
+							colour)
+					Else
+						
+						' Support for legecy
+						Local legecy_list:String[] = ["icons/iphone-app-1x-60px.png","60",
+											"icons/iphone-app-2x-120px.png","120",
+											"icons/iphone-app-3x-180px.png","180",
+											"icons/iphone-spotlight-1x-40px.png","40",
+											"icons/iphone-spotlight-2x-80px.png","80",
+											"icons/iphone-spotlight-3x-120px.png","120",
+											"icons/iphone-settings-3x-87px.png","87",
+											"icons/ipad-app-1x-76px.png","76",
+											"icons/ipad-app-2x-152px.png","152",
+											"icons/ipad-app-3x-167px.png","167",
+											"icons/ipad-spotlight-1x-40px.png","40",
+											"icons/ipad-spotlight-2x-80px.png","80",
+											"icons/ipad-spotlight-3x-120px.png","120",
+											"icons/ipad-settings-3x-58px.png","58"]
+						CreateDir "icons"
+						
+						For Local i:=0 Until legecy_list.Length() Step 2
+							Local size:=Int(legecy_list[i+1])
+							Image2Icon(
+								icon_path,
+								legecy_list[i],
+								size,
+								size,
+								False,
+								colour)
+						Next
+						
+					Endif
+				
+			End Select
+		Else
+			Die "Missing Icon image or Image directory.~nCheck that the path exists.~n"+icon_path
+		Endif
+	Endif
+		
+End
+
+'Function SetIcon:Void( cfgVar:String,target_dir:String="" )
+'
+'	Local ext:="",target_dst:=CurrentDir()+"/",icon_path:=GetConfigVar(cfgVar)
+'	
+'	Select HostOS()
+'		Case "winnt"
+'			ext=".ico"
+'		Case "macos"
+'			ext=".icns"
+'	End Select
+'	
+'	If target_dir<>"" target_dst+=target_dir+"/cerberus"+ext Else target_dst+="/cerberus"+ext
+'	If icon_path<>""
+'		If FileType( icon_path )=FILETYPE_NONE Die "Missing Icon image or Image directory.~nCheck that the path exists.~n"+icon_path
+'		Image2Icon(HostOS(),icon_path,target_dst)
+'	Endif
+'End
 
 Function GetInfo_PNG:Int( path:String )
 	Local f:=FileStream.Open( path,"r" )
@@ -483,8 +582,4 @@ Function _FixDataPath:String( path:String )
 	If path.StartsWith("./") Or path.StartsWith("/") Return path
 	Return "cerberus://data/"+path
 End
-
-Extern
-Function _CreateIcon:Void(srcFile:String,destFile:String,w:Int,h:Int,round:Int)
-Function _ConvertToIco:Void(srcFile:String,destFile:String)
 
