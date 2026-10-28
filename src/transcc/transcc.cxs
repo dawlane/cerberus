@@ -3,24 +3,55 @@
 ' Placed into the public domain 24/02/2011.
 ' No warranty implied; use at your own risk.
 
+
+' Changes to transcc.builders.builders.cxs
+' BUILDER_TYPE: Controls if experimental, or deprecated Builder classes should be registered.
+#BUILDER_TYPE="experimental"
+
 Import trans
 Import builders
 
+'#CC_USE_MINGW=False
+#CC_PLATFORM_TOOLSET="v142"
+
 #If CONFIG="debug"
 	'	DEBUG_TEST_CFG: Release,Debug
-	'	DEBUG_TARGET: Desktop,Android,iOS,iOS Metal,HTML
-	'	DEBUG_TEST: TransCC,Reflection,Mojo,Mojo2,Audio
+	'	DEBUG_TARGET:
+	'			Desktop:						Run examples for testing CMake, Console, or Desktop Game target
+	'			Android:						Run examples for testing Android target 
+	'			iOS:							Run examples for testing iOS target
+	'			iOS Meta:						Run examples for testing iOS Metal Angle target
+	'			HTML:							Run examples for testing Html5 target
+	'			iOS 15+:						Run examples for testing new iOS target
+	'			New iOS Metal:					Run examples for testing new iOS Metal target
+	'
+	'	DEBUG_TEST:
+	'			TransCC:						Runs a basic test of the C++ Tool
+	'			Reflection:						Runs a test using the refilection filter
+	'			Mojo:							Runs a test using Mojo
+	'			Mojo2:							Runs a test using Mojo2
+	'			Audio:							Runs a test of the audio
+	'			HTTP Request:					Runs a test of curl
+	'			CMAKE Demo Console:				Runs an advanced test of the C++ Tool using CMake
+	'			CMAKE Demo GLFW:				Runs an advanced test of the Desktop Game using CMake
+	'			CMAKE Demo Audio:				Runs an advanced test of the Desktop Game with audio using CMake 
+	'			CMAKE Demo Echo Server TCP:		Runs a standard test using CMake 
+	'			CMAKE Demo Echo Server UDP:		Runs a standard test using CMake 
+	'			CMAKE Demo HTTP Request:		Runs a standard test using CMake
 		
 	' Change the preprocessor directives to select the example to run for debugging transcc
 	#DEBUG_TEST_CFG="Release"
-	#DEBUG_TEST="Audio"
-	#DEBUG_TARGET="HTML"
-	Import debugconf
+	#DEBUG_TARGET="Desktop"
+	#DEBUG_TEST="CMAKE Demo GLFW"
 	
-	Const VERSION:="2023-10-14 (DEBUG)"
+	Import builder_utils.debug_test_config
+	
+	Const VERSION:="2026-10-28 (DEBUG)"
+	
 #Else
-    Const VERSION:="2023-10-14"
+    Const VERSION:="2026-10-28"
 #Endif
+
 
 Function Main()
     Local tcc:=New TransCC
@@ -36,7 +67,7 @@ Function Main()
         For Local i:=Eachin args
             str+=i+" "
         Next
-        DebugLog "~nRunning in debug mode:~n"+str
+        DebugLog "~nRunning in debug mode:~n"+DosToPosix( str )
         tcc.Run args
     #Else
         SetEnv "CERBERUS_DIR",RealPath( ExtractDir( AppPath )+"/.." )
@@ -160,42 +191,25 @@ Function MatchPath:Bool( text:String,pattern:String )
     Return match
 End
 
-Function ExpandEnv:String( text:String )
-	
-	Local resolved:="", char:="", idx1:=0, terminator:=0, idx2:=0
-	While idx1<text.Length
-		char=String.FromChar( text[idx1] )
-		
-		Select char
-		' MS Windows style environment expansion
-		Case "%"
-			terminator=text.Find( "%",idx1+1 )
-			resolved+=GetEnv(text[idx1+1..terminator])
-			If terminator<0 terminator=text.Length
-			idx1+=(terminator+1)-idx1
-		
-		' Unix style environment expansion
-		Case "$"
-			terminator=-1
-			idx2=idx1
-			
-			' Look ahead for one of the known termination characters.
-			While idx2<text.Length And terminator<0
-				If text[idx2]="/"[0] Or text[idx2]=":"[0] Or text[idx2]=";"[0] terminator=idx2
-				idx2+=1
-			Wend
-			If terminator<0 terminator=text.Length
-			resolved+=GetEnv(text[idx1+1..terminator])
-			idx1+=(terminator)-idx1
-			
-		Default
-			resolved+=char
-			idx1+=1
-			
-		End
-	Wend
-	
-	Return resolved
+Function DosToPosix:String(dosPath:String)
+    Local path:String = dosPath.Replace("\", "/")
+   
+    While path.Contains("//")
+        path = path.Replace("//", "/")
+    End
+    
+    Return path
+End
+
+Function PosixToDos:String(posixPath:String)
+
+    Local path:String = posixPath.Replace("/", "\")
+    
+    While path.Contains("\\")
+        path = path.Replace("\\", "\")
+    End
+    
+    Return path
 End
 
 Function CreateDirs( path:String,delim:String="/" )
@@ -207,19 +221,21 @@ Function CreateDirs( path:String,delim:String="/" )
 	If HostOS<>"winnt"
 		If dirs[0]="" Then dirs[0]="/"
 	Endif
-		
+	
+	Local check:=""
 	For Local i:=Eachin dirs
-
-		Select FileType( i )
-		Case FILETYPE_DIR
-			Print "Directory already exists:~n"+RealPath( i )
-		Case FILETYPE_FILE
-			Die "Directory creation error: Path is a regular file. Cannot continue.~n"+RealPath( i )
-		Default
-			If CreateDir( i.Trim ) Print "Created directory:~n"+RealPath( i )
-		End
-		ChangeDir i.Trim
+		check+=i+delim
+		If FileType( i )=FILETYPE_FILE Die "Directory creation error: Path is a regular file. Cannot continue.~n"+check
+		
+		CreateDir( i.Trim() )		
+		If Not FileType( check )=FILETYPE_DIR Die "Failed to create directory:~n"+check
+		
+		ChangeDir( i.Trim()+delim )
+		
 	Next
+	
+	If FileType( path )=FILETYPE_DIR Print "Created output directory success."
+	
 	ChangeDir currentDir
 End
 
@@ -276,6 +292,14 @@ Class TransCC
     Field AGK_PATH:String
     Field HTML_PLAYER:String
     Field FLASH_PLAYER:String
+    Field WIN_SDK:String="10.0"
+    Field PLATFORM_TOOLSET:String="v142"	' VS 2019
+    Field CMAKE_PATH:String
+    Field NINJA_BUILD_PATH:String
+    
+    ' NOTE: This is not placed into the PATH environment variable. It's use for the CMake target
+    Field CMAKE_MINGW_PATH_X86:String
+    Field CMAKE_MINGW_PATH_X64:String
   
     Field args:String[]
     Field cerberusdir:String
@@ -284,6 +308,7 @@ Class TransCC
     Field _builders:=New StringMap<Builder>
     Field _targets:=New StringMap<Target>
     Field _libs:String
+    Field messagePrefix:String
   
     Method Run:Void( args:String[] )
 
@@ -291,8 +316,8 @@ Class TransCC
       
         Print "TRANS cerberus compiler V"+VERSION
       
-        cerberusdir=GetEnv( "CERBERUS_DIR" )
-        _libs=cerberusdir+"/libs/"
+        cerberusdir=DosToPosix( GetEnv( "CERBERUS_DIR" ) )
+        _libs=DosToPosix( cerberusdir+"/libs/" )
 
         SetEnv "CERBERUSDIR",cerberusdir
         SetEnv "MONKEYDIR",cerberusdir 'this is for Jungle compatibility
@@ -321,7 +346,7 @@ Class TransCC
             Print "Valid configs: debug release"
             ExitApp 0
         Endif
-      
+        
         target=_targets.Get( opt_target.Replace( "_"," " ) )
         If Not target Die "Invalid target"
       
@@ -344,10 +369,13 @@ Class TransCC
     End
   
     Method EnumTargets:Void( dir:String )
-  
+
         Local p:=cerberusdir+"/"+dir
+        
         If FileType(p) <> FILETYPE_DIR Then p = dir
+        
         For Local f:=Eachin LoadDir( p )
+               	
             Local t:=p+"/"+f+"/target.cxs"
             If FileType(t)<>FILETYPE_FILE
                 t=p+"/"+f+"/TARGET.MONKEY"    'backwards compatibility
@@ -453,7 +481,7 @@ Class TransCC
 
     Method LoadConfig:Void()
   
-        Local cfgpath:=cerberusdir+"/bin/"
+        Local cfgpath:=DosToPosix( cerberusdir+"/bin/" )
         If opt_cfgfile
             cfgpath+=opt_cfgfile
         Else
@@ -515,6 +543,14 @@ Class TransCC
                 If Not MINGW_PATH And FileType( path )=FILETYPE_DIR
                     MINGW_PATH=path
                 Endif
+            Case "CMAKE_MINGW_PATH_X86"
+                If Not CMAKE_MINGW_PATH_X86 And FileType( path )=FILETYPE_DIR
+                    CMAKE_MINGW_PATH_X86=path
+                Endif
+            Case "CMAKE_MINGW_PATH_X64"
+                If Not CMAKE_MINGW_PATH_X64 And FileType( path )=FILETYPE_DIR
+                    CMAKE_MINGW_PATH_X64=path
+                Endif
             Case "PSM_PATH"
                 If Not PSM_PATH And FileType( path )=FILETYPE_DIR
                     PSM_PATH=path
@@ -527,10 +563,24 @@ Class TransCC
                 If Not AGK_PATH And FileType( path )=FILETYPE_DIR
                     AGK_PATH=path
                 Endif
+            Case "CMAKE_PATH"
+                If Not CMAKE_PATH And FileType( path )=FILETYPE_DIR
+                	' DO NOTE ADD CMAKE TO THE ENVIRONMENT PATH UNTIL LAST
+                    CMAKE_PATH=path
+                Endif
+            Case "NINJA_BUILD_PATH"
+                If Not NINJA_BUILD_PATH And FileType( path )=FILETYPE_DIR
+                	' DO NOTE ADD CMAKE TO THE ENVIRONMENT PATH UNTIL LAST
+                    NINJA_BUILD_PATH=path
+                Endif
             Case "HTML_PLAYER"
                 HTML_PLAYER=rhs
             Case "FLASH_PLAYER"
                 FLASH_PLAYER=rhs
+            Case "WIN_SDK_VERSION"
+            	WIN_SDK=rhs
+            Case "PLATFORM_TOOLSET_VERSION"
+            	PLATFORM_TOOLSET=rhs
             Default
                 Print "Trans: ignoring unrecognized config var: "+lhs
             End
@@ -546,8 +596,7 @@ Class TransCC
             If JDK_PATH path+=";"+JDK_PATH+"/bin"
             If ANT_PATH path+=";"+ANT_PATH+"/bin"
             If FLEX_PATH path+=";"+FLEX_PATH+"/bin"
-          
-            If MINGW_PATH path=MINGW_PATH+"/bin;"+path    'override existing mingw path if any...
+            If MINGW_PATH path+=";"+MINGW_PATH+"/bin"
   
             SetEnv "PATH",path
           
@@ -560,7 +609,7 @@ Class TransCC
       
             Local path:=GetEnv( "PATH" )
           
-            If JDK_PATH path=JDK_PATH+"/bin:"+path  
+            If JDK_PATH path=JDK_PATH+"/bin:"+path
             If ANDROID_PATH path+=":"+ANDROID_PATH+"/tools"
             If ANDROID_PATH path+=":"+ANDROID_PATH+"/platform-tools"
             If ANT_PATH path+=":"+ANT_PATH+"/bin"
@@ -574,7 +623,6 @@ Class TransCC
             If JDK_PATH SetEnv "JAVA_HOME",JDK_PATH
             'Print "macOS JAVA_HOME: " + JDK_PATH
 
-          
         Case "linux"
 
             Local path:=GetEnv( "PATH" )
