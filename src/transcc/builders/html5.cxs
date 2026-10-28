@@ -67,8 +67,7 @@ Class Html5Builder Extends Builder
 		
 		SaveString main,"main.js"
 
-		CopyIcon(GetConfigVar("HTML5_APP_ICON"),CurrentDir()+"\favicon.ico")
-				
+		SetIcon( TARGET_ICON_HTML,"HTML5_APP_ICON" )
 
 		Local game:=LoadString( "CerberusGame.html" )
 		game=ReplaceBlock( game,"APP_TITLE","<title>"+GetConfigVar("HTML5_APP_TITLE")+"</title>","~n<!--" )
