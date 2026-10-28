@@ -1,5 +1,6 @@
 
 Import builder
+Import builder_utils.apple_device_utils
 
 Class IosBuilder Extends Builder
 	
@@ -229,31 +230,18 @@ Class IosBuilder Extends Builder
 	End
 	
 	Method MakeTarget:Void()
-	
-		Local sim_path:="/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app"
-		If tcc.opt_run = True 
-			Print ("Starting iOS simulator...")
-			Execute "open ~q"+sim_path+"~q"
-		Endif
+		Local use_physical_device:=GetConfigVar( "IOS_USE_REAL_DEVICE" )
+		If use_physical_device="" use_physical_device="0"
+		If Not (use_physical_device="1" Or use_physical_device="0") Die "The iOS preprocessor #IOS_USE_REAL_DEVICE can only be true or False"
+		iOSUtilsInit( tcc,use_physical_device )
+		
+		SetMessagePrefix( "iOS BUILD SYSTEM" )
+		Message( XcodeVersion() )
+		
+		If tcc.opt_run = True iOSUtilsStartDevice( GetConfigVar( "IOS_DEVICE_NAME" ),GetConfigVar( "IOS_VERSION" ) )
 		CreateDataDir "data"
-
-		CreateDir "icons"
-		' https://docs.microsoft.com/en-us/xamarin/ios/app-fundamentals/images-icons/app-icons?tabs=windows
-		Local iconfiles:String[] = ["icons/iphone-app-1x-60px.png","60","60",
-									"icons/iphone-app-2x-120px.png","120","120",
-									"icons/iphone-app-3x-180px.png","180","180",
-									"icons/iphone-spotlight-1x-40px.png","40","40",
-									"icons/iphone-spotlight-2x-80px.png","80","80",
-									"icons/iphone-spotlight-3x-120px.png","120","120",
-									"icons/iphone-settings-3x-87px.png","87","87",
-									"icons/ipad-app-1x-76px.png","76","76",
-									"icons/ipad-app-2x-152px.png","152","152",
-									"icons/ipad-app-3x-167px.png","167","167",
-									"icons/ipad-spotlight-1x-40px.png","40","40",
-									"icons/ipad-spotlight-2x-80px.png","80","80",
-									"icons/ipad-spotlight-3x-120px.png","120","120",
-									"icons/ipad-settings-3x-58px.png","58","58"]
-		MakeIcons(GetConfigVar( "IOS_APP_ICON"),iconfiles)
+		
+		SetIcon( TARGET_ICON_IOS,"IOS_APP_ICON" )
 		
 		Local main:=LoadString( "main.mm" )
 		
@@ -286,104 +274,19 @@ Class IosBuilder Extends Builder
 		Endif
 		MungProj
 		
+		
 		If Not tcc.opt_build Return
 		
-		Execute "xcodebuild -configuration "+casedConfig+" -sdk iphonesimulator"
+		Execute "xcodebuild -configuration "+casedConfig+" -sdk iphonesimulator GCC_WARN_INHIBIT_ALL_WARNINGS=YES"
 		
 		If Not tcc.opt_run Return
-
-'		Local home:=GetEnv( "HOME" )
-'
-'		Local uuid:="00C69C9A-C9DE-11DF-B3BE-5540E0D72085"
-'		
+		
 		Local src:="build/"+casedConfig+"-iphonesimulator/CerberusGame.app"
 		
-		'Local sim_path:="/Applications/Xcode.app/Contents/Applications/iPhone Simulator.app"
-'		If FileType( sim_path )=FILETYPE_NONE sim_path="/Applications/Xcode.app/Contents/Developer/Builders/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
-		'If FileType( sim_path )=FILETYPE_NONE sim_path="/Applications/Xcode.app/Contents/Developer/Builders/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
-		
-		'New XCode in /Applications?
-		If FileType( sim_path )=FILETYPE_DIR
-
-			Print ("Installing GerberusGame.app")
-			Execute ("xcrun simctl install booted ~q"+src+"~q")
-			
-			Print ("Running CerberusGame.app")
-			Execute "xcrun simctl launch booted com.yourcompany.CerberusGame"
-
-		
-'			Local dst:=""
-'			
-'			For Local f:=Eachin LoadDir( home+"/Library/Application Support/iPhone Simulator" )
-'
-'				If f.Length>2 And f[0]>48 And f[0]<58 And f[1]=46 And f[2]>=48 And f[2]<58 And Not f.Contains( "-64" ) And f>dst dst=f
-'				
-'				'X.Y?
-'				'If f.Length=3 And f[0]>48 And f[0]<58 And f[1]=46 And f[2]>=48 And f[2]<58 And Float(f)>Float(dst) dst=f
-'			Next
-'			If Not dst Die "Can't find iPhone simulator app version dir"
-'			
-'			dst=home+"/Library/Application Support/iPhone Simulator/"+dst+"/Applications"
-'
-'			CreateDir dst
-'			If FileType( dst )<>FILETYPE_DIR Die "Failed to create dir:"+dst
-'			
-'			dst+="/"+uuid
-'			If Not DeleteDir( dst,True ) Die "Failed to delete dir:"+dst
-'			If Not CreateDir( dst ) Die "Failed to create dir:"+dst
-'			
-'			'Need to use this 'coz it does the permissions thang
-'			'
-'			Execute "cp -r ~q"+src+"~q ~q"+dst+"/CerberusGame.app~q"
-'			
-'			'Have to manually create documents dir for Cerberus://internal/?
-'			'
-'			CreateDir dst+"/Documents"
-'
-'			're-start emulator
-'			'
-'			'Execute "killall ~qiPhone Simulator~q 2>/dev/null",False
-'			Execute "killall ~qSimulator~q 2>/dev/null",False
-
-			
-			
-			Return
-			
+		If iOSUtilsDeviceBooted()
+			iOSUtilsInstallApp( src )
+			iOSUtilsLaunchApp( "com.yourcompany.CerberusGame" )
 		Endif
-
-'		'Old xcode in /Developer				
-'		sim_path="/Developer/Builders/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"
-'		
-'		If FileType( sim_path )=FILETYPE_DIR
-'		
-'			Local dst:=home+"/Library/Application Support/iPhone Simulator/4.3.2"
-'			If FileType( dst )=FILETYPE_NONE
-'				dst=home+"/Library/Application Support/iPhone Simulator/4.3"
-'				If FileType( dst )=FILETYPE_NONE
-'					dst=home+"/Library/Application Support/iPhone Simulator/4.2"
-'				Endif
-'			Endif
-'			
-'			CreateDir dst
-'			dst+="/Applications"
-'			CreateDir dst
-'			dst+="/"+uuid
-'			If Not DeleteDir( dst,True ) Die "Failed to delete dir:"+dst
-'			If Not CreateDir( dst ) Die "Failed to create dir:"+dst
-'			
-'			'Need to use this 'coz it does the permissions thang
-'			'
-'			Execute "cp -r ~q"+src+"~q ~q"+dst+"/CerberusGame.app~q"
-'
-'			're-start emulator
-'			'
-'			Execute "killall ~qiPhone Simulator~q 2>/dev/null",False
-'			Execute "open ~q"+sim_path+"~q"
-'			
-'			Return
-'		
-'		Endif
-		
 	End
 End
 
