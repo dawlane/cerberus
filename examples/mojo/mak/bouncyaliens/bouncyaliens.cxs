@@ -1,9 +1,30 @@
 
-'#GLFW_USE_MINGW=False		'to build with MSVC.
+#GLFW_USE_MINGW=False		'to build with MSVC.
 
 '#GLFW_GCC_MSIZE_WINNT="64"	'to force 64 bit mingw builds. Needs mingw64.
 
 #GLFW_WINDOW_TITLE="Cerberus X Game"
+
+' Test the icon image converter
+'#GLFW_APP_ICON="alien.svg"
+#GLFW_APP_ICON="${CD}/alien_red.svg"
+
+#HTML5_APP_ICON="${CD}/alien.svg"
+'#HTML5_APP_ICON="${CD}/alien_red.svg"
+
+'#ANDROID_APP_ICON="${CD}/alien.svg"
+#ANDROID_APP_ICON="${CD}/alien_red.svg"
+#ANDROID_APP_ICON_BACK_COLOUR="#FF0000"
+#ANDROID_APP_ROUND_ICON=True
+
+#IOS_APP_ICON="${CD}/alien.svg"
+'#IOS_APP_ICON="${CD}/alien_red.svg"
+#IOS_APP_ICON_BACK_COLOUR="#000000"
+
+' If Xcode/DeviceHub has a named device. You can set it with the two lines below.
+' NOTE: Both must be used.
+'#IOS_DEVICE_NAME="iPad Pro 11-inch (M4) (16GB)"
+'#IOS_VERSION="18.6"
 
 Import mojo
 
