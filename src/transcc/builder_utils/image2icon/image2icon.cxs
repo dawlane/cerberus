@@ -1,0 +1,16 @@
+#CC_GCC_OPTS="-I${CD}/native/include -I${CD}/native/third_party -w"
+#CC_XCODE_OPTS="-I${CD}/native/include -I${CD}/native/third_party -w"
+#CC_MINGW_OPTS="-I${CD}/native/include -I${CD}/native/third_party"
+#CC_MSVC_OPTS="/I ~q${CD}\native\include~q /I ~q${CD}\native\third_party~q"
+
+Import os
+
+Import "native/third_party/defines.cpp"
+Import "native/image2icon.cpp"
+
+Enumerate TARGET_ICON_WINDOWS, TARGET_ICON_MACOS, TARGET_ICON_IOS,
+	TARGET_ICON_ANDROID, TARGET_ICON_HTML
+	
+Extern
+	Function Image2Icon:Void( input:String, output:String, width:Int, height:Int, circular:Bool=False, colour:String="" )="image2icon"
+	Function Image2Icon:Void( host_os:String, input:String, output:String, circular:Bool=False, colour:String="" )="image2icon"
