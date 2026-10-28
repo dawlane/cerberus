@@ -1,0 +1,9 @@
+Const TEST_BUILD:="-run"
+
+#If DEBUG_TEST_CFG="Release"
+	Const TEST_CONFIG:="release"
+#Elseif DEBUG_TEST_CFG="Debug"
+	Const TEST_CONFIG:="debug"
+#Else
+#Error "DEBUG_TEST_CFG must be either Release or Debug and not "+DEBUG_TEST_CFG
+#Endif

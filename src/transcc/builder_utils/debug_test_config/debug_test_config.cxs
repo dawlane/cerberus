@@ -1,0 +1,188 @@
+Import defaults
+
+#If DEBUG_TARGET="Desktop"
+
+	#Print "DEBUG WITH DESKTOP TARGET, OR CMAKE DESKTOP TARGET"
+	
+	#If DEBUG_TEST="TransCC"
+
+		Import test_transcc
+	    Const TEST_TARGET:="C++_Tool"
+	    
+	 #Elseif DEBUG_TEST="Mojo"
+		Import test_mojo
+	    Const TEST_TARGET:="Desktop_Game"
+	    
+	 #Elseif DEBUG_TEST="Mojo2"
+
+	 	Import test_mojo2
+	    Const TEST_TARGET:="Desktop_Game"
+	    
+	 #Elseif DEBUG_TEST="Reflection"
+	 	Import test_reflections
+	    Const TEST_TARGET:="Desktop_Game"
+	    
+	 #Elseif DEBUG_TEST="Audio"
+	 	Import test_audio
+	    Const TEST_TARGET:="Desktop_Game"
+	    
+	 #Elseif DEBUG_TEST="HTTP Request"
+	 	Import test_http_request
+	    Const TEST_TARGET:="Desktop_Game"
+	    
+	 #Elseif DEBUG_TEST="CMAKE Demo Console"
+	 	Import test_cmake_demo_console
+	    Const TEST_TARGET:="CMake_C++_Tool"
+	    
+	 #Elseif DEBUG_TEST="CMAKE Demo GLFW"
+	 	Import test_cmake_demo_glfw
+	    Const TEST_TARGET:="CMake_Desktop_Game"
+	    
+	 #Elseif DEBUG_TEST="CMAKE Demo Audio"
+	    Import test_camke_audio
+	    Const TEST_TARGET:="CMake_Desktop_Game"
+	    
+	 #Elseif DEBUG_TEST="CMAKE Demo Echo Server TCP"
+	    Import test_cmake_echo_tcp
+	    Const TEST_TARGET:="CMake_Desktop_Game"
+	    
+	 #Elseif DEBUG_TEST="CMAKE Demo Echo Server UDP"
+	    Import test_cmake_echo_upd
+	    Const TEST_TARGET:="CMake_Desktop_Game"
+	    
+	 #Elseif DEBUG_TEST="CMAKE Demo HTTP Request"
+	    Import test_cmake_http_request
+	    Const TEST_TARGET:="CMake_Desktop_Game"
+	    
+	 #Else
+	 	#Error "DEBUG_TEST:~nDesktop must be:~nTransCC, Reflection, Mojo, Mojo2, Audio,~nCMAKE Demo Console, CMAKE Demo GLFW, CMAKE Demo Audio, CMAKE Demo Echo Server TCP,~nCMAKE Demo Echo Server UDP, CMAKE Demo HTTP Request.~nAnd not "+DEBUG_TEST
+	 #Endif
+	 
+#Elseif DEBUG_TARGET="Android"
+
+	#Print "DEBUG WITH ANDROID TARGET"
+	
+	#If DEBUG_TEST="Mojo"
+	 	Import test_mojo
+	    Const TEST_TARGET:="Android_Game"
+	    
+	 #Elseif DEBUG_TEST="Mojo2"
+	 	Import test_mojo2
+	    Const TEST_TARGET:="Android_Game"
+	    
+	 #Elseif DEBUG_TEST="Audio"
+	 	Import test_audio
+	    Const TEST_TARGET:="Android_Game"
+	 #Else
+	 	#Error "DEBUG_TEST: Android must be Mojo,Mojo2 or Audio and not "+DEBUG_TEST
+	 #Endif
+	 
+#Elseif DEBUG_TARGET="iOS"
+
+	#Print "DEBUG WITH IOS TARGET"
+	
+	#If DEBUG_TEST="Mojo"
+	 	Import test_mojo
+	    Const TEST_TARGET:="iOS_Game"
+	    
+	 #Elseif DEBUG_TEST="Mojo2"
+	 	Import test_mojo2
+	    Const TEST_TARGET:="iOS_Game"
+	    
+	 #Elseif DEBUG_TEST="Audio"
+	 	Import test_audio
+	    Const TEST_TARGET:="iOS_Game"
+	 #Else
+	 	#Error "DEBUG_TEST: iOS must be Mojo, Mojo2 or Audio and not "+DEBUG_TEST
+	 #Endif
+	 
+#Elseif DEBUG_TARGET="iOS 15+"
+
+	#Print "DEBUG WITH NEW IOS TARGET"
+	
+	#If DEBUG_TEST="Mojo"
+	 	Import test_mojo
+	    Const TEST_TARGET:="iOS_15+"
+	    
+	 #Elseif DEBUG_TEST="Mojo2"
+	 	Import test_mojo2
+	    Const TEST_TARGET:="iOS_15+"
+	    
+	 #Elseif DEBUG_TEST="Audio"
+	 	Import test_audio
+	    Const TEST_TARGET:="iOS_15+"
+	    
+	 #Else
+	 	#Error "DEBUG_TEST: iOS must be Mojo, Mojo2 or Audio and not "+DEBUG_TEST
+	 #Endif
+	 
+#Elseif DEBUG_TARGET="iOS Metal"
+
+	#Print "DEBUG WITH IOS METAL TARGET"
+	
+	#If DEBUG_TEST="Mojo"
+	 	Import test_mojo
+	    Const TEST_TARGET:="New_iOS_Metal_Game"
+	    
+	 #Elseif DEBUG_TEST="Mojo2"
+	 	Import test_mojo2
+	    Const TEST_TARGET:="New_iOS_Metal_Game"
+	    
+	 #Elseif DEBUG_TEST="Audio"
+	 	Import test_audio
+	    Const TEST_TARGET:="New_iOS_Metal_Game"
+	    
+	 #Else
+	 	#Error "DEBUG_TEST: iOS must be Mojo, Mojo2 or Audio and not "+DEBUG_TEST
+	 #Endif
+	  
+#Elseif DEBUG_TARGET="New iOS Metal"
+
+	#Print "DEBUG WITH NEW IOS METAL TARGET"
+	
+	#If DEBUG_TEST="Mojo"
+	 	Import test_mojo
+	    Const TEST_TARGET:="iOS_Metal_Game"
+	    
+	 #Elseif DEBUG_TEST="Mojo2"
+	 	Import test_mojo2
+	    Const TEST_TARGET:="iOS_Metal_Game"
+	    
+	 #Elseif DEBUG_TEST="Audio"
+	 	Import test_audio
+	    Const TEST_TARGET:="iOS_Metal_Game"
+	    
+	 #Else
+	 	#Error "DEBUG_TEST: iOS must be Mojo, Mojo2 or Audio and not "+DEBUG_TEST
+	 #Endif
+	 
+#Elseif DEBUG_TARGET="HTML"
+
+	#Print "DEBUG WITH HTML TARGET"
+	
+	#If DEBUG_TEST="Mojo"
+	 	Import test_mojo
+	    Const TEST_TARGET:="Html5_Game"
+	    
+	 #Elseif DEBUG_TEST="Mojo2"
+	 	Import test_mojo2
+	    Const TEST_TARGET:="Html5_Game"
+	    
+	 #Elseif DEBUG_TEST="Audio"
+	 	Import test_audio
+	    Const TEST_TARGET:="Html5_Game"
+	    
+	 #Else
+	 	#Error "DEBUG_TEST: HTML must be Mojo, Mojo2 or Audio and not "+DEBUG_TEST
+	 #Endif
+	 
+#Else
+	#Error "DEBUG_TARGET: Must be Desktop, Android, iOS or HTML and not "+DEBUG_TARGET
+#Endif
+
+' Comes in handy when needing to debug the parser.
+' If DebugIsMainCXS(Toker.Path) DebugStop
+Function DebugIsMainCXS( path:String )
+    If path.Contains( TEST_FILE+".cxs" ) Return True
+    Return False
+End
