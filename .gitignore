@@ -1,4 +1,17 @@
+# gitignore file
+
+# Ignore binary files or dependency directories.
 /bin/*
+/Cerberus
+/Cerberus.app
+/Cerberus.exe
+/docs/html
+/*.desktop
+
+/modules/brl/native/GoogleAdMobAdsSdkiOS-6.8.0
+/modules/brl/native/GoogleAdMobAdsSdk-6.4.1.jar
+
+# Files not to ignore
 !/bin/*.txt
 !/bin/themes
 !/bin/icons
@@ -6,51 +19,87 @@
 !/bin/data
 !/bin/internal
 !/bin/external
-!/bin/macdeploy*.command
+
+# External tools etc.
 /mingw*
 /MinGW*
 /tdm*
 /TDM*
+/CMake
+/cmake
+/Ninja
+/ninja
+/JDK
+/jdk
+/Android
+/android
 
+# Ignore targets
+/targets/__deprecated__/android_ndk
+/targets/**/build/
+/targets_ext/**/build/
 
+# Ignore all generated transcc build directories with a version number.
+*.buildv*
+
+# Files & directories that should not be allowed into the final transcc.build directory
+/**/transcc.build/**/msvc/msvc/Release*
+/**/transcc.build/**/msvc/msvc/Debug*
+/src/transcc/transcc.build/**/*.o
+/src/transcc/transcc.build/cpptool/main_winnt.exe
+/src/transcc/transcc.build/cpptool/main_linux
+/src/transcc/transcc.build/cpptool/main_macos
+/src/transcc/transcc.build/cpptool/xcode/build
+
+# CMake builds binary builds should go here.
+/**/demo_build/
+
+# Miscellaneous files
 .bmx
 .DS_Store
 ._.DS_Store
 ._*
-*.buildv*
 *.bak
 desktop.ini
 Thumbs.db
+/src/builders/images/svg/*.svg
+/src/builders/bash/temp/*
+developer_notes.md
 
-/Cerberus
-/Cerberus.app
-/Cerberus.exe
-
-/docs/html
-
-/modules/brl/native/GoogleAdMobAdsSdkiOS-6.8.0
-/modules/brl/native/GoogleAdMobAdsSdk-6.4.1.jar
-
-!/src/rebuildall*
-/src/createrelease
+# QtCreator build directory and files
+/src/build/
+/src/ted/build/
+/src/ted/.qtcreator
 /src/ted-build-*
 /src/build-ted-*
 /src/ted/ted.pro.user*
 
-/targets/__deprecated__/android_ndk
+# This should filter out any XCode build directory created.
+/**/xcode/**/build/
+/**/xcuserdata/
+/**/*./**/xcuserdatad
 
+# Cerberus Launcher: code::blocks project build files
 /src/launcher/codeblocks/obj
 /src/launcher/codeblocks/launcher.depend
 /src/launcher/codeblocks/launcher.layout
 /src/launcher/*.o
 
-/src/transcc/transcc.build/cpptool/main_winnt.exe
-/src/transcc/transcc.build/cpptool/main_linux
-/src/transcc/transcc.build/cpptool/main_macos
+# Cerberus Launcher: Xcode build files
+/src/launcher/xcode/build
 
-/src/builders/images/svg/*.svg
-/src/builders/bash/temp/*
-
+# Visual Studio Code
 .vscode
 *.code-workspace
-*.desktop
+
+# Visual Studio
+.vs
+*vcxproj.user
+*.pdb
+/**/transcc.build/**/msvc/Debug*
+/**/transcc.build/**/msvc/Release*
+
+# Dead wood ignores here
+!/bin/macdeploy*.command
+!/src/rebuildall*
+/src/createrelease
