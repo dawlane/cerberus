@@ -1,0 +1,873 @@
+' Here is a list of CMake cache variable that can be passed to a CMakeLists.txt file.
+'
+'
+'------------------------------------------------------------------------------------------------------------------------------------------------------------
+'                                                            |                                             |
+'    The Cerberus-X preprocessor variable                    |    CMake Cache variable name or command     |    Description
+'    INTERNAL are not preprocessor variables                 |                                             |
+'                                                            |                                             |
+'------------------------------------------------------------------------------------------------------------------------------------------------------------
+'    CMAKE_OUTPUT_PATH                                       |    CX_INSTALL_PREFIX                        |    Final output path
+'    CMAKE_USE_PRESET                                        |    CX_PLATFORM                              |    Select the preset to use. See the files in cmake-presets.
+'    INTERNAL                                                |    CX_TARGET_TOOL                           |    Use to load the build tool options. See supported_targets in shared/cmake
+'    CMAKE_PROJECT_NAME                                      |    CX_PROJECT_NAME                          |    The final output name. Passed as option on the command line.
+'                                                            |                                             |
+'    CX_PROJECT_VERSION                                      |    CX_PROJECT_VERSION                       |    The version number to use for the project. Passed as option on the command line.
+'                                                            |                                             |
+'    INTERNAL                                                |    CX_ROOT_DIR                              |    The Cerberus root directory
+'    INTERNAL                                                |    CX_LIBS_DIR                              |    The path to Cerberus libs directory
+'    INTERNAL                                                |    CX_PROJECT_DIR                           |    The Current project path root
+'    INTERNAL                                                |    CX_TARGET_SYSTEM_NAME                    |    The tcc.target.system variable.
+'    CMAKE_DEBUG_SHOW_CACHE_VARS                             |    CX_TRIGGER_CMAKE_DEBUG_SHOW_CACHE_VARS   |    Shows CACHE variable, and properties.
+'                                                            |                                             |
+'    INTERNAL                                                |    CX_PRESET_VAR_NAME                       |    Hold the preset name.
+'                                                            |                                             |
+'    INTERNAL                                                |    CX_VERBOSE_OUTPUT                        |    Boolean value to show non debug log information 
+'                                                            |                                             |
+'    INTERNAL                                                |    CX_TRIGGER_WIN_SOCKET2                   |    Boolean value acting as an inclusion guard for win socket 2
+'                                                            |                                             |
+'    {preset-config}_STATIC_BUILD                            |    CX_TRIGGER_MINGW_STATIC_BUILD            |    Boolean value to link in static runtimes.
+'    {preset-config}_WINDOWS_SDK                             |    CX_WINDOWS_SDK                           |    The version of Windows SDK to use.
+'    {preset-config}_SET_MSVC_PLATFORM_TOOLSET               |    -T "PLATFORM TOOLSET VERSION"            |    Set the version of the platform toolset to use. Passed as option on the command line.
+'                                                            |                                             |
+'    {preset-config}_COMPILER                                |    CX_OPTS_COMPILER                         |    The options to pass to the compiler.
+'    INTERNAL                                                |    CX_TRIGGER_OPTS_COMPILER                 |    Boolean value acting as an inclusion guard
+'                                                            |                                             |
+'    {preset-config}_DEFINES                                 |    CX_OPTS_DEFINES                          |    Pass defines to the compiler
+'    INTERNAL                                                |    CX_TRIGGER_OPTS_DEFINES                  |    Boolean value acting as an inclusion guard
+'                                                            |                                             |
+'    {preset-config}_LINKER                                  |    CX_OPTS_LINKER                           |    Pass options to the linker.
+'    INTERNAL                                                |    CX_TRIGGER_OPTS_LINKER                   |    Boolean value acting as an inclusion guard
+'                                                            |                                             |
+'    {preset-config}_SHARED_LIBS                             |    CX_OPTS_SHARED_LIB                       |    Pass shared libraries dll,so,dylib
+'    {preset-config}_SHARED_LIB_PATHS                        |    CX_PATHS_SHARED_LIB                      |    Paths to search for shared libraries.
+'    INTERNAL                                                |    CX_TRIGGER_SHARED_LIBRARIES              |    Boolean value acting as an inclusion guard
+'                                                            |                                             |
+'    {preset-config}_STATIC_LIBS                             |    CX_OPTS_STATIC_LIB                       |    Pass shared libraries .lib,.a
+'    {preset-config}_STATIC_LIB_PATHS                        |    CX_PATHS_STATIC_LIB                      |    Paths to search for static libraries.
+'    INTERNAL                                                |    CX_TRIGGER_STATIC_LIBRARIES              |    Boolean value acting as an inclusion guard
+'                                                            |                                             |
+'    {preset-config}_INCLUDE_PATHS                           |    CX_PATHS_INCLUDE                         |    Paths to search for include files.
+'    INTERNAL                                                |    CX_TRIGGER_PATHS_INCLUDE                 |    Boolean value acting as an inclusion guard
+'                                                            |                                             |
+'    {preset-config}_AUDIO_DRIVER                            |    CX_AUDIO_DRIVER                          |    Pass the name of the audio library to use
+'    INTERNAL                                                |    CX_TRIGGER_AUDIO_DRIVER                  |    Boolean value acting as an inclusion guard
+'                                                            |                                             |
+'    CMAKE_NETWORK_CLIENT                                    |    CX_NETWORK_CLIENT                        |    Pass the name of the network client to use.
+'    INTERNAL                                                |    CX_TRIGGER_NETWORK_CLIENT                |    Boolean value acting as an inclusion guard
+'                                                            |                                             |
+'    {preset-config}_FRAMEWORK_PATHS                         |    CX_PATHS_FRAMEWORKS                      |    Apple devices only. Pass search paths for frameworks.
+'                                                            |                                             |
+'    {preset-config}_FRAMEWORKS                              |    CX_OPTS_FRAMEWORKS                       |    Apple devices only. Pass a list of frameworks.
+'    INTERNAL                                                |    CX_TRIGGER_OPTS_FRAMEWORKS               |    Boolean value acting as an inclusion guard
+'                                                            |                                             |
+'    {preset-config}_SOURCES                                 |    CX_OPTS_SOURCE                           |    Holds the list of additional source files to add. Note full paths.
+'    {preset-config}_SOURCES_PATHS                           |    Handled by Cerberus                      |    Used to search for additional source files.
+'    INTERNAL                                                |    CX_TRIGGER_OPTS_SOURCE                   |    Boolean value acting as an inclusion guard.
+'                                                            |                                             |
+'    {preset-config}_APP_BUNDLE_ID                           |    CX_APPLE_APP_BUNDLE_ID                   |    Apple devices only. Sets the apple bundle id
+'                                                            |                                             |
+'    {preset-config}_ENTITLEMENT_FILE                        |    CX_APPLE_ENTITLEMENTS_FILE               |    Apple devices only. File path for apple entitlements file.
+'    INTERNAL                                                |    CX_TRIGGER_APPLE_ENTITLEMENTS_FILE       |    Boolean value acting as an inclusion guard.
+'                                                            |                                             |
+'    {preset-config}_APPLE_CODESIGN_ID                       |    CX_APPLE_CODESIGN                        |    Apple devices only. Sets the code sign id.
+'    {preset_config}_APPLE_CODESIGN_DEVELOPMENT_TEAM         |    CX_APPLE_CODESIGN_DEVELOPMENT_TEAM       |    Apple devices only. Sets the Apple code sign team development id.
+'    {preset-config}_APPLE_CODESIGN_STYLE                    |    CX_APPLE_CODESIGN_STYLE                  |    Apple devices only. Set the code singing style. Manual/Automatic
+'    INTERNAL                                                |    CX_TRIGGER_APPLE_CODESIGN                |    Boolean value acting as an inclusion guard.
+'------------------------------------------------------------------------------------------------------------------------------------------------------------                            
+'
+' NOTES:
+'    Sources and their paths are resolved in the binary, and saved to file as "source-files.cmake" at target root. A CMake function should be used to add this file to the build process.
+'
+'    The default cmake files are in sub directories in the Cerberus/shared/cmake directory. See: README.txt in Cerberus/shared/cmake for details.
+'    CMAKE_IMPORT_DEFAULT_SHARED_LIBRARIES:        Setting this to true will import all files in Cerberus/shared/cmake/shared
+'    CMAKE_IMPORT_DEFAULT_STATIC_LIBRARIES:        Setting this to true will import all files in Cerberus/shared/cmake/static
+'     
+'    Cache variables marked as CX_TRIGGER are used function header guards to prevent empty variables from being processed. CMake may throw an error otherwise.
+'    CMAKE_VERBOSE_OUTPUT:                         Cause verbose compiler and linker output for debugging.
+'    CMAKE_RECONFIG:                               Used to force copying of all CMake build files, and forces CMake reconfigure.
+'    CMAKE_DEBUG_LOG:                              This preprocessor is checked in the cache_resolver.cxs file, and adds this to the the CMake cache variables set(CMAKE_MESSAGE_LOG_LEVEL "DEBUG" CACHE STRING "Log level" FORCE)
+'    CMAKE_DEBUG_CACHE_VARS:                       Setting this will build the application and stop, showing all teh cache variables being used.
+'    CMAKE_USE_PROJECT_FILES:                      Setting this to true will by-pass the defaults in favour of the projects cmake directory.
+
+
+Import builder
+Import builder_utils.cmake_utils
+Import builder_utils.image2icon
+
+Class CMakeBuilder Extends Builder
+
+	Method New( tcc:TransCC )
+		Super.New( tcc )
+	End
+
+	Method Config:String()
+		Local config:=New StringStack
+		For Local key:=Eachin GetConfigVarKeys()
+			config.Push "#define CFG_"+key+" "+GetConfigVar(key)
+		Next
+		Return config.Join( "~n" )
+	End
+	
+	Method IsValid:Bool()
+
+		Select HostOS
+		Case "winnt"
+			If FileType( tcc.CMAKE_PATH+"/bin/cmake.exe" )=FILETYPE_FILE Return True
+		Case "macos"
+		
+			' Check the config path first
+			If FileType( tcc.CMAKE_PATH+"/cmake" )=FILETYPE_FILE Return True
+			
+			' Check the Applications directory, and the set the path
+			If FileType( "/Applications/CMake.app/Contents/bin/cmake" )=FILETYPE_FILE
+				tcc.CMAKE_PATH="/Applications/CMake.app/Contents/bin"
+				Return True
+			Endif
+			
+		Case "linux"
+			Return True
+			
+		End Select
+		Return False
+	End
+
+	Method Begin:Void()
+		ENV_LANG="cpp"
+		_trans=New CppTranslator
+	End
+
+	Method MakeTarget:Void()
+		SetMessagePrefix( "CMAKE BUILD SYSTEM" )
+		
+		' Cerberus uses CMake presets for setting up the base build environment.
+		If Not ConfigVarsContain( "CMAKE_USE_PRESET" ) Die( "CMAKE BUILD SYSTEM: A preset is required and is selected via the #CMAKE_USE_PRESET config variable."+
+			"~nThe naming for these follows this patern: target-architecture. e.g. linux-x64" )
+		
+		
+		UpdateMainSourceFile()														' Call common main.cpp update method.
+			
+		_project_target_dir=CurrentDir()+"/"											' Store the current directory for later use elsewhere in the class.
+		_install_prefix=GetConfigVar( "CMAKE_OUTPUT_PATH" )							' The destination directory for the final output.
+		_preset_name=GetConfigVar( "CMAKE_USE_PRESET" )+"-"+ENV_CONFIG					' Store the original preset name. This will be used for the build directory.
+		_reconfigure=Bool(GetConfigVar( "CMAKE_RECONFIG" ))							' Get the reconfigure flag.
+		_shared_dir=tcc.cerberusdir+"/shared/cmake/"
+		_verbose=Bool( GetConfigVar( "CMAKE_VERBOSE_OUTPUT" ) )
+				
+		Local cmake_cmd_list:=New StringStack(),										' The command line list is used to add options that MUST be placed before the CMake --build option.
+			cmake_options:=New CMakeCacheOption(),										' Data structure to handle cache options to pass on to CMake.
+			project_dir:=GetConfigVar( "PROJECTDIR" ),									' Get the users root project path.
+			preset_name:=_preset_name.ToUpper().Replace( "-","_" ),					' This for use with Cerberus config variables.
+			project_version:="" 														' Set the default project version number.
+			
+		
+		'-------------------------------------------------------------------------------------------------------------------------------------
+		' CONTROL HOW CERBERUS HANDLES THE CMAKE FILES
+		'	1. If there is a target lock file, then don't touch. Handy if a target template should not make any changes.
+		'	2. If CMAKE_USE_PROJECT_FILES is true, then copy the projects cmake directory if it exists. Total user control.
+		'	3. If CMAKE_USE_PROJECT_FILES is false, then use the Cerberus versions.
+		'	
+		'	Special note: As CMAKE_RECONFIG recopies the files. It can be use for debugging when the CMAKE_CONFIG_ONLY flag is set to true
+		'-------------------------------------------------------------------------------------------------------------------------------------
+		
+		If FileType( _project_target_dir+"target_lock" )=FILETYPE_NONE
+		
+			' Use the users project cmake files if the exist
+			If GetConfigVar( "CMAKE_USE_PROJECT_FILES" )="1" And FileType( project_dir+"cmake" )=FILETYPE_DIR
+			
+				' Reconfigure flag true: Clear out the old cmake user project files and recopy from the user projetc cmake directory.
+				' Reconfigure flag false: Copy the project if the directory if one is not already there.
+				If _reconfigure
+					
+					' Use the items in the source directory to delete the items in the current directory.
+					For Local i:=Eachin LoadDir( project_dir+"cmake" )
+					
+						Select FileType( _project_target_dir+i )
+							Case FILETYPE_FILE
+								If FileType( _project_target_dir+i )=FILETYPE_FILE DeleteFile( _project_target_dir+i )
+							Case FILETYPE_DIR
+								If FileType( _project_target_dir+i )=FILETYPE_DIR DeleteDir( _project_target_dir+i,True )
+						End Select
+						
+					Next
+					
+					CopyDir( project_dir+"cmake",_project_target_dir,True )
+					
+				Elseif FileType( _project_target_dir+"cmake"  )=FILETYPE_NONE
+				
+					CopyDir( project_dir+"cmake",_project_target_dir+"cmake",True )
+					
+				Endif
+				
+			Else
+				
+				' Reconfigure flag true: Clear out each of the Cerberus version.
+				' Reconfigure flag false: Copy over the Cerberus versions.
+				If _reconfigure
+				
+					' Important: The cmake directory has to exists first.
+					If FileType( _project_target_dir+"cmake" )=FILETYPE_NONE CreateDir( _project_target_dir+"cmake" )
+					
+					' Special flags used to determine if the library scripts are to be used.
+					If GetConfigVar( "CMAKE_IMPORT_DEFAULT_SHARED_LIBRARIES" )="1"
+						DeleteDir( _project_target_dir+"cmake/shared",True )
+						CopyDir( _shared_dir+"shared",_project_target_dir+"cmake/shared",True )
+					Endif
+					
+					If GetConfigVar( "CMAKE_IMPORT_DEFAULT_STATIC_LIBRARIES" )="1"
+						DeleteDir( _project_target_dir+"cmake/static",True )
+						CopyDir( _shared_dir+"static",_project_target_dir+"cmake/static",True )
+					Endif
+					
+					' Refresh the default functions
+					If FileType( _project_target_dir+"cmake/functions" )=FILETYPE_DIR DeleteDir( _project_target_dir+"cmake/functions",True )
+					CopyDir( _shared_dir+"functions",_project_target_dir+"cmake/functions",True )
+					
+					' Refresh the default presets
+					If FileType( _project_target_dir+"presets" )=FILETYPE_DIR DeleteDir( _project_target_dir+"presets",True )
+					CopyDir( _shared_dir+"presets/presets",_project_target_dir+"presets",True )
+					
+					If FileType( _project_target_dir+"CMakePresets.json" )=FILETYPE_FILE DeleteFile( _project_target_dir+"CMakePresets.json" )
+					CopyFile( _shared_dir+"presets/CMakePresets.json",_project_target_dir+"CMakePresets.json" )
+					
+					' Refresh the default targets
+					If FileType( _project_target_dir+"cmake/target_systems" )=FILETYPE_DIR DeleteDir( _project_target_dir+"cmake/target_systems",True )
+					CopyDir( _shared_dir+"supported_targets/"+tcc.target.system+"/targets",_project_target_dir+"cmake/target_systems",True )
+					
+					' Refresh the CMakeLists.txt file
+					If FileType( _shared_dir+"supported_targets/"+tcc.target.system+"CMakeLists.txt" )=FILETYPE_FILE DeleteFile( _project_target_dir+"CMakeLists.txt" )
+					CopyFile( _shared_dir+"supported_targets/"+tcc.target.system+"/CMakeLists.txt",_project_target_dir+"CMakeLists.txt" )
+					
+				Elseif FileType( _project_target_dir+"copy_lock" )=FILETYPE_NONE
+				
+					' Place an empty file as a quick copy lock
+					SaveString( "",_project_target_dir+"copy_lock" )
+					
+					If FileType( _project_target_dir+"cmake" )=FILETYPE_NONE CreateDir( _project_target_dir+"cmake" )
+					
+					If GetConfigVar( "CMAKE_IMPORT_DEFAULT_SHARED_LIBRARIES" )="1" CopyDir( _shared_dir+"shared",_project_target_dir+"cmake/shared",True )
+					If GetConfigVar( "CMAKE_IMPORT_DEFAULT_STATIC_LIBRARIES" )="1" CopyDir( _shared_dir+"static",_project_target_dir+"cmake/static",True )
+					
+					' Copy default functions
+					CopyDir( _shared_dir+"functions",_project_target_dir+"cmake/functions",True )
+					
+					' Copy default presets.
+					CopyDir( _shared_dir+"presets/presets",_project_target_dir+"presets",True )
+					CopyFile( _shared_dir+"presets/CMakePresets.json",_project_target_dir+"CMakePresets.json" )
+					
+					' Copy default targets
+					CopyDir( _shared_dir+"supported_targets/"+tcc.target.system+"/targets",_project_target_dir+"cmake/target_systems",True )
+					CopyFile( _shared_dir+"supported_targets/"+tcc.target.system+"/CMakeLists.txt",_project_target_dir+"CMakeLists.txt" )
+				Endif
+				
+			Endif
+			
+		Endif
+		
+		'-------------------------------------------------------------------------------------------------------------------------------------
+		' GENERAL SETUP
+		'	1. Check that CMAKE_USE_PRESET is acctually set, and preset file is present.
+		'	2. Get the output name. Use a default if CMAKE_PROJECT_NAME is not set.
+		'	3. Get the output path. Use the build directory, and the preset name if CMAKE_OUTPUT_PATH is not set.
+		'-------------------------------------------------------------------------------------------------------------------------------------
+		
+		If Not FileType( _project_target_dir+"/CMakeLists.txt" )=FILETYPE_FILE Die( "CMAKE BUILD SYSTEM: A CMakeLists.txt file is is required." )
+		If Not ( FileType( _project_target_dir+"/CMakeUserPresets.json" )=FILETYPE_FILE Or
+			FileType( _project_target_dir+"/CMakePresets.json" )=FILETYPE_FILE ) Die( "CMAKE BUILD SYSTEM: A CMakeUserPresets, or CMakePresets JSON file is required." )
+
+		_projectName=GetConfigVar( "CMAKE_PROJECT_NAME" )
+		If _projectName="" _projectName="application_"+HostOS()
+		If _install_prefix="" _install_prefix=CurrentDir()+"/"+_preset_name
+		
+		'--------------------------------------------------------------------------------------------------------------------------------------------------
+		' SET CMAKE OPTIONS THAT NEED TO GO BEFORE THE BUILD OPTION
+		'	1. The project name must be placed before the build -B.
+		'	2. The project version number. Sets a DEFINE in the compiler options that sources can use for version numbers.
+		'
+		' Special note: As it is possible that other option may need to go before the build option -B,
+		'				they are pushed onto a stack and converted to a string later
+		'--------------------------------------------------------------------------------------------------------------------------------------------------
+		
+		cmake_cmd_list.Push( "-DCX_PROJECT_NAME=~q"+_projectName+"~q" )
+		project_version=GetConfigVar( "CMAKE_PROJECT_VER" )
+		If project_version<>"" cmake_cmd_list.Push( "-DCX_PROJECT_VERSION=~q"+project_version+"~q" ) Else cmake_cmd_list.Push( "-DCX_PROJECT_VERSION=~q1.0~q" )
+		
+		
+		'--------------------------------------------------------------------------------------------------------------------------------------------------
+		' CERBERUS VARIABLES TO PASS
+		'--------------------------------------------------------------------------------------------------------------------------------------------------
+		cmake_options.AddCacheVar( "CX_PROJECT_DIR","PATH",_project_target_dir,"The directory to the projecr files." )
+		cmake_options.AddCacheVar( "CX_INSTALL_PREFIX","PATH",_install_prefix,"The final output path for the application." )
+		cmake_options.AddCacheVar( "CX_ROOT_DIR","PATH",tcc.cerberusdir,"The directory to the Cerberus-X installation." )
+		cmake_options.AddCacheVar( "CX_LIBS_DIR","PATH",tcc._libs,"The directory to the Cerberus-X installation." )
+		cmake_options.AddCacheVar( "CX_TARGET_SYSTEM_NAME","STRING",tcc.target.system.ToLower(),"Pass the target system name." )
+		cmake_options.AddCacheVar( "CX_PRESET_VAR_NAME","STRING",preset_name,"Pass the Cerberus-X config preset." )
+		If _verbose cmake_options.AddCacheVar( "CX_VERBOSE_OUTPUT","BOOL",preset_name,"Use to output non debug log information" )
+		
+		
+		' If set, then show the internal CMake cache files.
+		If GetConfigVar( "CMAKE_DEBUG_SHOW_CACHE_VARS" )="1" cmake_options.AddCacheVar( "CX_TRIGGER_CMAKE_DEBUG_SHOW_CACHE_VARS","BOOL","ON","Turn on the showing of the CACHE variables" )
+	
+		'--------------------------------------------------------------------------------------------------------------------------------------------------
+		' HOST OPERATING SYSTEM SPECIFIC
+		'	On MS Windows:
+		'		MinGW:
+		'			1. Select the MinGW compiler to use based on the preset architecture flag in the preset name. i.e. x86|x64|32|64, and if the variables
+		'			  CMAKE_MINGW_PATH_X86 and CMAKE_MINGW_PATH_X86 point to an g++ binrary.
+		'			2. Select if the GCC and winpthreas are to be linked in statically.
+		'			3. TODO: Set the application icon.
+		'
+		'		Visual Studio:
+		'			1. Set the MS Windows SDK. IF not set, then used the default value stored in WIN_SDK
+		'			2. Set the MSVC platform tool set to use. If not set, then use the value stored in PLATFORM_TOOLSET
+		'			4. TODO: Set the application icon.
+		'
+		'		Ninja MSVC:
+		'			1. TODO: Setup MSVC environment.
+		'
+		'	On macOS:
+		'		Xcode:
+		'			1. Set Frameworks to use
+		'			2. Set Framework paths
+		'
+		'--------------------------------------------------------------------------------------------------------------------------------------------------
+		Select HostOS()
+		
+			Case "winnt"
+			
+				' MinGW checks
+				If _preset_name.ToLower().Contains( "mingw" )
+					
+					If tcc.CMAKE_MINGW_PATH_X86 Or tcc.CMAKE_MINGW_PATH_X64
+						
+						Local path:=GetEnv( "PATH" )
+						
+						If FileType( tcc.CMAKE_MINGW_PATH_X86+"/bin/g++.exe" )=FILETYPE_FILE And (_preset_name.ToLower().Contains( "x86" ) Or _preset_name.Contains( "32" ) )
+							
+							Message( "MinGW path set to: "+tcc.CMAKE_MINGW_PATH_X86 )
+							
+							SetEnv( "PATH",tcc.CMAKE_MINGW_PATH_X86+"\bin;"+path )
+							
+						Elseif FileType( tcc.CMAKE_MINGW_PATH_X64+"/bin/g++.exe" )=FILETYPE_FILE And _preset_name.Contains( "x64" )
+							
+							Message( "MinGW path set to: "+tcc.CMAKE_MINGW_PATH_X64 )
+							SetEnv( "PATH",tcc.CMAKE_MINGW_PATH_X64+"\bin;"+path )
+							
+						Endif
+		
+					Endif
+					 
+					If ConfigVarsContain( preset_name+"_STATIC_BUILD" )
+						
+						If GetConfigVar( preset_name+"_STATIC_BUILD" )="1"
+							cmake_options.AddCacheVar( "CX_TRIGGER_MINGW_STATIC_BUILD","BOOL","ON","Turn on setting the toolchain paths." )
+						Endif
+						
+					Endif
+				
+				' Visual Studio Checks	
+				Elseif _preset_name.ToLower().StartsWith( "vs20" )
+					
+					If ConfigVarsContain( preset_name+"_WINDOWS_SDK" )
+						cmake_options.AddCacheVar( "CX_WINDOWS_SDK","String",GetConfigVar( preset_name+"_WINDOWS_SDK" ),"Set the Windows SDK version." )
+					Else
+						cmake_options.AddCacheVar( "CX_WINDOWS_SDK","String",tcc.WIN_SDK,"Set the Windows SDK version." )
+					Endif
+					
+					If ConfigVarsContain( preset_name+"_SET_MSVC_PLATFORM_TOOLSET" )
+						tcc.PLATFORM_TOOLSET=GetConfigVar( preset_name+"_SET_MSVC_PLATFORM_TOOLSET" )
+						cmake_cmd_list.Push( "-T ~q"+tcc.PLATFORM_TOOLSET+"~q" )
+					Endif
+					
+				Elseif _preset_name.ToLower().StartsWith( "ninja" ) And _preset_name.ToLower().Contains( "msvc" )
+					
+					' TODO: Implement what vcvarsall.bat does.
+					Die("CMAKE BUILD SYSTEM: Ninja Build with MSVC is a work-in-progress and is currently unavailable.")
+					
+				Endif
+			
+			' Apple macOS checks
+			Case "macos"
+				
+
+				If ConfigVarsContain( preset_name+"_FRAMEWORKS" ) And ConfigVarsContain( preset_name+"_FRAMEWORK_PATHS" )
+				
+					' NOTE: In CMake you cannot pass paths separately. They have to be passed together, else the will be issues with
+					' 		tying to find headers and linking.
+					UnifyConfigVarSeparator( preset_name+"_FRAMEWORKS",";",[" ","|"] )
+					UnifyConfigVarSeparator( preset_name+"_FRAMEWORK_PATHS",";",[" ","|"] )
+					
+					cmake_options.AddCacheVar( "CX_OPTS_FRAMEWORKS","STRING",GetConfigVar( preset_name+"_FRAMEWORKS" ),"Framework options to pass to the compiler." )
+					cmake_options.AddCacheVar( "CX_PATHS_FRAMEWORKS","PATH",GetConfigVar( preset_name+"_FRAMEWORK_PATHS" ),"Framework paths to search." )
+					cmake_options.AddCacheVar( "CX_TRIGGER_OPTS_FRAMEWORKS","BOOL","ON","Turn on passing framework options." )
+				Endif
+				
+				If tcc.target.system<>"stdcpp"
+					Local bundle_id:=GetConfigVar( preset_name+"_APP_BUNDLE_ID" )
+					If bundle_id="" bundle_id="com.mycompany"
+					cmake_options.AddCacheVar( "CX_APPLE_APP_BUNDLE_ID","STRING",bundle_id,"The application bundle identifier." )
+				Endif
+			
+		End Select
+		
+		If tcc.target.system<>"stdcpp" GenerateAppIcon( cmake_options )
+		
+		'--------------------------------------------------------------------------------------------------------------------------------------------------
+		' COMPILER, LINKER OPTIONS
+		'	1. Get the Compiler options to pass
+		'	2. Get the DEFINE options to pass
+		'	3. Get the Linker options to pass
+		'	4. Get the Shared Library options to pass
+		'	5. Get the Static Library options to pass
+		'	6. Get the header search paths
+		'	7. If the target is not the C++ Tool:
+		'		Get the audio driver to use
+		'	8. Get the Network Client to use
+		'	9. MS Windows Only: If set, use Win Socket 2
+		'	10. Get the search paths for static libraries.
+		'	11. Get the search paths for static libraries.
+		'	13.	Get and resolve the soutce files and search paths.
+		'--------------------------------------------------------------------------------------------------------------------------------------------------
+		' CX_OPTS_COMPILER
+		If ConfigVarsContain( preset_name+"_COMPILER" )
+			UnifyConfigVarSeparator( preset_name+"_COMPILER",";",[" ","|"] )
+			cmake_options.AddCacheVar( "CX_OPTS_COMPILER","STRING",GetConfigVar( preset_name+"_COMPILER" ),"Options to pass to the C compiler." )
+			cmake_options.AddCacheVar( "CX_TRIGGER_OPTS_COMPILER","BOOL","ON","Turn on passing compiler options." )
+		Endif
+
+		
+		' CX_OPTS_DEFINES
+		If ConfigVarsContain( preset_name+"_DEFINES" )
+			UnifyConfigVarSeparator( preset_name+"_DEFINES",";",[" ","|"] )
+			cmake_options.AddCacheVar( "CX_OPTS_DEFINES","STRING",GetConfigVar( preset_name+"_DEFINES" ),"Define options to pass to the compiler." )
+			cmake_options.AddCacheVar( "CX_TRIGGER_OPTS_DEFINES","BOOL","ON","Turn on passing define options." )
+		Endif
+		
+		' CX_OPTS_LINKER
+		If ConfigVarsContain( preset_name+"_LINKER" )
+			UnifyConfigVarSeparator( preset_name+"_LINKER",";",[" ","|"] )
+			cmake_options.AddCacheVar( "CX_OPTS_LINKER","STRING",GetConfigVar( preset_name+"_LINKER" ),"Options to pass to the linker." )
+			cmake_options.AddCacheVar( "CX_TRIGGER_OPTS_LINKER","BOOL","ON","Turn on passing linker options." )
+		Endif
+		
+		' CX_PATHS_INCLUDE
+		If ConfigVarsContain( preset_name+"_INCLUDE_PATHS" )
+			UnifyConfigVarSeparator( preset_name+"_INCLUDE_PATHS",";",[" ","|"] )
+			cmake_options.AddCacheVar( "CX_PATHS_INCLUDE","PATH",GetConfigVar( preset_name+"_INCLUDE_PATHS" ),"Include directories to search." )
+			cmake_options.AddCacheVar( "CX_TRIGGER_PATHS_INCLUDE","BOOL","ON","Turn on passing include paths options." )
+		Endif
+		
+		' Add stuff that's not releated to the C++ Tool.
+		If tcc.target.system<>"stdcpp"
+			Local audiodriver:=GetConfigVar( preset_name+"_AUDIO_DRIVER" )
+			If audiodriver="" audiodriver="OpenAL"
+			cmake_options.AddCacheVar( "CX_AUDIO_DRIVER","PATH",audiodriver,"Set the audio driver to use. The default is to use OpenAL." )
+			cmake_options.AddCacheVar( "CX_TRIGGER_AUDIO_DRIVER","PATH",audiodriver,"Turn on using a audio driver solutions." )
+		Endif
+		
+		' Add Network Client support. This is not a preset.
+		If ConfigVarsContain( "CMAKE_NETWORK_CLIENT" )
+			Local networkclient:=GetConfigVar( "CMAKE_NETWORK_CLIENT" )
+			If networkclient="" networkclient="cURL"
+			cmake_options.AddCacheVar( "CX_NETWORK_CLIENT","PATH",networkclient,"Set the network client to use. The default is to use cURL." )
+			cmake_options.AddCacheVar( "CX_TRIGGER_NETWORK_CLIENT","BOOL","ON","Turn on using a network client solutions." )
+		Endif
+		
+		If ConfigVarsContain( "CMAKE_USE_WINSOCKET2" ) And HostOS()="winnt"
+			If GetConfigVar( "CMAKE_USE_WINSOCKET2" )="1" cmake_options.AddCacheVar( "CX_TRIGGER_WIN_SOCKET2","BOOL","ON","Turn on using winsocket 2." )
+		Endif
+		
+		'---------------------------------------------------------------------------------------------------------
+		' Section to parse paths and options
+		
+		' STATIC LIBRARIES
+		If ConfigVarsContain( preset_name+"_STATIC_LIB_PATHS" ) And ConfigVarsContain( preset_name+"_STATIC_LIBS" )
+		
+			UnifyConfigVarSeparator( preset_name+"_STATIC_LIB_PATHS",";",[" ","|"] )
+			UnifyConfigVarSeparator( preset_name+"_STATIC_LIBS",";",[" ","|"] )
+			
+			cmake_options.AddCacheVar( "CX_PATHS_STATIC_LIB","PATH",GetConfigVar( preset_name+"_STATIC_LIB_PATHS" ),"Paths to search for static libraries." )
+			cmake_options.AddCacheVar( "CX_OPTS_STATIC_LIB","STRING",GetConfigVar( preset_name+"_STATIC_LIBS" ),"Static libraries to pass." )
+			
+			cmake_options.AddCacheVar( "CX_TRIGGER_STATIC_LIBRARIES","BOOL","ON","Turn on passing static library options." )
+		Endif
+		
+		' CX_PATHS_SHARED_LIB.
+		If ConfigVarsContain( preset_name+"_SHARED_LIB_PATHS" ) And ConfigVarsContain( preset_name+"_SHARED_LIBS" )
+		
+			UnifyConfigVarSeparator( preset_name+"_SHARED_LIB_PATHS",";",[" ","|"] )
+			UnifyConfigVarSeparator( preset_name+"_SHARED_LIBS",";",[" ","|"] )
+			
+			cmake_options.AddCacheVar( "CX_PATHS_SHARED_LIB","PATH",GetConfigVar( preset_name+"_SHARED_LIB_PATHS" ),"Paths to search for shared libraries." )
+			cmake_options.AddCacheVar( "CX_OPTS_SHARED_LIB","STRING",GetConfigVar( preset_name+"_SHARED_LIBS" ),"Share libraries to pass." )
+			
+			cmake_options.AddCacheVar( "CX_TRIGGER_SHARED_LIBRARIES","BOOL","ON","Turn on passing shared library paths options." )
+		Endif
+		
+		' CX_PATHS_SOURCE. For sources. It's best to resolve the paths here, as CMake expects full or relative paths.
+		Local souresStk:=New StringStack()
+		If ConfigVarsContain( preset_name+"_SOURCES_PATHS" ) And ConfigVarsContain( preset_name+"_SOURCES" )
+		
+			souresStk=ResolvePaths( preset_name+"_SOURCES_PATHS",preset_name+"_SOURCES" )
+			cmake_options.AddCacheVar( "CX_TRIGGER_OPTS_SOURCE","BOOL","ON","Turn on passing source files options." )
+			
+		ElseIf ConfigVarsContain( preset_name+"_SOURCES" )
+			UnifyConfigVarSeparator( preset_name+"_SOURCES",";",[" ","|"] )
+			souresStk.Push( GetConfigVar( preset_name+"_SOURCES" ).Split( ";" ) )
+			cmake_options.AddCacheVar( "CX_TRIGGER_OPTS_SOURCE","BOOL","ON","Turn on passing source files options." )
+		Endif
+		
+		
+		'---------------------------------------------------------------------------------------------------------------
+		' FINAL SETUP
+		'	1. Generate the additional sources file
+		'	2. Generate the cache file
+		'	3. Delete the old preset build directory if the reconfigure flag is set
+		'	4. Construct the rest of the cmake command line.
+		'	5. Convert the cmake command line back to a string.
+		'	6. Update the environment PATH to put CMake and Ninja Build first in the search. Required to avoid picking up other versions
+		'	7. Copy the icon and the application assets.
+		'	8. Build, or build and run
+		'---------------------------------------------------------------------------------------------------------------
+	
+		If souresStk.Length()>0 GenerateSourceFile( souresStk )
+	
+		cmake_options.GenerateCacheFile()
+		
+		' As CMake cannot determine if a new file has been added, when searching source paths, this is used to trigger a rebuild.
+		If _reconfigure
+			Message "Reconfiguring CMake cache....."
+			If FileType( _project_target_dir+"/build/"+_preset_name )=FILETYPE_DIR DeleteDir( _project_target_dir+"/build/"+_preset_name,True )
+		Endif
+		
+		' Now once all the main CMake options and cache variables are set. 
+		cmake_cmd_list.Push( "-S ." )
+		cmake_cmd_list.Push( "-B "+_project_target_dir+"/build/"+_preset_name )
+		cmake_cmd_list.Push( "--preset "+_preset_name ) 
+		cmake_cmd_list.Push( "-C ~q"+_project_target_dir+"/cx-cachefile.cmake~q" )
+		
+		' Convert the cmake options list into a string.
+		Local cmake_cmd_line:=""
+		For Local i:=Eachin cmake_cmd_list
+			cmake_cmd_line+=" "+i
+		Next
+		
+		' NOTE: If CMAKE_PATH or NINJA_BUILD_PATH is set, then we have to make sure CMake and Ninja Build are the last thing added to the environment PATH,
+		'		else it could end up picking the wrong version instead of the ones set in the config.HOST.txt files
+		Select HostOS
+			Case "winnt"
+				
+				If FileType( tcc.NINJA_BUILD_PATH+"/ninja.exe" )=FILETYPE_FILE
+					Message("Ninja Build added to environment PATH variable~n    "+tcc.NINJA_BUILD_PATH)
+					AddEnvPath( tcc.NINJA_BUILD_PATH )
+				Endif
+				
+				If FileType( tcc.CMAKE_PATH+"/bin/cmake.exe" )=FILETYPE_FILE
+					Message("CMake added to environment PATH variable~n    "+tcc.CMAKE_PATH+"/bin")
+					AddEnvPath( tcc.CMAKE_PATH+"/bin" )
+				Endif
+				
+				If _verbose ShowEnvPathVar()
+				
+			Case "macos"
+				
+				If FileType( tcc.NINJA_BUILD_PATH+"/ninja" )=FILETYPE_FILE
+					Message("Ninja Build added to environment PATH variable~n    "+tcc.NINJA_BUILD_PATH)
+					AddEnvPath( tcc.NINJA_BUILD_PATH )
+				Endif
+				
+				If FileType( tcc.CMAKE_PATH+"/cmake" )=FILETYPE_FILE
+					Message("CMake added to environment PATH variable~n    "+tcc.CMAKE_PATH)
+					AddEnvPath( tcc.CMAKE_PATH )
+				Endif
+				
+				If _verbose ShowEnvPathVar()
+	
+			Case "linux"
+				
+				If FileType( tcc.NINJA_BUILD_PATH+"/ninja" )=FILETYPE_FILE
+					Message("Ninja Build added to environment PATH variable~n    "+tcc.NINJA_BUILD_PATH)
+					AddEnvPath( tcc.NINJA_BUILD_PATH )
+				Endif
+				
+				If FileType( tcc.CMAKE_PATH+"/bin/cmake" )=FILETYPE_FILE
+					Message("CMake added to environment PATH variable~n    "+tcc.CMAKE_PATH+"/bin")
+					AddEnvPath( tcc.CMAKE_PATH+"/bin" )
+				Endif
+				
+				If _verbose ShowEnvPathVar()
+				
+		End Select
+		
+		' Tricky bit here. Got to filter out the actual target.
+		Select tcc.target.system
+			Case "stdcpp"
+			
+			Default
+				CreateDataDir( "./data" )
+				CreateDir "./internal"
+				CreateDir "./external"
+		End Select	
+		
+		BuildOption( cmake_cmd_line )
+	End
+
+	Method BuildOption:Void( cmake_cmd_opts:String )
+		
+		'---------------------------------------------------------------------------------------------------------------
+		' CONFIGURE
+		'	1. Show mesages
+		'	2. Configure
+		'	3. Exit if configure only flag is set
+		'---------------------------------------------------------------------------------------------------------------
+		Print ""
+		Message "Project name '"+_projectName+"'"
+		Message "Install prefix path is.~n    "+_install_prefix
+		Message "Build configuration type is '"+ENV_CONFIG+"'"
+		Message "Project prefix name is '"+_preset_name+"'"
+		
+		Print "" 
+		Message "CMAKE ARGUMENTS~n    "+cmake_cmd_opts.Trim()+"~n"
+		Message "Executing CMake..."
+		
+		Execute "cmake "+cmake_cmd_opts
+		If GetConfigVar( "CMAKE_CONFIG_ONLY" )="1" ExitApp(0)
+		
+		'---------------------------------------------------------------------------------------------------------------
+		' BUILD AND INSTALL
+		'	1. Chenge directory into the build preset name
+		'	2. If CMAKE_VERBOSE_OUTPUT set, then add the verbose option to the end to display compile and linker output
+		'	3. Install to output location.
+		'	4. If CMAKE_DEBUG_CACHE_VARS is set, then use CMake's cache variables output
+		'	5. Run the pllication
+		'---------------------------------------------------------------------------------------------------------------
+		Print ""
+		Message "Starting build and install process."
+		ChangeDir( _project_target_dir+"/build/"+_preset_name )
+		Local build_dir:=CurrentDir()
+		
+		Local verbose_build:="",verbose_install:=""
+		
+		' Default verbose
+		If _verbose
+			verbose_build=" --verbose"
+			verbose_install=" --verbose"
+		Endif
+		
+		Select HostOS()
+			Case "winnt"
+			
+				Execute "cmake.exe --build "+build_dir+" --config "+casedConfig+verbose_build			
+				Execute "cmake.exe --install "+build_dir+" --config "+casedConfig+verbose_install
+				
+			Case "linux"
+				
+				Execute "cmake --build "+build_dir+" --config "+casedConfig+verbose_build		
+				Execute "cmake --install "+build_dir+" --config "+casedConfig+verbose_install
+				
+			Case "macos"
+			
+				' Full suppress othput of shell environment
+				If Not _verbose
+					verbose_build=" -- -hideShellScriptEnvironment=YES -quiet"
+					verbose_install=""
+				Endif
+				
+				Execute "cmake --build "+build_dir+" --config "+casedConfig+verbose_build
+				Execute "cmake --install "+build_dir+" --config "+casedConfig+verbose_install
+				
+		End Select
+		
+		If GetConfigVar( "CMAKE_DEBUG_CACHE_VARS" )="1"
+			Message "~nCMake Configuration Cache variables"
+			Execute "cmake -LAH "+build_dir
+			Print ""
+			ExitApp(0)
+		Endif
+		
+		If tcc.opt_run OptionRun()
+	End
+	
+	Method OptionRun:Void()
+	
+		'---------------------------------------------------------------------------------------------------------------
+		' RUN APPLICATION
+		'	1. Change directory into the ouptput directory
+		'	2. Run the application based on the host operating systems execution methods
+		'---------------------------------------------------------------------------------------------------------------
+		Print ""
+		Message "Executing '"+_projectName+"'"
+		ChangeDir RealPath( _install_prefix )
+		
+		Select HostOS()
+		
+			Case "winnt"
+			
+				Select tcc.target.system
+					Default
+						Execute  _projectName
+				End Select
+				
+			Case "linux"
+			
+				Select tcc.target.system
+					Default
+						Execute "./"+ _projectName
+				End Select
+				
+			Case "macos"
+			
+				' The default on macos is to run any unknown target type as an app bundle.
+				Select tcc.target.system
+					Case "stdcpp"
+						Execute "./"+ _projectName
+					Default
+						Execute "./"+ _projectName+".app/Contents/MacOS/"+_projectName
+				End Select
+				
+		End Select
+		
+	End
+	
+	'---------------------------------------------------------------------------------------
+	' Internal variables and helper functions
+	'---------------------------------------------------------------------------------------
+	Private
+	
+	Method GenerateSourceFile:Void( stk:StringStack )
+		
+		
+		If Not FileType( _project_target_dir+"/CMake" )=FILETYPE_DIR CreateDir _project_target_dir+"/CMake"
+		
+		Local sourceFile:=FileStream.Open(_project_target_dir+"/cmake/source-files.cmake","w" )
+		sourceFile.WriteString( ToCMakeCacheString("CX_OPTS_SOURCE",stk))
+		sourceFile.Close()
+		
+	End
+	
+	Method ResolvePaths:StringStack( cvar_paths:String,cvar_files:String )
+	
+		Local stk:=New StringStack()
+		
+		UnifyConfigVarSeparator( cvar_files,";",[" ","|"] )
+		UnifyConfigVarSeparator( cvar_paths,";",[" ","|"] )
+		
+		For Local p:=Eachin GetConfigVar( cvar_paths ).Split( ";" )
+
+			For Local s:=Eachin GetConfigVar( cvar_files ).Split( ";" )
+
+				If FileType( p+"/"+s )=FILETYPE_FILE stk.Push( p+"/"+s )
+				If s.StartsWith( "./" ) Or s.StartsWith( "../" ) stk.Push( s )
+				
+			Next s
+	
+		Next p
+		
+		Return stk
+	End
+	
+	Method UpdateMainSourceFile:Void()
+		CopySourceFiles( "." )
+		
+		Local main:=LoadString( "main.cpp" )
+		
+		main=ReplaceBlock( main,"TRANSCODE",transCode )
+		main=ReplaceBlock( main,"CONFIG",Config() )
+		
+		SaveString main,"main.cpp"
+	End
+	
+	Method AddEnvPath:Void( env:String )
+		Local path:=GetEnv("PATH")
+		If path.StartsWith( env ) Return
+		If HostOS()="winnt" SetEnv( "PATH",env+";"+path ) Else SetEnv( "PATH",env+":"+path )
+	End
+	
+	Method ShowEnvPathVar:Void()
+		Local delimiter:=":"
+		If HostOS()="winnt" delimiter=";"
+		
+		Message("Environment 'PATH' variable:")
+		For Local i:=Eachin GetEnv("PATH").Split( delimiter )
+			If i="" Continue
+			Print "    "+i
+		Next
+	End
+	
+	Method GenerateAppIcon:Void( cmake_options:CMakeCacheOption )
+		
+		If HostOS()="linux" Return
+		
+		Local valid_path:Bool,
+			icon_path:=GetConfigVar( "APP_ICON" )
+		
+		If icon_path<>""
+		
+			If FileType( icon_path )=FILETYPE_FILE Or FileType( ENV_PROJECT_DIRECTORY+"/"+icon_path )=FILETYPE_FILE
+				valid_path=True
+				If FileType( ENV_PROJECT_DIRECTORY+"/"+icon_path )=FILETYPE_FILE icon_path=ENV_PROJECT_DIRECTORY+"/"+icon_path
+			Endif
+		
+			Local input_ext:=ExtractExt( icon_path ),
+				colour:="#FFFFFF",
+				circular:=False
+				
+			Select input_ext.ToLower()
+				Case "svg","png","jpg","tga","bmp","psd","hdr","pic","pnm","gif"
+					Print "Image for icon: "+StripDir( icon_path )
+					
+				Default
+					Die "Invalid input image format for icon. Excepted: svg, png, jpg, tga, bmp, psd, hdr, pic, pnm, and gif"
+			End Select
+			
+			Select tcc.target.system
+				Case "android"
+				
+				Case "ios"
+				
+				Default
+					Select HostOS()
+						Case "winnt"
+					 		Image2Icon( "winnt",icon_path,_project_target_dir+"app_icon.ico" )
+					 	Case "macos"
+					 		Image2Icon( "macos",icon_path,_project_target_dir+"app_icon.icns" )
+					End Select
+			End Select
+			
+			cmake_options.AddCacheVar( "CX_APP_ICON","PATH",StripDir( icon_path ),"Pass the original file name for the icon" )
+			Message( "Using image as application icon: "+StripDir( icon_path ) )
+		Else
+			
+			Select tcc.target.system
+				Case "android"
+				
+				Case "ios"
+				
+				Default
+					Select HostOS()
+						Case "winnt"
+							CopyFile( _project_target_dir+"cerberus.ico",_project_target_dir+"app_icon.ico" )
+					 		cmake_options.AddCacheVar( "CX_APP_ICON","PATH","cerberus.ico","Pass the original file name for the icon" )
+					 		Message( "Using image as application icon: cerberus.ico" )
+					 		
+					 	Case "macos"
+					 		CopyFile( _project_target_dir+"cerberus.icns",_project_target_dir+"app_icon.icns" )
+					 		cmake_options.AddCacheVar( "CX_APP_ICON","PATH","cerberus.icns","Pass the original file name for the icon" )
+					 		Message( "Using image as application icon: cerberus.icns" )
+					 		
+					End Select
+			End Select
+		
+		Endif
+	
+	End
+	
+	Field _project_target_dir:String			' Convenient private variable to hold the path to where the copied project template is.
+	Field _projectName:String					' The actual output file name
+	Field _preset_name:String					' The unaltered preset name
+	Field _install_prefix:String				' The output directory
+	Field _reconfigure:Bool						' Flag that gets set when a reconfig switch  is set
+	Field _shared_dir:String					' Path to where the default CMake files are located
+	Field _verbose:Bool							' Used to trigger verbose output for compiler, linker and cmake
+	
+ End
