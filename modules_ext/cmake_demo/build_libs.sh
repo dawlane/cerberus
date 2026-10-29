@@ -22,6 +22,7 @@ set -Eeuo pipefail
 #   ./build_libs.sh -p macos-x64-release -m ./my_library
 #   ./build_libs.sh -b
 #   ./build_libs.sh -r -p linux-x64-release
+#   ./build_libs.sh -a
 #
 # =============================================================================
 
@@ -29,6 +30,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 PRESET=""
 CMAKE_PATH=""
+NINJA_PATH=""
 MODULE_PATH=""
 
 HELP=false
@@ -36,6 +38,7 @@ LIST_GENERATORS=false
 LIST_DIRS=false
 LIST_BUILDERS=false
 REMOVE_BUILD=false
+CLEAN_ALL=false
 
 # Error handling
 error_trap()
@@ -68,6 +71,7 @@ show_help()
     echo "  -c, --cmake <path>       Set the CMake installation path."
     echo "  -m, --module <path|name> Target a single module directory."
     echo "  -r, --remove             Remove demo_build directories matching preset."
+    echo "  -a, --clean              Remove all demo_build directories."
     echo "  -b, --builders           List available CMake presets for target libraries."
     echo "  -g, --generators         List supported CMake generators."
     echo "  -l, --list               List directories containing a CMakeLists.txt file."
@@ -130,6 +134,12 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
 
+        -a|--clean)
+
+            CLEAN_ALL=true
+            shift
+            ;;
+
         -b|--builders)
 
             LIST_BUILDERS=true
@@ -169,6 +179,48 @@ done
 # Help
 if [[ "$HELP" == true ]]; then
     show_help
+    exit 0
+fi
+
+# Clean all build directories
+if [[ "$CLEAN_ALL" == true ]]; then
+
+    echo
+    echo "========================================"
+    echo " CLEAN ALL BUILD DIRECTORIES"
+    echo "========================================"
+
+    for LIBRARY_DIR in "$SCRIPT_DIR"/*; do
+        [[ -d "$LIBRARY_DIR" ]] || continue
+
+        # Check if the directory itself or any subdirectory contains CMakeLists.txt
+        if find "$LIBRARY_DIR" -type f -name "CMakeLists.txt" -print -quit | grep -q .; then
+            BINARY_DIR="${LIBRARY_DIR}/src/demo_build"
+            INSTALL_DIR="${LIBRARY_DIR}/demo_build"
+
+            echo "Library: $(basename "$LIBRARY_DIR")"
+
+            if [[ -d "$BINARY_DIR" || -d "INSTALL_DIR" ]]; then
+                if [[ -d "$BINARY_DIR" ]]; then rm -rf "$BINARY_DIR"; fi
+                if [[ -d "$INSTALL_DIR" ]]; then rm -rf "$INSTALL_DIR"; fi
+
+                if [[ ! -d "$BINARY_DIR" && ! -d "INSTALL_DIR" ]]; then
+                    echo "       Build directories removed"
+                else
+                    if [[ -d "$BINARY_DIR" ]]; then echo "       Failed to remove build directory"; fi
+                    if [[ -d "$INSTALL_DIR" ]]; then echo "       Failed to remove output directory"; fi
+                fi
+            else
+                echo "       Already cleaned"
+            fi
+
+            echo
+
+        fi
+    done
+
+    echo "Cleaning complete."
+    echo
     exit 0
 fi
 
@@ -218,7 +270,7 @@ if [[ -n "$CMAKE_PATH" ]]; then
 
 fi
 
-# Configure CMake path
+# Configure Ninja Build path
 if [[ -n "$NINJA_PATH" ]]; then
 
     if [[ ! -d "$NINJA_PATH" ]]; then
@@ -379,9 +431,9 @@ if [[ "$LIST_GENERATORS" == true ]]; then
 fi
 
 # Validate preset
-if [[ -z "$PRESET" ]]; then
+if [[ -z "$PRESET" && "$CLEAN_ALL" == false ]]; then
 
-    echo "ERROR: A preset is required."
+    echo "ERROR: A preset is required unless using --clean."
     echo
     echo "Use -p/--preset with one of the available build presets."
     exit 1
@@ -656,6 +708,7 @@ for LIBRARY_DIR in "${LIBRARIES[@]}"; do
         echo "ERROR: Build failed."
         echo "       Library: $LIBRARY_NAME"
         echo "       Preset:  $PRESET"
+        echo
         exit 1
 
     fi
@@ -673,6 +726,7 @@ for LIBRARY_DIR in "${LIBRARIES[@]}"; do
         echo "ERROR: Installation failed."
         echo "       Library: $LIBRARY_NAME"
         echo "       Preset:  $PRESET"
+        echo
         exit 1
 
     fi

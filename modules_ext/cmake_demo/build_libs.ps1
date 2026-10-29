@@ -9,6 +9,7 @@ param(
     [Alias("c")][string]$cmake = "",
     [Alias("m")][string]$module = "",
     [Alias("r")][switch]$remove,
+    [Alias("a")][switch]$clean_all,
     [Alias("b")][switch]$list_builders = $false,
     [Alias("g")][switch]$list_generators = $false,
     [Alias("l")][switch]$list_modules = $false,
@@ -69,12 +70,13 @@ try {
         Write-Host "Usage: build_libs.ps1 [options]"
         Write-Host ""
         Write-Host "Options:"
-        Write-Host "  -p, -preset <name>      Set the CMake build preset. Required."
+        Write-Host "  -p, -preset <name>      Set the CMake build preset. Required unless using -a/--clean."
         Write-Host "  -n, -ninja <path>       Set the path to the ninja build binary."
         Write-Host "  -c, -cmake <path>       Set the CMake installation path."
         Write-Host "  -m, -module <path|name> Build or remove only a single target module directory."
         Write-Host "  -b, --builders          List available CMake presets for target libraries."
         Write-Host "  -r, -remove             Remove all built modules, or single module with option -m."
+        Write-Host "  -a, --clean              Remove all demo_build directories."
         Write-Host "  -g, -list_generators    List supported CMake generators."
         Write-Host "  -l, -list               List directories containing a CMakeLists.txt file."
         Write-Host "  -h, -help               Display this help."
@@ -176,9 +178,39 @@ try {
         exit 0
     }
 
-    # CMake version
-    $versionString = (& "$cmake\bin\cmake.exe" --version | Select-Object -First 1) -replace '^.*?([0-9]+\.[0-9]+(\.[0-9]+)?).*$', '$1'
-    $cmakeVersion = [Version]$versionString
+    # Clean all build directories
+    if ($clean_all) {
+
+        Write-Host "`n========================================"
+        Write-Host " CLEAN ALL BUILD DIRECTORIES"
+        Write-Host "========================================"
+
+        foreach ($LIBRARY_DIR in Get-ChildItem -LiteralPath $rootDir -Directory) {
+            $libraryName = $LIBRARY_DIR.Name
+            $binaryDir = Join-Path $LIBRARY_DIR.FullName "src\demo_build"
+            $installDir = Join-Path $LIBRARY_DIR.FullName "demo_build"
+
+            Write-Host "Library: $libraryName"
+
+            if (Test-Path -Path $binaryDir) {
+                Write-Host "  Removing binary path:  $binaryDir"
+                Remove-Item -Path $binaryDir -Recurse -Force
+            } else {
+                Write-Host "  Binary path not found: $binaryDir"
+            }
+
+            if (Test-Path -Path $installDir) {
+                Write-Host "  Removing install path: $installDir"
+                Remove-Item -Path $installDir -Recurse -Force
+            } else {
+                Write-Host "  Install path not found: $installDir"
+            }
+            Write-Host ""
+        }
+
+        Write-Host "Cleaning complete.`n"
+        exit 0
+    }
 
     # List modules/directories containing CMakeLists.txt
     if ($list_modules) {
@@ -418,8 +450,8 @@ try {
 
         foreach ($libDir in $Libraries) {
             $libraryName = Split-Path $libDir -Leaf
-            $binaryDir = Join-Path $libDir "src/demo_build/$Preset"
-            $installDir = Join-Path $libDir "demo_build/$Preset"
+            $binaryDir = Join-Path $libDir "src\demo_build\$Preset"
+            $installDir = Join-Path $libDir "demo_build\$Preset"
 
             Write-Host "Library: $libraryName"
 
@@ -444,9 +476,9 @@ try {
     }
 
     # Validate preset
-    if ([string]::IsNullOrEmpty($preset)) {
+    if ([string]::IsNullOrEmpty($preset) -and -not $clean_all) {
 
-        Write-Host "ERROR: A preset is required."
+        Write-Host "ERROR: A preset is required unless using -a/--clean."
         Write-Host ""
         Write-Host "Use -p/-preset with one of the available build presets:"
         Write-Host ""
